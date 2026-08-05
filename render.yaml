@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: prompt-builder-api
+    runtime: node
+    plan: free
+    rootDir: server
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /health
+    envVars:
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: CLAUDE_MODEL
+        value: claude-haiku-4-5-20251001
+      - key: ALLOWED_ORIGIN
+        sync: false
