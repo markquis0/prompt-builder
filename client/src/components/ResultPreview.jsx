@@ -1,4 +1,5 @@
 import { useRef, useState } from "react";
+import FeedbackWidget from "./FeedbackWidget.jsx";
 
 function stripTags(text) {
   return text
@@ -27,7 +28,15 @@ function legacyCopy(text) {
   return ok;
 }
 
-export default function ResultPreview({ prompt, onChange, onEditAnswers, loading, error, onRetry }) {
+export default function ResultPreview({
+  prompt,
+  onChange,
+  onEditAnswers,
+  loading,
+  error,
+  onRetry,
+  originalPrompt,
+}) {
   const [copied, setCopied] = useState(false);
   const [copyFailed, setCopyFailed] = useState(false);
   const [plainView, setPlainView] = useState(false);
@@ -76,46 +85,49 @@ export default function ResultPreview({ prompt, onChange, onEditAnswers, loading
   }
 
   return (
-    <div className="card result-preview">
-      <div className="result-header">
-        <h2>Your structured prompt</h2>
-        <div className="result-header-actions">
-          <button type="button" className="link-button" onClick={onEditAnswers}>
-            Edit answers
+    <>
+      <div className="card result-preview">
+        <div className="result-header">
+          <h2>Your structured prompt</h2>
+          <div className="result-header-actions">
+            <button type="button" className="link-button" onClick={onEditAnswers}>
+              Edit answers
+            </button>
+            <label className="plain-toggle">
+              <input
+                type="checkbox"
+                checked={plainView}
+                onChange={(e) => setPlainView(e.target.checked)}
+              />
+              Hide tags (display only)
+            </label>
+          </div>
+        </div>
+
+        {plainView ? (
+          <div className="result-plain-view">{stripTags(prompt)}</div>
+        ) : (
+          <textarea
+            ref={textareaRef}
+            className="result-textarea"
+            value={prompt}
+            onChange={(e) => onChange(e.target.value)}
+            rows={16}
+          />
+        )}
+
+        <div className="copy-row">
+          <button type="button" className="btn btn-primary copy-btn" onClick={handleCopy}>
+            {copied ? "Copied!" : "Copy"}
           </button>
-          <label className="plain-toggle">
-            <input
-              type="checkbox"
-              checked={plainView}
-              onChange={(e) => setPlainView(e.target.checked)}
-            />
-            Hide tags (display only)
-          </label>
+          {copyFailed && (
+            <span className="copy-fallback-hint">
+              Couldn't access your clipboard — text is selected, press Ctrl/Cmd+C to copy.
+            </span>
+          )}
         </div>
       </div>
-
-      {plainView ? (
-        <div className="result-plain-view">{stripTags(prompt)}</div>
-      ) : (
-        <textarea
-          ref={textareaRef}
-          className="result-textarea"
-          value={prompt}
-          onChange={(e) => onChange(e.target.value)}
-          rows={16}
-        />
-      )}
-
-      <div className="copy-row">
-        <button type="button" className="btn btn-primary copy-btn" onClick={handleCopy}>
-          {copied ? "Copied!" : "Copy"}
-        </button>
-        {copyFailed && (
-          <span className="copy-fallback-hint">
-            Couldn't access your clipboard — text is selected, press Ctrl/Cmd+C to copy.
-          </span>
-        )}
-      </div>
-    </div>
+      <FeedbackWidget originalPrompt={originalPrompt} />
+    </>
   );
 }

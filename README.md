@@ -46,6 +46,18 @@ reason about. Fly.io's free tier also works but leans on its CLI/`fly
 launch` flow rather than a single declarative file, which is more setup
 than a v1 needs.
 
+**Formspree integration — React SDK vs. plain AJAX vs. raw HTML form:**
+`@formspree/react`'s `useForm` — this is already a React app, so it's
+the natural fit, and it buys retry-relevant state (`submitting`,
+`succeeded`, `errors`) for free instead of hand-rolling a fetch wrapper.
+It's used in its programmatic form (`handleSubmit(dataObject)`, per the
+SDK's types) rather than wired to a native `<form onSubmit>`, since the
+feedback widget's rating questions are one-tap buttons, not form
+fields — there's nothing for a native form submission to collect. The
+vanilla-JS AJAX package and a plain HTML `<form action="...">` were the
+other two options; both assume a real `<form>` with named fields
+driving the submission, which doesn't match this button-driven UI.
+
 ## Project structure
 
 ```
@@ -73,7 +85,8 @@ prompt-builder/
             ├── QAFlow.jsx
             ├── QuestionCard.jsx
             ├── SupportingContext.jsx
-            └── ResultPreview.jsx
+            ├── ResultPreview.jsx
+            └── FeedbackWidget.jsx  # @formspree/react useForm, no backend involved
 ```
 
 ## Setup
@@ -136,6 +149,25 @@ needed in dev.
 Session state auto-saves to `localStorage` on every change, so a page
 refresh mid-flow doesn't lose progress.
 
+### Feedback widget
+
+Below the result card, a small collapsed "Got a sec for quick feedback?"
+prompt appears — it never blocks or precedes Copy, which stays the
+primary action. Expanding it shows two one-tap questions (were the
+clarifying questions useful; would you use this prompt as-is) and an
+optional comment field. Submitting uses the official
+[`@formspree/react`](https://github.com/formspree/formspree-js/tree/master/packages/formspree-react)
+`useForm` hook, called directly with a data object (`questions_useful`,
+`would_use_as_is`, `comments`, `original_prompt` — the rough input, not
+the assembled result) rather than a native `<form>` submit, since the
+one-tap questions are buttons, not form fields. Requires
+`VITE_FEEDBACK_FORM_ID` — the ID from your Formspree form's URL
+(`https://formspree.io/f/<this part>`), not the full URL. No backend
+route, no database, per the SRS non-goals. A failed or unconfigured ID
+shows the same inline error-banner-plus-Retry pattern used elsewhere,
+never a silent failure. "Not now" dismisses it at any point without
+affecting the rest of the page.
+
 ## Deploy
 
 Free-tier deploy for sharing a working URL and gathering feedback — not
@@ -169,9 +201,16 @@ tool, not for a snappy demo on demand.
 1. In the Vercel dashboard: **New Project**, import the same repo, set
    **Root Directory** to `client/`. Vercel auto-detects Vite and uses
    the build command/output dir from `vercel.json`.
-2. Set the one env var: `VITE_API_BASE_URL` = your Render backend's
-   origin from step 1.5 (e.g. `https://prompt-builder-api.onrender.com`,
-   no trailing slash). This is baked into the JS bundle at build time.
+2. Set env vars:
+   - `VITE_API_BASE_URL` = your Render backend's origin from step 1.5
+     (e.g. `https://prompt-builder-api.onrender.com`, no trailing slash).
+   - `VITE_FEEDBACK_FORM_ID` = your Formspree form's ID — just the ID
+     from `https://formspree.io/f/<id>`, not the full URL (create a free
+     form at [formspree.io](https://formspree.io) first). Optional — if
+     you skip it, the feedback widget's submit just shows its retry
+     banner instead of sending anywhere; nothing else breaks.
+
+   Both are baked into the JS bundle at build time.
 3. Deploy. Grab the resulting `https://<your-app>.vercel.app` URL.
 
 ### 3. Close the loop
@@ -191,12 +230,14 @@ against the deployed backend.
 | `CLAUDE_MODEL` | Render | no | defaults to Haiku, set in `render.yaml` |
 | `ALLOWED_ORIGIN` | Render | yes (prod) | your Vercel origin, comma-separated if multiple |
 | `VITE_API_BASE_URL` | Vercel | yes | your Render origin, no trailing slash |
+| `VITE_FEEDBACK_FORM_ID` | Vercel | no | Formspree form ID (not the full URL); unset = widget shows retry banner on submit, nothing else affected |
 
 ## Error handling
 
-Both LLM calls can fail (rate limits, network, malformed model output).
-Each surfaces an inline error banner with a **Retry** button that
-re-sends the same request — the app never hangs silently or crashes.
+Both LLM calls, and the feedback widget's submission, can fail (rate
+limits, network, misconfigured endpoint). Each surfaces an inline error
+banner with a **Retry** button that re-sends the same request — the app
+never hangs silently or crashes.
 
 ## Known dev-only items
 

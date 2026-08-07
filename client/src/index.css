@@ -354,6 +354,80 @@ input:focus {
   padding: 40px 0;
 }
 
+.feedback-widget {
+  margin-top: 16px;
+  padding: 20px 24px;
+}
+
+.feedback-collapsed {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.feedback-prompt-text {
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
+.feedback-collapsed-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.feedback-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 4px;
+}
+
+.feedback-header h3 {
+  font-size: 15px;
+  margin: 0;
+  color: var(--text-h);
+}
+
+.feedback-close {
+  font-size: 18px;
+  line-height: 1;
+  padding: 4px 8px;
+}
+
+.feedback-question {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-h);
+  margin: 14px 0 8px;
+}
+
+.feedback-comments {
+  min-height: 50px;
+  margin-top: 8px;
+}
+
+.feedback-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-top: 18px;
+}
+
+.feedback-submit {
+  margin-top: 0;
+  min-width: 100px;
+}
+
+.feedback-thanks {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 14px;
+  text-align: center;
+}
+
 @media (max-width: 560px) {
   .card {
     padding: 20px;

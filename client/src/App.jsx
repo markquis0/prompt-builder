@@ -183,6 +183,7 @@ export default function App() {
             loading={assembleLoading}
             error={assembleError}
             onRetry={() => requestAssembly(session)}
+            originalPrompt={session.prompt}
           />
         )}
       </main>
