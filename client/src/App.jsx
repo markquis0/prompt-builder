@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Analytics } from "@vercel/analytics/react";
 import IntakeForm from "./components/IntakeForm.jsx";
 import QAFlow from "./components/QAFlow.jsx";
 import ResultPreview from "./components/ResultPreview.jsx";
@@ -135,58 +136,61 @@ export default function App() {
   }
 
   return (
-    <div className="app-shell">
-      <header className="app-header">
-        <span className="app-title">Prompt Builder</span>
-        {session.stage !== "intake" && (
-          <button type="button" className="btn btn-ghost" onClick={startOver}>
-            Start Over
-          </button>
-        )}
-      </header>
+    <>
+      <Analytics />
+      <div className="app-shell">
+        <header className="app-header">
+          <span className="app-title">Prompt Builder</span>
+          {session.stage !== "intake" && (
+            <button type="button" className="btn btn-ghost" onClick={startOver}>
+              Start Over
+            </button>
+          )}
+        </header>
 
-      <main className="app-main">
-        {session.stage === "intake" && (
-          <IntakeForm
-            initialPrompt={session.prompt}
-            initialPromptType={session.promptType}
-            onSubmit={requestQuestions}
-            loading={questionsLoading}
-            error={questionsError}
-            onRetry={() => lastIntakeSubmission && requestQuestions(lastIntakeSubmission)}
-          />
-        )}
+        <main className="app-main">
+          {session.stage === "intake" && (
+            <IntakeForm
+              initialPrompt={session.prompt}
+              initialPromptType={session.promptType}
+              onSubmit={requestQuestions}
+              loading={questionsLoading}
+              error={questionsError}
+              onRetry={() => lastIntakeSubmission && requestQuestions(lastIntakeSubmission)}
+            />
+          )}
 
-        {session.stage === "qa" && (
-          <QAFlow
-            questions={session.questions}
-            answers={session.answers}
-            currentIndex={session.currentIndex}
-            supportingContext={session.supportingContext}
-            onAnswerChange={handleAnswerChange}
-            onSupportingContextChange={handleSupportingContextChange}
-            onBack={goBack}
-            onNext={goToNextQuestion}
-            onSkip={skipQuestion}
-            onSkipToResult={skipToResult}
-            loading={assembleLoading}
-            error={assembleError}
-            onRetry={() => requestAssembly(session)}
-          />
-        )}
+          {session.stage === "qa" && (
+            <QAFlow
+              questions={session.questions}
+              answers={session.answers}
+              currentIndex={session.currentIndex}
+              supportingContext={session.supportingContext}
+              onAnswerChange={handleAnswerChange}
+              onSupportingContextChange={handleSupportingContextChange}
+              onBack={goBack}
+              onNext={goToNextQuestion}
+              onSkip={skipQuestion}
+              onSkipToResult={skipToResult}
+              loading={assembleLoading}
+              error={assembleError}
+              onRetry={() => requestAssembly(session)}
+            />
+          )}
 
-        {session.stage === "result" && (
-          <ResultPreview
-            prompt={session.finalPrompt}
-            onChange={handleFinalPromptChange}
-            onEditAnswers={editAnswers}
-            loading={assembleLoading}
-            error={assembleError}
-            onRetry={() => requestAssembly(session)}
-            originalPrompt={session.prompt}
-          />
-        )}
-      </main>
-    </div>
+          {session.stage === "result" && (
+            <ResultPreview
+              prompt={session.finalPrompt}
+              onChange={handleFinalPromptChange}
+              onEditAnswers={editAnswers}
+              loading={assembleLoading}
+              error={assembleError}
+              onRetry={() => requestAssembly(session)}
+              originalPrompt={session.prompt}
+            />
+          )}
+        </main>
+      </div>
+    </>
   );
 }
