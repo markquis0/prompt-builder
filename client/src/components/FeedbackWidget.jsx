@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "@formspree/react";
+import { track } from "@vercel/analytics";
 
 const QUESTIONS_USEFUL_OPTIONS = ["Yes", "Kind of", "Felt like busywork"];
 const WOULD_USE_OPTIONS = ["Yes", "With edits", "No"];
@@ -19,6 +20,29 @@ export default function FeedbackWidget({ originalPrompt }) {
   // useForm must be called unconditionally; submission itself is guarded
   // below so an unset formId never fires a request against a bogus key.
   const [formState, submitFeedback] = useForm(formId || "unconfigured");
+
+  // Fires once per mount — i.e. once per result shown, not once per
+  // interaction with the widget (re-renders from expanding/answering
+  // don't re-run this, since the dependency array is empty).
+  useEffect(() => {
+    track("feedback_widget_shown");
+  }, []);
+
+  // Fires exactly once, on the render where `succeeded` flips from false to
+  // true — not on every subsequent re-render while it stays true.
+  useEffect(() => {
+    if (formState.succeeded) {
+      track("feedback_submitted", {
+        questions_useful: questionsUseful,
+        would_use_as_is: wouldUseAsIs,
+      });
+    }
+  }, [formState.succeeded]);
+
+  function handleDismiss() {
+    track("feedback_dismissed");
+    setDismissed(true);
+  }
 
   function handleSubmit() {
     if (!formId) {
@@ -55,7 +79,7 @@ export default function FeedbackWidget({ originalPrompt }) {
           <button type="button" className="link-button" onClick={() => setExpanded(true)}>
             Give feedback
           </button>
-          <button type="button" className="btn btn-ghost" onClick={() => setDismissed(true)}>
+          <button type="button" className="btn btn-ghost" onClick={handleDismiss}>
             Not now
           </button>
         </div>
@@ -74,7 +98,7 @@ export default function FeedbackWidget({ originalPrompt }) {
         <button
           type="button"
           className="btn btn-ghost feedback-close"
-          onClick={() => setDismissed(true)}
+          onClick={handleDismiss}
           aria-label="Dismiss feedback"
         >
           ×
@@ -141,7 +165,7 @@ export default function FeedbackWidget({ originalPrompt }) {
         >
           {formState.submitting ? "Sending…" : "Submit"}
         </button>
-        <button type="button" className="link-button" onClick={() => setDismissed(true)}>
+        <button type="button" className="link-button" onClick={handleDismiss}>
           Not now
         </button>
       </div>

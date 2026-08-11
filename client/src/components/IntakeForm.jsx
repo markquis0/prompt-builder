@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { track } from "@vercel/analytics";
 
 const PROMPT_TYPES = ["Writing", "Coding", "Analysis", "Creative", "Research", "Other"];
 const MAX_LENGTH = 5000;
@@ -13,6 +14,7 @@ export default function IntakeForm({ initialPrompt, initialPromptType, onSubmit,
   function handleSubmit(e) {
     e.preventDefault();
     if (!canSubmit) return;
+    track("prompt_submitted", { prompt_type: promptType || "unspecified" });
     onSubmit({ prompt: trimmed, promptType });
   }
 

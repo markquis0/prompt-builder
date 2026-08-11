@@ -1,5 +1,22 @@
+import { track } from "@vercel/analytics";
 import QuestionCard from "./QuestionCard.jsx";
 import SupportingContext from "./SupportingContext.jsx";
+
+// Tallies answered vs. skipped across all questions given a snapshot of the
+// answers dict. A missing/empty answer counts as skipped, matching how
+// App.jsx's buildQaPairs() treats it when assembling the final prompt.
+function tallyAnswers(questions, answersSnapshot) {
+  let answeredCount = 0;
+  let skippedCount = 0;
+  questions.forEach((q) => {
+    if (answersSnapshot[q.id]) {
+      answeredCount += 1;
+    } else {
+      skippedCount += 1;
+    }
+  });
+  return { answered_count: answeredCount, skipped_count: skippedCount };
+}
 
 export default function QAFlow({
   questions,
@@ -18,6 +35,36 @@ export default function QAFlow({
 }) {
   const question = questions[currentIndex];
   const isLast = currentIndex === questions.length - 1;
+
+  function handleNext() {
+    if (isLast) {
+      // The current question's answer is already reflected in `answers`
+      // (QuestionCard fires onAnswerChange on every keystroke), so this
+      // snapshot is accurate as-is.
+      track("qa_completed", tallyAnswers(questions, answers));
+    }
+    onNext();
+  }
+
+  function handleSkip() {
+    if (isLast) {
+      // Unlike handleNext, the parent hasn't committed this question's skip
+      // into `answers` yet at this point — override it locally so the tally
+      // matches what's about to be sent to the assembler.
+      track(
+        "qa_completed",
+        tallyAnswers(questions, { ...answers, [question.id]: "" })
+      );
+    }
+    onSkip();
+  }
+
+  function handleSkipToResult() {
+    // Can fire from any question index. Anything never reached is absent
+    // from `answers`, which tallyAnswers already counts as skipped.
+    track("qa_completed", tallyAnswers(questions, answers));
+    onSkipToResult();
+  }
 
   return (
     <div className="card qa-flow">
@@ -48,15 +95,15 @@ export default function QAFlow({
           <button type="button" className="btn btn-secondary" onClick={onBack} disabled={currentIndex === 0}>
             Back
           </button>
-          <button type="button" className="btn btn-ghost" onClick={onSkip} disabled={loading}>
+          <button type="button" className="btn btn-ghost" onClick={handleSkip} disabled={loading}>
             Skip
           </button>
         </div>
         <div className="qa-nav-right">
-          <button type="button" className="btn btn-ghost" onClick={onSkipToResult} disabled={loading}>
+          <button type="button" className="btn btn-ghost" onClick={handleSkipToResult} disabled={loading}>
             Skip to result
           </button>
-          <button type="button" className="btn btn-primary" onClick={onNext} disabled={loading}>
+          <button type="button" className="btn btn-primary" onClick={handleNext} disabled={loading}>
             {loading ? "Building your prompt…" : isLast ? "Generate prompt" : "Next"}
           </button>
         </div>
