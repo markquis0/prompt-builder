@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Analytics } from "@vercel/analytics/react";
-import { track } from "@vercel/analytics";
+import posthog from "posthog-js";
 import IntakeForm from "./components/IntakeForm.jsx";
 import QAFlow from "./components/QAFlow.jsx";
 import ResultPreview from "./components/ResultPreview.jsx";
@@ -40,7 +40,7 @@ export default function App() {
     setQuestionsLoading(true);
     try {
       const { questions } = await fetchQuestions({ prompt, promptType });
-      track("questions_received", { question_count: questions.length });
+      posthog.capture("questions_received", { question_count: questions.length });
       setQuestionsLoading(false);
       setSession(() => ({
         ...EMPTY_SESSION,
@@ -50,7 +50,7 @@ export default function App() {
         questions,
       }));
     } catch (err) {
-      track("questions_request_failed");
+      posthog.capture("questions_request_failed");
       setQuestionsLoading(false);
       setQuestionsError(err.message);
     }
@@ -72,11 +72,11 @@ export default function App() {
         supportingContext: current.supportingContext,
         qaPairs: buildQaPairs(current),
       });
-      track("result_generated");
+      posthog.capture("result_generated");
       setAssembleLoading(false);
       patchSession({ stage: "result", finalPrompt });
     } catch (err) {
-      track("assemble_request_failed");
+      posthog.capture("assemble_request_failed");
       setAssembleLoading(false);
       setAssembleError(err.message);
     }

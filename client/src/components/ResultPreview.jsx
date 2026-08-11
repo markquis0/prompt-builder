@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { track } from "@vercel/analytics";
+import posthog from "posthog-js";
 import FeedbackWidget from "./FeedbackWidget.jsx";
 
 function stripTags(text) {
@@ -44,7 +44,7 @@ export default function ResultPreview({
   const textareaRef = useRef(null);
 
   async function handleCopy() {
-    track("prompt_copied");
+    posthog.capture("prompt_copied");
     setCopyFailed(false);
     try {
       await navigator.clipboard.writeText(prompt);

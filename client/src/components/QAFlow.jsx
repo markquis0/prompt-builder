@@ -1,4 +1,4 @@
-import { track } from "@vercel/analytics";
+import posthog from "posthog-js";
 import QuestionCard from "./QuestionCard.jsx";
 import SupportingContext from "./SupportingContext.jsx";
 
@@ -41,7 +41,7 @@ export default function QAFlow({
       // The current question's answer is already reflected in `answers`
       // (QuestionCard fires onAnswerChange on every keystroke), so this
       // snapshot is accurate as-is.
-      track("qa_completed", tallyAnswers(questions, answers));
+      posthog.capture("qa_completed", tallyAnswers(questions, answers));
     }
     onNext();
   }
@@ -51,7 +51,7 @@ export default function QAFlow({
       // Unlike handleNext, the parent hasn't committed this question's skip
       // into `answers` yet at this point — override it locally so the tally
       // matches what's about to be sent to the assembler.
-      track(
+      posthog.capture(
         "qa_completed",
         tallyAnswers(questions, { ...answers, [question.id]: "" })
       );
@@ -62,7 +62,7 @@ export default function QAFlow({
   function handleSkipToResult() {
     // Can fire from any question index. Anything never reached is absent
     // from `answers`, which tallyAnswers already counts as skipped.
-    track("qa_completed", tallyAnswers(questions, answers));
+    posthog.capture("qa_completed", tallyAnswers(questions, answers));
     onSkipToResult();
   }
 

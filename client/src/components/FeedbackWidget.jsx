@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useForm } from "@formspree/react";
-import { track } from "@vercel/analytics";
+import posthog from "posthog-js";
 
 const QUESTIONS_USEFUL_OPTIONS = ["Yes", "Kind of", "Felt like busywork"];
 const WOULD_USE_OPTIONS = ["Yes", "With edits", "No"];
@@ -33,14 +33,14 @@ export default function FeedbackWidget({ originalPrompt }) {
   // interaction with the widget (re-renders from expanding/answering
   // don't re-run this, since the dependency array is empty).
   useEffect(() => {
-    track("feedback_widget_shown");
+    posthog.capture("feedback_widget_shown");
   }, []);
 
   // Fires exactly once, on the render where `succeeded` flips from false to
   // true — not on every subsequent re-render while it stays true.
   useEffect(() => {
     if (formState.succeeded) {
-      track("feedback_submitted", {
+      posthog.capture("feedback_submitted", {
         questions_useful: questionsUseful,
         would_use_as_is: wouldUseAsIs,
       });
@@ -48,7 +48,7 @@ export default function FeedbackWidget({ originalPrompt }) {
   }, [formState.succeeded]);
 
   function handleDismiss() {
-    track("feedback_dismissed");
+    posthog.capture("feedback_dismissed");
     setDismissed(true);
   }
 
