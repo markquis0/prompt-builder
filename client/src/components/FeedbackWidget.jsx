@@ -4,6 +4,13 @@ import { track } from "@vercel/analytics";
 
 const QUESTIONS_USEFUL_OPTIONS = ["Yes", "Kind of", "Felt like busywork"];
 const WOULD_USE_OPTIONS = ["Yes", "With edits", "No"];
+const WOULD_RETURN_OPTIONS = [
+  "Better/more relevant questions",
+  "Ability to save my results and come back later",
+  "More output format options",
+  "It's already good as-is",
+  "Other",
+];
 
 // Cold, public traffic (Reddit/HN) — no account, no DB. Submits via the
 // official @formspree/react SDK; see README "Deploy" for how the form ID
@@ -13,6 +20,7 @@ export default function FeedbackWidget({ originalPrompt }) {
   const [dismissed, setDismissed] = useState(false);
   const [questionsUseful, setQuestionsUseful] = useState(null);
   const [wouldUseAsIs, setWouldUseAsIs] = useState(null);
+  const [wouldReturnFor, setWouldReturnFor] = useState(null);
   const [comments, setComments] = useState("");
   const [notConfigured, setNotConfigured] = useState(false);
 
@@ -44,6 +52,15 @@ export default function FeedbackWidget({ originalPrompt }) {
     setDismissed(true);
   }
 
+  function handleSelectWouldReturnFor(opt) {
+    setWouldReturnFor(opt);
+    // Hidden fields shouldn't silently carry stale input into the payload —
+    // clear any typed text if the user backs off of "Other".
+    if (opt !== "Other") {
+      setComments("");
+    }
+  }
+
   function handleSubmit() {
     if (!formId) {
       setNotConfigured(true);
@@ -56,6 +73,7 @@ export default function FeedbackWidget({ originalPrompt }) {
     submitFeedback({
       questions_useful: questionsUseful,
       would_use_as_is: wouldUseAsIs,
+      would_return_for: wouldReturnFor,
       comments,
       original_prompt: originalPrompt,
     });
@@ -89,7 +107,10 @@ export default function FeedbackWidget({ originalPrompt }) {
 
   const failed = notConfigured || Boolean(formState.errors);
   const canSubmit =
-    Boolean(questionsUseful) && Boolean(wouldUseAsIs) && !formState.submitting;
+    Boolean(questionsUseful) &&
+    Boolean(wouldUseAsIs) &&
+    Boolean(wouldReturnFor) &&
+    !formState.submitting;
 
   return (
     <div className="card feedback-widget">
@@ -135,17 +156,37 @@ export default function FeedbackWidget({ originalPrompt }) {
         ))}
       </div>
 
-      <label className="field-label" htmlFor="feedback-comments">
-        Anything confusing, missing, or that would make you come back?{" "}
-        <span className="optional">(optional)</span>
-      </label>
-      <textarea
-        id="feedback-comments"
-        className="feedback-comments"
-        rows={2}
-        value={comments}
-        onChange={(e) => setComments(e.target.value)}
-      />
+      <p className="feedback-question">What would make you more likely to use this again?</p>
+      <div className="chip-row" role="group" aria-label="What would make you more likely to use this again?">
+        {WOULD_RETURN_OPTIONS.map((opt) => (
+          <button
+            key={opt}
+            type="button"
+            className={`chip ${wouldReturnFor === opt ? "chip-selected" : ""}`}
+            aria-pressed={wouldReturnFor === opt}
+            onClick={() => handleSelectWouldReturnFor(opt)}
+          >
+            {opt}
+          </button>
+        ))}
+      </div>
+
+      {wouldReturnFor === "Other" && (
+        <>
+          <label className="field-label" htmlFor="feedback-comments">
+            Anything specific that confused you or felt off?{" "}
+            <span className="optional">(totally optional)</span>
+          </label>
+          <textarea
+            id="feedback-comments"
+            className="feedback-comments"
+            rows={2}
+            autoFocus
+            value={comments}
+            onChange={(e) => setComments(e.target.value)}
+          />
+        </>
+      )}
 
       {failed && (
         <div className="error-banner">
