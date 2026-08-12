@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Analytics } from "@vercel/analytics/react";
 import posthog from "posthog-js";
+import NavHeader from "./components/NavHeader.jsx";
 import IntakeForm from "./components/IntakeForm.jsx";
 import QAFlow from "./components/QAFlow.jsx";
 import ResultPreview from "./components/ResultPreview.jsx";
@@ -146,14 +147,15 @@ export default function App() {
     <>
       <Analytics />
       <div className="app-shell">
-        <header className="app-header">
-          <span className="app-title">Prompt Builder</span>
-          {session.stage !== "intake" && (
-            <button type="button" className="btn btn-ghost" onClick={startOver}>
-              Start Over
-            </button>
-          )}
-        </header>
+        <NavHeader
+          right={
+            session.stage !== "intake" && (
+              <button type="button" className="btn btn-ghost" onClick={startOver}>
+                Start Over
+              </button>
+            )
+          }
+        />
 
         <main className="app-main">
           {session.stage === "intake" && (

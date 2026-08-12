@@ -1,8 +1,11 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
+import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { HelmetProvider } from 'react-helmet-async'
 import posthog from 'posthog-js'
 import './index.css'
 import App from './App.jsx'
+import LearnPage from './pages/LearnPage.jsx'
 
 // Guarded so local dev without PostHog configured never errors — funnel
 // events become silent no-ops (posthog-js queues/no-ops calls made before
@@ -16,6 +19,13 @@ if (import.meta.env.VITE_POSTHOG_KEY) {
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
-    <App />
+    <HelmetProvider>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<App />} />
+          <Route path="/learn/*" element={<LearnPage />} />
+        </Routes>
+      </BrowserRouter>
+    </HelmetProvider>
   </StrictMode>,
 )

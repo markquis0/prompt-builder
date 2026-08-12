@@ -1,0 +1,264 @@
+.learn-shell {
+  max-width: 960px;
+}
+
+.learn-main {
+  padding-bottom: 60px;
+}
+
+.learn-main h1 {
+  font-size: 32px;
+  margin: 8px 0 12px;
+  color: var(--text-h);
+}
+
+.learn-subtitle {
+  color: var(--text-muted);
+  font-size: 17px;
+  line-height: 1.6;
+  max-width: 680px;
+  margin: 0 0 8px;
+}
+
+.last-reviewed {
+  color: var(--text-muted);
+  font-size: 12px;
+  margin: 0 0 4px;
+}
+
+.learn-layout {
+  display: grid;
+  grid-template-columns: 200px minmax(0, 680px);
+  gap: 40px;
+  align-items: start;
+  margin-top: 32px;
+}
+
+.learn-toc {
+  position: sticky;
+  top: 24px;
+}
+
+.learn-toc-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+  margin-bottom: 10px;
+}
+
+.learn-toc ol {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.learn-toc a {
+  display: block;
+  font-size: 13px;
+  color: var(--text-muted);
+  text-decoration: none;
+  line-height: 1.4;
+}
+
+.learn-toc a:hover {
+  color: var(--accent);
+}
+
+.learn-content {
+  max-width: 680px;
+  line-height: 1.65;
+}
+
+.learn-content h2 {
+  font-size: 24px;
+  margin: 48px 0 16px;
+  color: var(--text-h);
+  scroll-margin-top: 20px;
+}
+
+.learn-part:first-of-type h2 {
+  margin-top: 32px;
+}
+
+.learn-content h3 {
+  font-size: 18px;
+  margin: 28px 0 10px;
+  color: var(--text-h);
+}
+
+.learn-content p {
+  margin: 0 0 14px;
+}
+
+.learn-content code {
+  font-family: var(--mono);
+  font-size: 0.9em;
+  background: var(--accent-bg);
+  padding: 1px 5px;
+  border-radius: 4px;
+}
+
+/* "▸ For builders" collapsible blocks */
+.builder-note {
+  margin: 16px 0 20px;
+  padding: 12px 16px;
+  border-left: 3px solid var(--accent);
+  background: var(--accent-bg);
+  border-radius: 0 8px 8px 0;
+  font-size: 14px;
+}
+
+.builder-note summary {
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--text-h);
+  list-style: none;
+}
+
+.builder-note summary::-webkit-details-marker {
+  display: none;
+}
+
+.builder-note summary::before {
+  content: "▸";
+  display: inline-block;
+  margin-right: 6px;
+  transition: transform 0.15s ease;
+}
+
+.builder-note[open] summary::before {
+  transform: rotate(90deg);
+}
+
+.builder-note-body {
+  margin-top: 10px;
+}
+
+.builder-note-body p {
+  margin: 0 0 10px;
+}
+
+.builder-note-source {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+/* Model comparison / responsive tables */
+.table-scroll {
+  overflow-x: auto;
+  margin: 16px 0 20px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.learn-content table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+  min-width: 560px;
+}
+
+.learn-content th,
+.learn-content td {
+  text-align: left;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+}
+
+.learn-content th {
+  color: var(--text-h);
+  font-weight: 700;
+  background: var(--accent-bg);
+}
+
+/* Conversion hooks */
+.conversion-hook {
+  font-size: 15px;
+  color: var(--text-muted);
+  border-top: 1px solid var(--border);
+  padding-top: 14px;
+  margin-top: 24px !important;
+}
+
+.conversion-hook a {
+  color: var(--accent);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.conversion-hook a:hover {
+  text-decoration: underline;
+}
+
+/* Part 6 resource links */
+.link-group ul {
+  list-style: none;
+  margin: 0 0 20px;
+  padding: 0;
+}
+
+.link-group li {
+  margin-bottom: 8px;
+}
+
+.link-group a {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.link-group a:hover {
+  text-decoration: underline;
+}
+
+.link-group a[target="_blank"]::after {
+  content: "↗";
+  display: inline-block;
+  margin-left: 4px;
+  font-size: 0.85em;
+}
+
+@media (max-width: 900px) {
+  .learn-layout {
+    display: block;
+  }
+
+  .learn-toc {
+    position: static;
+    margin-bottom: 24px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .learn-toc ol {
+    flex-direction: row;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    gap: 16px;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .learn-toc a {
+    white-space: nowrap;
+  }
+
+  .learn-content {
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 640px) {
+  .learn-main h1 {
+    font-size: 26px;
+  }
+
+  .learn-content table {
+    min-width: 480px;
+  }
+}
