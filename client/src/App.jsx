@@ -71,6 +71,8 @@ export default function App() {
         originalPrompt: current.prompt,
         supportingContext: current.supportingContext,
         qaPairs: buildQaPairs(current),
+        // Hardcoded until Phase 2 adds the model-selector UI.
+        targetModel: "generic",
       });
       posthog.capture("result_generated");
       setAssembleLoading(false);

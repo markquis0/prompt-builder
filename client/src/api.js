@@ -34,6 +34,6 @@ export function fetchQuestions({ prompt, promptType }) {
   return postJSON("/api/questions", { prompt, promptType });
 }
 
-export function assemblePrompt({ originalPrompt, supportingContext, qaPairs }) {
-  return postJSON("/api/assemble", { originalPrompt, supportingContext, qaPairs });
+export function assemblePrompt({ originalPrompt, supportingContext, qaPairs, targetModel = "generic" }) {
+  return postJSON("/api/assemble", { originalPrompt, supportingContext, qaPairs, targetModel });
 }

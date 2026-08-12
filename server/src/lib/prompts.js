@@ -10,6 +10,12 @@ Guidelines:
 - Prioritize questions that would materially change the output if
   answered differently (audience, tone, format, scope, constraints,
   examples, success criteria) over questions that are just nice-to-know.
+- Do not ask the user to assign the AI a role or persona (e.g. "act
+  as an expert"). If the user's prompt would benefit from a specific
+  voice or communication style, ask about voice/style directly instead
+  (e.g. "Should this sound like it came from anyone in particular —
+  a teacher, a friend, a technical writer?"). Frame it as voice, not
+  identity.
 - Unless the user's prompt already includes one, always include a
   question asking if they have an example of the kind of output they
   want (or don't want) — e.g. "Do you have an example you like (or an
@@ -54,7 +60,49 @@ ${originalPrompt}
 """`;
 }
 
-export const FINAL_ASSEMBLER_SYSTEM_PROMPT = `You are a prompt engineering assistant. You will be given a user's
+export const ASSEMBLER_META_PROMPT_VERSION = "v1.1-model-aware";
+
+// Reasoning models think internally by default — explicit "step by step"
+// scaffolding just burns tokens/latency on these targets. Conservative
+// list: only models we're sure default to internal reasoning. See
+// prompt-builder-meta-prompts.md for the research this is based on.
+const REASONING_MODEL_TARGETS = ["claude", "openai"];
+
+function getOrderingInstruction(targetModel, supportingContextLength) {
+  const isGeminiLongContext =
+    targetModel === "gemini" && supportingContextLength > 2000;
+
+  if (isGeminiLongContext) {
+    return `- This prompt is being assembled for Google Gemini with substantial
+  context. For Gemini with long context, place <context> FIRST (before
+  <task>), then open the <task> section with a grounding phrase such as
+  "Based on the context provided above, ..." followed by the task
+  instruction. Then include remaining sections (<audience>, <tone>,
+  <format>, <constraints>, <examples>, <success_criteria>, <background>)
+  in whatever order is most logical.
+- Place the user's pasted supporting context/documentation inside the
+  <context> tags at the top.`;
+  }
+
+  return `- Order sections as: <task> first, then <context> (if present), then
+  remaining sections (<audience>, <tone>, <format>, <constraints>,
+  <examples>, <success_criteria>, <background>) in whatever order is
+  most logical.
+- If the user pasted supporting context/documentation, place it inside
+  <context> tags, and reference it from <task> if relevant (e.g. "using
+  the background provided below").`;
+}
+
+export function getAssemblerSystemPrompt(targetModel = "generic", supportingContextLength = 0) {
+  const orderingInstruction = getOrderingInstruction(targetModel, supportingContextLength);
+  const cotInstruction = REASONING_MODEL_TARGETS.includes(targetModel)
+    ? `\n- Do not add "think step by step", "let's work through this", or
+  similar chain-of-thought scaffolding. The target model reasons
+  internally by default — adding explicit CoT wastes tokens and
+  increases latency without improving results.`
+    : "";
+
+  return `You are a prompt engineering assistant. You will be given a user's
 original rough prompt, a set of clarifying question-and-answer pairs
 (some may be skipped/blank), and optional supporting context they
 pasted in. Your job is to assemble all of this into a single, detailed,
@@ -70,6 +118,7 @@ Guidelines:
   this set as relevant, and only include ones that apply:
   <task>, <context>, <audience>, <tone>, <format>, <constraints>,
   <examples>, <success_criteria>, <background>
+${orderingInstruction}
 - Within each tag, write in clear, direct, instructional language —
   rewrite the user's casual phrasing into explicit instructions where
   it improves clarity, without changing meaning.
@@ -86,10 +135,7 @@ Guidelines:
   <constraints> tag for genuine hard boundaries: things that must be
   strictly avoided, or a strict format/length requirement. If a piece of
   guidance can be phrased as "do X" instead of "don't do Y," phrase it
-  as "do X" and place it in <task> or <format> instead of <constraints>.
-- If the user pasted supporting context/documentation, place it inside
-  <context> tags, and reference it from <task> if relevant (e.g. "using
-  the background provided below").
+  as "do X" and place it in <task> or <format> instead of <constraints>.${cotInstruction}
 - If the user provided an example of desired or undesired output, place
   it inside <examples> tags, labeled clearly as "Example of what to aim
   for" or "Example of what to avoid" as appropriate.
@@ -99,6 +145,7 @@ Guidelines:
   elsewhere.
 - Do not add a title, greeting, or sign-off. Start directly with the
   first tag.`;
+}
 
 export function buildFinalAssemblerUserMessage({ originalPrompt, supportingContext, qaPairs }) {
   const qaLines = qaPairs
