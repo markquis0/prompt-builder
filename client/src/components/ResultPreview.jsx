@@ -1,10 +1,19 @@
-import { useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import posthog from "posthog-js";
 import FeedbackWidget from "./FeedbackWidget.jsx";
+import { RENDERERS } from "../renderers/index.js";
+import "./ResultPreview.css";
 
-function stripTags(text) {
+// Hardcoded until the monetization gate (auth + Stripe) exists. Free users
+// still get the full Q&A flow and a generic prompt — this only locks the
+// model-specific tabs, never the builder itself.
+const IS_PAID_USER = false;
+
+function stripFormatting(text) {
   return text
     .replace(/<\/?[a-z_]+>/gi, "")
+    .replace(/^#{1,6}\s+.*$/gm, "")
+    .replace(/<!--[\s\S]*?-->/g, "")
     .replace(/\n{3,}/g, "\n\n")
     .trim();
 }
@@ -30,24 +39,71 @@ function legacyCopy(text) {
 }
 
 export default function ResultPreview({
-  prompt,
-  onChange,
+  promptObject,
+  rawAssembled,
   onEditAnswers,
   loading,
   error,
   onRetry,
   originalPrompt,
 }) {
+  const [activeModel, setActiveModel] = useState("generic");
+  const [editedVariants, setEditedVariants] = useState({});
   const [copied, setCopied] = useState(false);
   const [copyFailed, setCopyFailed] = useState(false);
   const [plainView, setPlainView] = useState(false);
+  const [showDiff, setShowDiff] = useState(false);
   const textareaRef = useRef(null);
 
+  // A prompt_object with every field null means either an old backend
+  // build (pre-Phase-2) or a parse that found none of the expected tags —
+  // degrade to a single untabbed view instead of rendering empty tabs.
+  const hasPromptObject = Boolean(promptObject) && Object.values(promptObject).some(Boolean);
+
+  const variants = useMemo(() => {
+    if (!hasPromptObject) return {};
+    const result = {};
+    for (const [key, { render }] of Object.entries(RENDERERS)) {
+      result[key] = render(promptObject);
+    }
+    return result;
+  }, [promptObject, hasPromptObject]);
+
+  // Edits are per-tab and local only — switching tabs shows that tab's
+  // unedited render unless it's been edited too. Legacy (no-tabs) mode
+  // uses a single "raw" key, same mechanism either way.
+  const editKey = hasPromptObject ? activeModel : "raw";
+  const baseText = hasPromptObject ? variants[activeModel] ?? rawAssembled : rawAssembled;
+  const displayText = editedVariants[editKey] ?? baseText;
+
+  function handleTabClick(key) {
+    const isLocked = key !== "generic" && !IS_PAID_USER;
+    if (isLocked) {
+      posthog.capture("model_tab_locked_click", { model: key });
+      return;
+    }
+    setActiveModel(key);
+    posthog.capture("model_tab_selected", { model: key });
+  }
+
+  function handleEdit(newText) {
+    setEditedVariants((prev) => ({ ...prev, [editKey]: newText }));
+  }
+
+  function toggleDiff() {
+    const next = !showDiff;
+    setShowDiff(next);
+    posthog.capture("diff_view_toggled", { action: next ? "open" : "close" });
+  }
+
   async function handleCopy() {
-    posthog.capture("prompt_copied");
+    posthog.capture("prompt_copied", {
+      model: hasPromptObject ? activeModel : "generic",
+      was_edited: Boolean(editedVariants[editKey]),
+    });
     setCopyFailed(false);
     try {
-      await navigator.clipboard.writeText(prompt);
+      await navigator.clipboard.writeText(displayText);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
       return;
@@ -55,7 +111,7 @@ export default function ResultPreview({
       // fall through to legacy fallback below
     }
 
-    if (legacyCopy(prompt)) {
+    if (legacyCopy(displayText)) {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } else {
@@ -106,14 +162,46 @@ export default function ResultPreview({
           </div>
         </div>
 
+        {hasPromptObject && (
+          <div className="model-tabs" role="tablist">
+            {Object.entries(RENDERERS).map(([key, { label, icon }]) => {
+              const isLocked = key !== "generic" && !IS_PAID_USER;
+              return (
+                <button
+                  key={key}
+                  type="button"
+                  role="tab"
+                  aria-selected={activeModel === key}
+                  aria-disabled={isLocked}
+                  className={`model-tab ${activeModel === key ? "active" : ""} ${
+                    isLocked ? "locked" : ""
+                  }`}
+                  onClick={() => handleTabClick(key)}
+                  title={isLocked ? "Subscribe to copy for specific models" : ""}
+                >
+                  <span className="model-icon" aria-hidden="true">
+                    {icon}
+                  </span>
+                  {label}
+                  {isLocked && (
+                    <span className="lock-icon" aria-hidden="true">
+                      🔒
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        )}
+
         {plainView ? (
-          <div className="result-plain-view">{stripTags(prompt)}</div>
+          <div className="result-plain-view">{stripFormatting(displayText)}</div>
         ) : (
           <textarea
             ref={textareaRef}
             className="result-textarea"
-            value={prompt}
-            onChange={(e) => onChange(e.target.value)}
+            value={displayText}
+            onChange={(e) => handleEdit(e.target.value)}
             rows={16}
           />
         )}
@@ -127,7 +215,23 @@ export default function ResultPreview({
               Couldn't access your clipboard — text is selected, press Ctrl/Cmd+C to copy.
             </span>
           )}
+          <button type="button" className="link-button diff-toggle" onClick={toggleDiff}>
+            {showDiff ? "Hide comparison" : "See what changed"}
+          </button>
         </div>
+
+        {showDiff && (
+          <div className="diff-view">
+            <div className="diff-pane diff-original">
+              <h4>Your original prompt</h4>
+              <pre>{originalPrompt}</pre>
+            </div>
+            <div className="diff-pane diff-assembled">
+              <h4>Assembled prompt</h4>
+              <pre>{displayText}</pre>
+            </div>
+          </div>
+        )}
       </div>
       <FeedbackWidget originalPrompt={originalPrompt} />
     </>

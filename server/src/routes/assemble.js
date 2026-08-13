@@ -8,9 +8,12 @@ import {
 
 const router = Router();
 
-// Phase 2 will add the model-selector UI; the frontend always sends
-// "generic" for now. Keep the allowlist so an unrecognized value can't
-// silently change assembler behavior in an untested way.
+// The frontend always sends "generic" for the single assembly call —
+// per-model formatting now happens client-side (see client/src/renderers/),
+// not by re-steering this LLM call per model. targetModel stays wired
+// through to getAssemblerSystemPrompt for any direct API caller, and the
+// allowlist keeps an unrecognized value from silently changing assembler
+// behavior in an untested way.
 const VALID_TARGET_MODELS = [
   "generic",
   "claude",
@@ -21,6 +24,36 @@ const VALID_TARGET_MODELS = [
   "llama",
   "mistral",
 ];
+
+// Maps each XML tag the assembler prompt is instructed to use onto a
+// camelCase key, matching this app's JSON wire-format convention
+// (tag names themselves stay snake_case — that's XML naming from the
+// meta-prompt, unrelated to the JSON key convention).
+const PROMPT_OBJECT_TAGS = [
+  ["task", "task"],
+  ["context", "context"],
+  ["audience", "audience"],
+  ["tone", "tone"],
+  ["format", "format"],
+  ["constraints", "constraints"],
+  ["examples", "examples"],
+  ["success_criteria", "successCriteria"],
+  ["background", "background"],
+];
+
+// The assembler already emits XML-tagged text; this just extracts it into
+// a structured object so the frontend can render model-specific variants
+// without a second LLM call. Order-independent — works regardless of which
+// order the tags actually appear in.
+function parseAssembledPrompt(rawText) {
+  const result = {};
+  for (const [xmlTag, key] of PROMPT_OBJECT_TAGS) {
+    const regex = new RegExp(`<${xmlTag}>\\s*([\\s\\S]*?)\\s*</${xmlTag}>`, "i");
+    const match = rawText.match(regex);
+    result[key] = match ? match[1].trim() : null;
+  }
+  return result;
+}
 
 router.post("/", async (req, res) => {
   const { originalPrompt, supportingContext, qaPairs, targetModel } = req.body || {};
@@ -48,7 +81,11 @@ router.post("/", async (req, res) => {
       maxTokens: 2048,
     });
 
-    res.json({ prompt: finalPrompt.trim() });
+    const rawAssembled = finalPrompt.trim();
+    res.json({
+      promptObject: parseAssembledPrompt(rawAssembled),
+      rawAssembled,
+    });
   } catch (err) {
     console.error("[prompt-builder] /api/assemble error:", err);
     res.status(502).json({ error: "Failed to assemble the final prompt. Please try again." });

@@ -34,6 +34,18 @@ export function fetchQuestions({ prompt, promptType }) {
   return postJSON("/api/questions", { prompt, promptType });
 }
 
-export function assemblePrompt({ originalPrompt, supportingContext, qaPairs, targetModel = "generic" }) {
-  return postJSON("/api/assemble", { originalPrompt, supportingContext, qaPairs, targetModel });
+export async function assemblePrompt({ originalPrompt, supportingContext, qaPairs, targetModel = "generic" }) {
+  const data = await postJSON("/api/assemble", { originalPrompt, supportingContext, qaPairs, targetModel });
+
+  if (data && typeof data.rawAssembled === "string") {
+    return data;
+  }
+  // Backward-compat for a deploy-timing mismatch: an old backend build
+  // still returns { prompt: string } with no promptObject. Wrap it so
+  // the result screen degrades to its pre-tabs single-view behavior
+  // instead of crashing on a missing field.
+  if (data && typeof data.prompt === "string") {
+    return { promptObject: null, rawAssembled: data.prompt };
+  }
+  return { promptObject: null, rawAssembled: "" };
 }

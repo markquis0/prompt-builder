@@ -16,7 +16,8 @@ const EMPTY_SESSION = {
   answers: {},
   currentIndex: 0,
   supportingContext: "",
-  finalPrompt: "",
+  promptObject: null,
+  rawAssembled: "",
 };
 
 export default function App() {
@@ -68,16 +69,17 @@ export default function App() {
     setAssembleError(null);
     setAssembleLoading(true);
     try {
-      const { prompt: finalPrompt } = await assemblePrompt({
+      const { promptObject, rawAssembled } = await assemblePrompt({
         originalPrompt: current.prompt,
         supportingContext: current.supportingContext,
         qaPairs: buildQaPairs(current),
-        // Hardcoded until Phase 2 adds the model-selector UI.
+        // One assembly call regardless of which model tab the user ends up
+        // on — per-model formatting happens client-side in renderers/.
         targetModel: "generic",
       });
       posthog.capture("result_generated");
       setAssembleLoading(false);
-      patchSession({ stage: "result", finalPrompt });
+      patchSession({ stage: "result", promptObject, rawAssembled });
     } catch (err) {
       posthog.capture("assemble_request_failed");
       setAssembleLoading(false);
@@ -127,13 +129,9 @@ export default function App() {
     patchSession({ stage: "qa", currentIndex: Math.max(0, session.questions.length - 1) });
   }
 
-  function handleFinalPromptChange(value) {
-    patchSession({ finalPrompt: value });
-  }
-
   function startOver() {
     const hasContent =
-      session.prompt || session.finalPrompt || Object.values(session.answers).some(Boolean);
+      session.prompt || session.rawAssembled || Object.values(session.answers).some(Boolean);
     if (hasContent && !window.confirm("This will clear your current progress. Start over?")) {
       return;
     }
@@ -189,8 +187,8 @@ export default function App() {
 
           {session.stage === "result" && (
             <ResultPreview
-              prompt={session.finalPrompt}
-              onChange={handleFinalPromptChange}
+              promptObject={session.promptObject}
+              rawAssembled={session.rawAssembled}
               onEditAnswers={editAnswers}
               loading={assembleLoading}
               error={assembleError}
