@@ -18,6 +18,7 @@ const ROUTES = [
   "/learn/checklist",
   "/learn/context-engineering",
   "/learn/resources",
+  "/pro",
 ];
 
 async function prerender() {

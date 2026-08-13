@@ -1,0 +1,36 @@
+.pro-demo {
+  padding: 24px;
+}
+
+.pro-demo-label {
+  font-weight: 600;
+  color: var(--text-h);
+  margin: 0 0 12px;
+}
+
+.pro-demo-output {
+  font-family: var(--mono);
+  font-size: 13px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 16px;
+  max-height: 360px;
+  overflow-y: auto;
+  margin: 0 0 16px;
+}
+
+.pro-demo-annotation {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  background: var(--accent-bg);
+  border-radius: 8px;
+  padding: 12px 14px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--text);
+}

@@ -6,6 +6,7 @@ import posthog from 'posthog-js'
 import './index.css'
 import App from './App.jsx'
 import LearnPage from './pages/LearnPage.jsx'
+import ProPage from './pages/ProPage.jsx'
 
 // Guarded so local dev without PostHog configured never errors — funnel
 // events become silent no-ops (posthog-js queues/no-ops calls made before
@@ -24,6 +25,7 @@ createRoot(document.getElementById('root')).render(
         <Routes>
           <Route path="/" element={<App />} />
           <Route path="/learn/*" element={<LearnPage />} />
+          <Route path="/pro" element={<ProPage />} />
         </Routes>
       </BrowserRouter>
     </HelmetProvider>

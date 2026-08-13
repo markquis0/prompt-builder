@@ -19,6 +19,12 @@ export default function NavHeader({ right }) {
         >
           Learn
         </Link>
+        <Link
+          to="/pro"
+          className={pathname === "/pro" ? "nav-link nav-link-pro nav-link-active" : "nav-link nav-link-pro"}
+        >
+          Pro
+        </Link>
       </nav>
       {right && <div className="nav-right">{right}</div>}
     </header>

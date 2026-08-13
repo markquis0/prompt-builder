@@ -48,6 +48,32 @@
   margin-left: auto;
 }
 
+.locked-tab-card {
+  background: var(--accent-bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px 18px;
+  margin-bottom: 16px;
+}
+
+.locked-tab-card-title {
+  font-weight: 700;
+  color: var(--text-h);
+  margin: 0 0 6px;
+}
+
+.locked-tab-card-body {
+  font-size: 14px;
+  color: var(--text-muted);
+  margin: 0 0 12px;
+}
+
+.locked-tab-card-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
 .diff-view {
   display: grid;
   grid-template-columns: 1fr 1fr;

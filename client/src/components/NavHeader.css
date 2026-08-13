@@ -40,6 +40,14 @@
   border-bottom-color: var(--accent);
 }
 
+.nav-link-pro {
+  color: var(--accent);
+}
+
+.nav-link-pro:hover {
+  color: var(--accent-hover);
+}
+
 .nav-right {
   display: flex;
   align-items: center;

@@ -1,4 +1,5 @@
 import { useMemo, useRef, useState } from "react";
+import { Link } from "react-router-dom";
 import posthog from "posthog-js";
 import FeedbackWidget from "./FeedbackWidget.jsx";
 import { RENDERERS } from "../renderers/index.js";
@@ -8,6 +9,10 @@ import "./ResultPreview.css";
 // still get the full Q&A flow and a generic prompt — this only locks the
 // model-specific tabs, never the builder itself.
 const IS_PAID_USER = false;
+
+// Survives a refresh within the tab but not a new browser session — once
+// dismissed, don't nag again on every subsequent locked-tab click.
+const LOCKED_CARD_DISMISSED_KEY = "pb_locked_tab_card_dismissed";
 
 function stripFormatting(text) {
   return text
@@ -53,6 +58,7 @@ export default function ResultPreview({
   const [copyFailed, setCopyFailed] = useState(false);
   const [plainView, setPlainView] = useState(false);
   const [showDiff, setShowDiff] = useState(false);
+  const [lockedCardModel, setLockedCardModel] = useState(null);
   const textareaRef = useRef(null);
 
   // A prompt_object with every field null means either an old backend
@@ -80,10 +86,25 @@ export default function ResultPreview({
     const isLocked = key !== "generic" && !IS_PAID_USER;
     if (isLocked) {
       posthog.capture("model_tab_locked_click", { model: key });
+      if (sessionStorage.getItem(LOCKED_CARD_DISMISSED_KEY) !== "1") {
+        setLockedCardModel(key);
+        posthog.capture("locked_tab_card_shown", { model: key });
+      }
       return;
     }
+    setLockedCardModel(null);
     setActiveModel(key);
     posthog.capture("model_tab_selected", { model: key });
+  }
+
+  function handleLockedCardDismiss() {
+    posthog.capture("locked_tab_cta_clicked", { model: lockedCardModel, action: "dismiss" });
+    sessionStorage.setItem(LOCKED_CARD_DISMISSED_KEY, "1");
+    setLockedCardModel(null);
+  }
+
+  function handleLockedCardLearnMore() {
+    posthog.capture("locked_tab_cta_clicked", { model: lockedCardModel, action: "learn_more" });
   }
 
   function handleEdit(newText) {
@@ -191,6 +212,29 @@ export default function ResultPreview({
                 </button>
               );
             })}
+          </div>
+        )}
+
+        {lockedCardModel && (
+          <div className="locked-tab-card">
+            <p className="locked-tab-card-title">🔒 Model-specific formatting is a Pro feature.</p>
+            <p className="locked-tab-card-body">
+              Different models read your prompt differently. Pro formats it for the one you're
+              using.
+            </p>
+            <div className="locked-tab-card-actions">
+              <Link
+                to="/pro"
+                state={{ fromLockedTab: true }}
+                className="link-button"
+                onClick={handleLockedCardLearnMore}
+              >
+                See how it works →
+              </Link>
+              <button type="button" className="btn btn-ghost" onClick={handleLockedCardDismiss}>
+                Maybe later
+              </button>
+            </div>
           </div>
         )}
 
