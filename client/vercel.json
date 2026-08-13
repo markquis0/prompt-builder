@@ -1,9 +1,5 @@
 {
-  "buildCommand": "npm run build",
+  "buildCommand": "npm run build:no-prerender",
   "outputDirectory": "dist",
-  "rewrites": [
-    { "source": "/learn", "destination": "/learn/index.html" },
-    { "source": "/learn/:path*", "destination": "/learn/:path*/index.html" },
-    { "source": "/(.*)", "destination": "/index.html" }
-  ]
+  "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
 }
