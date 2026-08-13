@@ -1,4 +1,3 @@
-import puppeteer from "puppeteer";
 import handler from "serve-handler";
 import http from "node:http";
 import { writeFileSync, mkdirSync } from "node:fs";
@@ -21,6 +20,32 @@ const ROUTES = [
   "/pro",
 ];
 
+// Vercel's build container is missing the shared libraries plain `puppeteer`'s
+// downloaded Chromium needs (e.g. libnspr4.so — Puppeteer/Chromium in
+// serverless/minimal-Linux fails with "error while loading shared libraries").
+// @sparticuz/chromium ships a Chromium build made for exactly that environment.
+// Its binary is Linux-only though, so local dev (macOS) keeps using plain
+// puppeteer, which already works fine there.
+async function launchBrowser() {
+  if (process.env.VERCEL) {
+    const [{ default: chromium }, { default: puppeteerCore }] = await Promise.all([
+      import("@sparticuz/chromium"),
+      import("puppeteer-core"),
+    ]);
+    return puppeteerCore.launch({
+      args: chromium.args,
+      executablePath: await chromium.executablePath(),
+      headless: true,
+    });
+  }
+
+  const { default: puppeteer } = await import("puppeteer");
+  return puppeteer.launch({
+    headless: true,
+    args: ["--no-sandbox", "--disable-setuid-sandbox"],
+  });
+}
+
 async function prerender() {
   const server = http.createServer((req, res) =>
     handler(req, res, {
@@ -30,10 +55,7 @@ async function prerender() {
   );
   await new Promise((resolve) => server.listen(PORT, resolve));
 
-  const browser = await puppeteer.launch({
-    headless: true,
-    args: ["--no-sandbox", "--disable-setuid-sandbox"],
-  });
+  const browser = await launchBrowser();
 
   try {
     for (const route of ROUTES) {
