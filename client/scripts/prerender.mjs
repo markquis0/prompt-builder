@@ -9,7 +9,11 @@ const DIST = join(__dirname, "..", "dist");
 const PORT = 4888;
 
 // Routes to prerender. Add new /learn sub-pages here as they're added.
+// "/" overwrites dist/index.html in place with the prerendered homepage —
+// still the same hydratable SPA shell underneath, just with real content
+// baked in instead of an empty <div id="root">.
 const ROUTES = [
+  "/",
   "/learn",
   "/learn/what-works",
   "/learn/what-doesnt",

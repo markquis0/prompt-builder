@@ -1,0 +1,55 @@
+.before-after {
+  display: grid;
+  grid-template-columns: 1fr 1.6fr;
+  gap: 16px;
+}
+
+.before-after-pane {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px;
+  background: var(--card-bg);
+}
+
+.before-after-heading {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin: 0 0 12px;
+}
+
+.before-content {
+  font-size: 17px;
+  color: var(--text);
+  font-style: italic;
+}
+
+.before-pane {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.after-content {
+  font-family: var(--mono);
+  font-size: 13px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  margin: 0;
+  max-height: 340px;
+  overflow-y: auto;
+}
+
+.xml-tag {
+  color: var(--accent);
+  opacity: 0.75;
+}
+
+@media (max-width: 767px) {
+  .before-after {
+    grid-template-columns: 1fr;
+  }
+}

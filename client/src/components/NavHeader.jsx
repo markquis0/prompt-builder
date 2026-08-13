@@ -1,7 +1,7 @@
 import { Link, useLocation } from "react-router-dom";
 import "./NavHeader.css";
 
-export default function NavHeader({ right }) {
+export default function NavHeader() {
   const { pathname } = useLocation();
 
   return (
@@ -10,7 +10,7 @@ export default function NavHeader({ right }) {
         PromptMe
       </Link>
       <nav className="nav-links">
-        <Link to="/" className={pathname === "/" ? "nav-link nav-link-active" : "nav-link"}>
+        <Link to="/#builder" className={pathname === "/" ? "nav-link nav-link-active" : "nav-link"}>
           Build a Prompt
         </Link>
         <Link
@@ -26,7 +26,6 @@ export default function NavHeader({ right }) {
           Pro
         </Link>
       </nav>
-      {right && <div className="nav-right">{right}</div>}
     </header>
   );
 }

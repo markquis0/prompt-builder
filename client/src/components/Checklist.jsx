@@ -36,7 +36,7 @@ export default function Checklist() {
           </li>
         ))}
       </ul>
-      <Link to="/" className="btn btn-primary checklist-cta" onClick={handleCtaClick}>
+      <Link to="/#builder" className="btn btn-primary checklist-cta" onClick={handleCtaClick}>
         Build a prompt now →
       </Link>
     </div>

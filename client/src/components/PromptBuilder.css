@@ -1,0 +1,11 @@
+.prompt-builder {
+  max-width: 720px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.prompt-builder-toolbar {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 12px;
+}

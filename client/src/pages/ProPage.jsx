@@ -106,7 +106,7 @@ export default function ProPage() {
 
         <section className="pro-cta-section">
           <Link
-            to="/"
+            to="/#builder"
             className="btn btn-primary pro-cta-btn"
             onClick={() => trackCta("try_builder")}
           >

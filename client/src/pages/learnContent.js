@@ -71,12 +71,12 @@ export const PARTS = [
         heading: "5. Put your instructions in the right place — which depends on the model",
         paragraphs: [
           "Here's a rule almost nobody knows, straight from Google's Gemini documentation: when working with large datasets such as entire books, codebases, or long videos, place your specific instructions or questions at the end of the prompt, after the data context, and anchor the model's reasoning by starting your question with a phrase like \"Based on the preceding information…\".",
-          "Meanwhile, most Claude and GPT guidance puts the task first. Both are correct — for their model. This is the clearest example of why \"one universal prompt\" is a myth, and why Prompt Builder generates model-specific variants rather than one output.",
+          "Meanwhile, most Claude and GPT guidance puts the task first. Both are correct — for their model. This is the clearest example of why \"one universal prompt\" is a myth, and why PromptMe generates model-specific variants rather than one output.",
         ],
       },
     ],
     conversionHook: {
-      text: "Prompt Builder asks you these questions so you don't have to remember them.",
+      text: "PromptMe asks you these questions so you don't have to remember them.",
       linkText: "Try it →",
       fromSection: "part1",
     },
@@ -171,7 +171,7 @@ export const PARTS = [
     builderNote: {
       section: "part3",
       paragraphs: [
-        "Treat these as *transform rules*, not trivia. A single canonical prompt object plus a per-model renderer is the correct architecture: same content, different assembly order, different scaffolding, different accompanying settings hints. That's exactly what Prompt Builder's model-specific copy feature does.",
+        "Treat these as *transform rules*, not trivia. A single canonical prompt object plus a per-model renderer is the correct architecture: same content, different assembly order, different scaffolding, different accompanying settings hints. That's exactly what PromptMe's model-specific copy feature does.",
         "Also worth knowing: OpenAI serves Markdown versions of its docs by appending `.md` to any page URL, and publishes a full index at `llms.txt`. Anthropic's docs live at `platform.claude.com/docs` (moved from `docs.anthropic.com`). Meta's moved from `llama.com/docs` to `developer.meta.com/ai/docs`.",
       ],
     },

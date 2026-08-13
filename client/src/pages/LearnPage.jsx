@@ -33,7 +33,7 @@ const ROUTE_FOR_PART = {
 };
 
 const DEFAULT_META = {
-  title: "What Actually Makes a Prompt Work — Prompt Builder",
+  title: "What Actually Makes a Prompt Work — PromptMe",
   description:
     "A plain-language guide to prompting, built from official LLM documentation and peer-reviewed research. What works, what doesn't, and what's different for each model.",
   ogTitle: "What Actually Makes a Prompt Work",
@@ -43,37 +43,37 @@ const DEFAULT_META = {
 
 const ROUTE_META = {
   "/learn/what-works": {
-    title: "Five Things the Research Actually Supports — Prompt Builder",
+    title: "Five Things the Research Actually Supports — PromptMe",
     description:
       "Specificity, structure, examples, explicit formatting, and instruction placement — the five prompting techniques no study has contradicted.",
     url: `${SITE_URL}/learn/what-works`,
   },
   "/learn/what-doesnt": {
-    title: "Four Prompting Techniques That Don't Work as Advertised — Prompt Builder",
+    title: "Four Prompting Techniques That Don't Work as Advertised — PromptMe",
     description:
       "Persona prompting doesn't improve accuracy. Chain-of-thought is mostly redundant on modern models. Here's what the peer-reviewed research actually found.",
     url: `${SITE_URL}/learn/what-doesnt`,
   },
   "/learn/by-model": {
-    title: "Prompting Claude, GPT, Gemini, and Other Models — Prompt Builder",
+    title: "Prompting Claude, GPT, Gemini, and Other Models — PromptMe",
     description:
       "Same prompting principles, different dialects. What each AI lab's documentation tells you that the others don't.",
     url: `${SITE_URL}/learn/by-model`,
   },
   "/learn/checklist": {
-    title: "A Prompt Checklist You Can Actually Use — Prompt Builder",
+    title: "A Prompt Checklist You Can Actually Use — PromptMe",
     description:
       "Seven things worth checking before you send a prompt: task, audience, format, context, constraints, an example, and success criteria.",
     url: `${SITE_URL}/learn/checklist`,
   },
   "/learn/context-engineering": {
-    title: "Context Engineering, Explained — Prompt Builder",
+    title: "Context Engineering, Explained — PromptMe",
     description:
       "\"Prompt engineering is dead, it's all context engineering now\" is overstated — but there's something real underneath it.",
     url: `${SITE_URL}/learn/context-engineering`,
   },
   "/learn/resources": {
-    title: "Prompting Resources and Further Reading — Prompt Builder",
+    title: "Prompting Resources and Further Reading — PromptMe",
     description: "Guides, peer-reviewed research, and ongoing coverage worth following on AI prompting.",
     url: `${SITE_URL}/learn/resources`,
   },
@@ -116,7 +116,7 @@ function ConversionHook({ hook }) {
   return (
     <p className="conversion-hook">
       {hook.text}{" "}
-      <Link to="/" onClick={handleClick}>
+      <Link to="/#builder" onClick={handleClick}>
         {hook.linkText}
       </Link>
     </p>

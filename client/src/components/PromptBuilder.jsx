@@ -1,12 +1,11 @@
 import { useEffect, useState } from "react";
-import { Analytics } from "@vercel/analytics/react";
 import posthog from "posthog-js";
-import NavHeader from "./components/NavHeader.jsx";
-import IntakeForm from "./components/IntakeForm.jsx";
-import QAFlow from "./components/QAFlow.jsx";
-import ResultPreview from "./components/ResultPreview.jsx";
-import { fetchQuestions, assemblePrompt } from "./api.js";
-import { loadSession, saveSession, clearSession } from "./storage.js";
+import IntakeForm from "./IntakeForm.jsx";
+import QAFlow from "./QAFlow.jsx";
+import ResultPreview from "./ResultPreview.jsx";
+import { fetchQuestions, assemblePrompt } from "../api.js";
+import { loadSession, saveSession, clearSession } from "../storage.js";
+import "./PromptBuilder.css";
 
 const EMPTY_SESSION = {
   stage: "intake",
@@ -20,7 +19,11 @@ const EMPTY_SESSION = {
   rawAssembled: "",
 };
 
-export default function App() {
+// The intake/QA/result stage machine — previously App.jsx owned both this
+// and the `/` route. Now it's a self-contained, embeddable component so it
+// can live inside HomePage.jsx alongside marketing content. Behavior is
+// unchanged from before the extraction; only where it's mounted changed.
+export default function PromptBuilder() {
   const [session, setSession] = useState(() => loadSession() || EMPTY_SESSION);
   const [questionsLoading, setQuestionsLoading] = useState(false);
   const [questionsError, setQuestionsError] = useState(null);
@@ -142,62 +145,55 @@ export default function App() {
   }
 
   return (
-    <>
-      <Analytics />
-      <div className="app-shell">
-        <NavHeader
-          right={
-            session.stage !== "intake" && (
-              <button type="button" className="btn btn-ghost" onClick={startOver}>
-                Start Over
-              </button>
-            )
-          }
+    <div className="prompt-builder">
+      {session.stage !== "intake" && (
+        <div className="prompt-builder-toolbar">
+          <button type="button" className="btn btn-ghost" onClick={startOver}>
+            Start Over
+          </button>
+        </div>
+      )}
+
+      {session.stage === "intake" && (
+        <IntakeForm
+          initialPrompt={session.prompt}
+          initialPromptType={session.promptType}
+          onSubmit={requestQuestions}
+          loading={questionsLoading}
+          error={questionsError}
+          onRetry={() => lastIntakeSubmission && requestQuestions(lastIntakeSubmission)}
         />
+      )}
 
-        <main className="app-main">
-          {session.stage === "intake" && (
-            <IntakeForm
-              initialPrompt={session.prompt}
-              initialPromptType={session.promptType}
-              onSubmit={requestQuestions}
-              loading={questionsLoading}
-              error={questionsError}
-              onRetry={() => lastIntakeSubmission && requestQuestions(lastIntakeSubmission)}
-            />
-          )}
+      {session.stage === "qa" && (
+        <QAFlow
+          questions={session.questions}
+          answers={session.answers}
+          currentIndex={session.currentIndex}
+          supportingContext={session.supportingContext}
+          onAnswerChange={handleAnswerChange}
+          onSupportingContextChange={handleSupportingContextChange}
+          onBack={goBack}
+          onNext={goToNextQuestion}
+          onSkip={skipQuestion}
+          onSkipToResult={skipToResult}
+          loading={assembleLoading}
+          error={assembleError}
+          onRetry={() => requestAssembly(session)}
+        />
+      )}
 
-          {session.stage === "qa" && (
-            <QAFlow
-              questions={session.questions}
-              answers={session.answers}
-              currentIndex={session.currentIndex}
-              supportingContext={session.supportingContext}
-              onAnswerChange={handleAnswerChange}
-              onSupportingContextChange={handleSupportingContextChange}
-              onBack={goBack}
-              onNext={goToNextQuestion}
-              onSkip={skipQuestion}
-              onSkipToResult={skipToResult}
-              loading={assembleLoading}
-              error={assembleError}
-              onRetry={() => requestAssembly(session)}
-            />
-          )}
-
-          {session.stage === "result" && (
-            <ResultPreview
-              promptObject={session.promptObject}
-              rawAssembled={session.rawAssembled}
-              onEditAnswers={editAnswers}
-              loading={assembleLoading}
-              error={assembleError}
-              onRetry={() => requestAssembly(session)}
-              originalPrompt={session.prompt}
-            />
-          )}
-        </main>
-      </div>
-    </>
+      {session.stage === "result" && (
+        <ResultPreview
+          promptObject={session.promptObject}
+          rawAssembled={session.rawAssembled}
+          onEditAnswers={editAnswers}
+          loading={assembleLoading}
+          error={assembleError}
+          onRetry={() => requestAssembly(session)}
+          originalPrompt={session.prompt}
+        />
+      )}
+    </div>
   );
 }

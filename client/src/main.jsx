@@ -2,9 +2,10 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { HelmetProvider } from 'react-helmet-async'
+import { Analytics } from '@vercel/analytics/react'
 import posthog from 'posthog-js'
 import './index.css'
-import App from './App.jsx'
+import HomePage from './pages/HomePage.jsx'
 import LearnPage from './pages/LearnPage.jsx'
 import ProPage from './pages/ProPage.jsx'
 
@@ -22,8 +23,11 @@ createRoot(document.getElementById('root')).render(
   <StrictMode>
     <HelmetProvider>
       <BrowserRouter>
+        {/* Was mounted only on the old App.jsx (the `/` route) — moved here
+            so every route gets pageview tracking, not just the homepage. */}
+        <Analytics />
         <Routes>
-          <Route path="/" element={<App />} />
+          <Route path="/" element={<HomePage />} />
           <Route path="/learn/*" element={<LearnPage />} />
           <Route path="/pro" element={<ProPage />} />
         </Routes>

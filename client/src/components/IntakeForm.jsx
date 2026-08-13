@@ -20,7 +20,6 @@ export default function IntakeForm({ initialPrompt, initialPromptType, onSubmit,
 
   return (
     <form className="card intake-form" onSubmit={handleSubmit}>
-      <h1>Prompt Builder</h1>
       <p className="subtitle">
         Type a rough idea of what you want. We'll ask a few quick questions, then hand you a
         detailed, well-structured prompt to paste into Claude, ChatGPT, or any AI tool.
@@ -37,7 +36,6 @@ export default function IntakeForm({ initialPrompt, initialPromptType, onSubmit,
         maxLength={MAX_LENGTH}
         onChange={(e) => setPrompt(e.target.value)}
         rows={5}
-        autoFocus
       />
       <div className="char-count">
         {trimmed.length} / {MAX_LENGTH}
