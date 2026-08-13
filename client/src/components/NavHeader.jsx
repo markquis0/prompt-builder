@@ -7,7 +7,7 @@ export default function NavHeader({ right }) {
   return (
     <header className="nav-header">
       <Link to="/" className="nav-logo">
-        Prompt Builder
+        PromptMe
       </Link>
       <nav className="nav-links">
         <Link to="/" className={pathname === "/" ? "nav-link nav-link-active" : "nav-link"}>

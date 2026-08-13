@@ -44,12 +44,12 @@ export default function ProPage() {
   return (
     <div className="app-shell pro-shell">
       <Helmet>
-        <title>Prompt Builder Pro — Format Your Prompt for Every AI Model</title>
+        <title>PromptMe Pro — Format Your Prompt for Every AI Model</title>
         <meta
           name="description"
-          content="Each AI model reads your prompt differently. Prompt Builder Pro formats it for Claude, ChatGPT, and Gemini — based on what each model's own documentation says works best."
+          content="Each AI model reads your prompt differently. PromptMe Pro formats it for Claude, ChatGPT, and Gemini — based on what each model's own documentation says works best."
         />
-        <meta property="og:title" content="Prompt Builder Pro" />
+        <meta property="og:title" content="PromptMe Pro" />
         <meta
           property="og:description"
           content="Same prompt, three models, three formats. See the difference."
@@ -91,7 +91,7 @@ export default function ProPage() {
         </section>
 
         <section className="pro-offer">
-          <h2>Prompt Builder Pro — $8/month or $65/year</h2>
+          <h2>PromptMe Pro — $8/month or $65/year</h2>
           <p className="pro-offer-intro">Everything in the free builder, plus:</p>
           <ul className="pro-offer-list">
             <li>Copy your prompt formatted for Claude, ChatGPT, or Gemini</li>
