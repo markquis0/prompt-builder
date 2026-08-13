@@ -6,6 +6,7 @@ import questionsRouter from "./routes/questions.js";
 import assembleRouter from "./routes/assemble.js";
 import authRouter from "./routes/auth.js";
 import sessionsRouter from "./routes/sessions.js";
+import billingRouter, { handleStripeWebhook } from "./routes/billing.js";
 import { applySchema } from "./db/applySchema.js";
 
 const app = express();
@@ -37,6 +38,15 @@ app.use(
   })
 );
 app.use(cookieParser());
+
+// Registered BEFORE express.json() below, and deliberately not part of
+// billingRouter — Stripe's webhook signature verification needs the raw,
+// unparsed request body. If this were mounted the normal way (after
+// express.json() has already consumed and reserialized the body), the
+// signature check would fail on every event. See handleStripeWebhook's
+// own comment in routes/billing.js for more.
+app.post("/api/billing/webhook", express.raw({ type: "application/json" }), handleStripeWebhook);
+
 app.use(express.json({ limit: "1mb" }));
 
 // Plain, unprefixed health check for hosting-platform probes (Render, etc).
@@ -47,6 +57,7 @@ app.use("/api/questions", questionsRouter);
 app.use("/api/assemble", assembleRouter);
 app.use("/api/auth", authRouter);
 app.use("/api/sessions", sessionsRouter);
+app.use("/api/billing", billingRouter);
 
 app.use((err, _req, res, _next) => {
   console.error("[prompt-builder] Unhandled error:", err);

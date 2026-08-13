@@ -2,11 +2,11 @@ import { useState } from "react";
 import { useAuth } from "../context/AuthContext.jsx";
 import "./AuthModal.css";
 
-// Deliberately minimal — Stage 3 (Stripe) will likely trigger this same
-// modal from the /pro CTA and may extend it, but this needs to exist now
-// so Stage 2's migration flow (signup -> localStorage session pulled into
-// the new account) has a real UI path to test against.
-export default function AuthModal({ onClose }) {
+// Rendered by AuthProvider itself (see AuthContext.jsx's openAuthModal) so
+// any component can gate an action behind auth — e.g. "start checkout"
+// from the /pro CTA or a locked result-screen tab — via one shared modal
+// instance instead of each caller managing its own.
+export default function AuthModal({ onClose, onSuccess }) {
   const { signup, login } = useAuth();
   const [mode, setMode] = useState("signup");
   const [email, setEmail] = useState("");
@@ -19,12 +19,12 @@ export default function AuthModal({ onClose }) {
     setError(null);
     setLoading(true);
     try {
-      if (mode === "signup") {
-        await signup(email, password);
+      const loggedInUser = mode === "signup" ? await signup(email, password) : await login(email, password);
+      if (onSuccess) {
+        onSuccess(loggedInUser);
       } else {
-        await login(email, password);
+        onClose();
       }
-      onClose();
     } catch (err) {
       setError(err.message);
     } finally {

@@ -1,19 +1,35 @@
 import { createContext, useCallback, useContext, useEffect, useState } from "react";
 import * as api from "../api.js";
 import { loadSession } from "../storage.js";
+import AuthModal from "../components/AuthModal.jsx";
 
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
+  // null = closed. Otherwise { onSuccess: fn | null } — set by whichever
+  // component called openAuthModal, so signup/login can resume whatever
+  // the user was trying to do (e.g. start checkout) once they're in.
+  const [modalState, setModalState] = useState(null);
+
+  const refreshUser = useCallback(() => {
+    return api
+      .getMe()
+      .then(({ user }) => {
+        setUser(user);
+        return user;
+      })
+      .catch(() => {
+        setUser(null);
+        return null;
+      });
+  }, []);
 
   useEffect(() => {
-    api
-      .getMe()
-      .then(({ user }) => setUser(user))
-      .catch(() => setUser(null))
-      .finally(() => setAuthLoading(false));
+    refreshUser().finally(() => setAuthLoading(false));
+    // Only on mount — refreshUser is stable (useCallback with no deps).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const signup = useCallback(async (email, password) => {
@@ -46,11 +62,36 @@ export function AuthProvider({ children }) {
     setUser(null);
   }, []);
 
+  // Any component can call this to gate an action behind auth — e.g. "start
+  // checkout" from the /pro CTA or a locked result-screen tab. If already
+  // logged in, onSuccess fires immediately with no modal shown at all.
+  const openAuthModal = useCallback(
+    (onSuccess) => {
+      if (user) {
+        onSuccess?.(user);
+        return;
+      }
+      setModalState({ onSuccess: onSuccess || null });
+    },
+    [user]
+  );
+
+  const closeAuthModal = useCallback(() => setModalState(null), []);
+
+  function handleModalSuccess(loggedInUser) {
+    const onSuccess = modalState?.onSuccess;
+    setModalState(null);
+    onSuccess?.(loggedInUser);
+  }
+
   const isPaidUser = Boolean(user) && ["trialing", "active"].includes(user.subscriptionStatus);
 
   return (
-    <AuthContext.Provider value={{ user, authLoading, isPaidUser, signup, login, logout }}>
+    <AuthContext.Provider
+      value={{ user, authLoading, isPaidUser, signup, login, logout, openAuthModal, refreshUser }}
+    >
       {children}
+      {modalState && <AuthModal onClose={closeAuthModal} onSuccess={handleModalSuccess} />}
     </AuthContext.Provider>
   );
 }

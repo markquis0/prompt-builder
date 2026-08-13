@@ -3,12 +3,9 @@ import { Link } from "react-router-dom";
 import posthog from "posthog-js";
 import FeedbackWidget from "./FeedbackWidget.jsx";
 import { RENDERERS } from "../renderers/index.js";
+import { useAuth } from "../context/AuthContext.jsx";
+import { createCheckoutSession } from "../api.js";
 import "./ResultPreview.css";
-
-// Hardcoded until the monetization gate (auth + Stripe) exists. Free users
-// still get the full Q&A flow and a generic prompt — this only locks the
-// model-specific tabs, never the builder itself.
-const IS_PAID_USER = false;
 
 // Survives a refresh within the tab but not a new browser session — once
 // dismissed, don't nag again on every subsequent locked-tab click.
@@ -59,7 +56,10 @@ export default function ResultPreview({
   const [plainView, setPlainView] = useState(false);
   const [showDiff, setShowDiff] = useState(false);
   const [lockedCardModel, setLockedCardModel] = useState(null);
+  const [checkoutLoading, setCheckoutLoading] = useState(false);
+  const [checkoutError, setCheckoutError] = useState(null);
   const textareaRef = useRef(null);
+  const { isPaidUser, openAuthModal } = useAuth();
 
   // A prompt_object with every field null means either an old backend
   // build (pre-Phase-2) or a parse that found none of the expected tags —
@@ -83,7 +83,7 @@ export default function ResultPreview({
   const displayText = editedVariants[editKey] ?? baseText;
 
   function handleTabClick(key) {
-    const isLocked = key !== "generic" && !IS_PAID_USER;
+    const isLocked = key !== "generic" && !isPaidUser;
     if (isLocked) {
       posthog.capture("model_tab_locked_click", { model: key });
       if (sessionStorage.getItem(LOCKED_CARD_DISMISSED_KEY) !== "1") {
@@ -105,6 +105,25 @@ export default function ResultPreview({
 
   function handleLockedCardLearnMore() {
     posthog.capture("locked_tab_cta_clicked", { model: lockedCardModel, action: "learn_more" });
+  }
+
+  async function goToCheckout() {
+    setCheckoutError(null);
+    setCheckoutLoading(true);
+    try {
+      const { checkoutUrl } = await createCheckoutSession();
+      window.location.href = checkoutUrl;
+    } catch (err) {
+      setCheckoutLoading(false);
+      setCheckoutError(err.message);
+    }
+  }
+
+  function handleStartTrial() {
+    posthog.capture("locked_tab_cta_clicked", { model: lockedCardModel, action: "start_trial" });
+    // openAuthModal calls its callback immediately if already logged in —
+    // no modal shown, straight to checkout.
+    openAuthModal(goToCheckout);
   }
 
   function handleEdit(newText) {
@@ -186,7 +205,7 @@ export default function ResultPreview({
         {hasPromptObject && (
           <div className="model-tabs" role="tablist">
             {Object.entries(RENDERERS).map(([key, { label, icon }]) => {
-              const isLocked = key !== "generic" && !IS_PAID_USER;
+              const isLocked = key !== "generic" && !isPaidUser;
               return (
                 <button
                   key={key}
@@ -222,14 +241,30 @@ export default function ResultPreview({
               Different models read your prompt differently. Pro formats it for the one you're
               using.
             </p>
+            {checkoutError && (
+              <div className="error-banner">
+                <span>{checkoutError}</span>
+                <button type="button" className="btn btn-secondary" onClick={goToCheckout}>
+                  Retry
+                </button>
+              </div>
+            )}
             <div className="locked-tab-card-actions">
+              <button
+                type="button"
+                className="btn btn-primary"
+                onClick={handleStartTrial}
+                disabled={checkoutLoading}
+              >
+                {checkoutLoading ? "One sec…" : "Start 7-day free trial →"}
+              </button>
               <Link
                 to="/pro"
                 state={{ fromLockedTab: true }}
                 className="link-button"
                 onClick={handleLockedCardLearnMore}
               >
-                See how it works →
+                Learn more
               </Link>
               <button type="button" className="btn btn-ghost" onClick={handleLockedCardDismiss}>
                 Maybe later

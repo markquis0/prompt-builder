@@ -1,9 +1,11 @@
-import { useEffect } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import posthog from "posthog-js";
 import NavHeader from "../components/NavHeader.jsx";
 import ProDemo from "../components/ProDemo.jsx";
+import { useAuth } from "../context/AuthContext.jsx";
+import { createCheckoutSession } from "../api.js";
 import "./ProPage.css";
 
 const RULES = [
@@ -26,7 +28,11 @@ const RULES = [
 
 export default function ProPage() {
   const location = useLocation();
+  const navigate = useNavigate();
   const fromLockedTab = Boolean(location.state?.fromLockedTab);
+  const { user, isPaidUser, openAuthModal, refreshUser } = useAuth();
+  const [checkoutLoading, setCheckoutLoading] = useState(false);
+  const [checkoutError, setCheckoutError] = useState(null);
 
   useEffect(() => {
     posthog.capture("pro_page_view", {
@@ -37,8 +43,43 @@ export default function ProPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const checkout = params.get("checkout");
+    if (!checkout) return;
+
+    // The webhook that actually flips subscription_status runs async on
+    // Stripe's side — it's usually done by the time this redirect lands,
+    // but not guaranteed, so re-fetch rather than trust whatever AuthContext
+    // loaded on initial mount.
+    if (checkout === "success") {
+      refreshUser();
+    }
+    // Strip the query param either way so a refresh doesn't re-trigger this.
+    navigate("/pro", { replace: true, state: location.state });
+    // Only on the param actually changing, not on every navigate() we cause.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.search]);
+
   function trackCta(action) {
     posthog.capture("pro_cta_clicked", { action });
+  }
+
+  async function goToCheckout() {
+    trackCta(user ? "subscribe" : "start_trial");
+    setCheckoutError(null);
+    setCheckoutLoading(true);
+    try {
+      const { checkoutUrl } = await createCheckoutSession();
+      window.location.href = checkoutUrl;
+    } catch (err) {
+      setCheckoutLoading(false);
+      setCheckoutError(err.message);
+    }
+  }
+
+  function handleSubscribeClick() {
+    openAuthModal(goToCheckout);
   }
 
   return (
@@ -91,7 +132,7 @@ export default function ProPage() {
         </section>
 
         <section className="pro-offer">
-          <h2>PromptMe Pro — $8/month or $65/year</h2>
+          <h2>PromptMe Pro — $8/month</h2>
           <p className="pro-offer-intro">Everything in the free builder, plus:</p>
           <ul className="pro-offer-list">
             <li>Copy your prompt formatted for Claude, ChatGPT, or Gemini</li>
@@ -105,14 +146,43 @@ export default function ProPage() {
         </section>
 
         <section className="pro-cta-section">
-          <Link
-            to="/#builder"
-            className="btn btn-primary pro-cta-btn"
-            onClick={() => trackCta("try_builder")}
-          >
-            Try it free →
-          </Link>
-          <p className="pro-cta-note">Build a prompt, then see how it looks in each format.</p>
+          {isPaidUser ? (
+            <Link to="/#builder" className="btn btn-primary pro-cta-btn" onClick={() => trackCta("try_builder")}>
+              Go to your builder →
+            </Link>
+          ) : (
+            <>
+              <button
+                type="button"
+                className="btn btn-primary pro-cta-btn"
+                onClick={handleSubscribeClick}
+                disabled={checkoutLoading}
+              >
+                {checkoutLoading ? "One sec…" : "Start 7-day free trial →"}
+              </button>
+              {checkoutError && (
+                <div className="error-banner pro-cta-error">
+                  <span>{checkoutError}</span>
+                  <button type="button" className="btn btn-secondary" onClick={goToCheckout}>
+                    Retry
+                  </button>
+                </div>
+              )}
+            </>
+          )}
+          <p className="pro-cta-note">
+            {isPaidUser
+              ? "You're on Pro — build a prompt and pick a model tab."
+              : "No credit card charge for 7 days. Cancel anytime."}
+          </p>
+          {!isPaidUser && (
+            <p className="pro-cta-secondary">
+              Just want the free builder?{" "}
+              <Link to="/#builder" onClick={() => trackCta("try_builder")}>
+                Build a prompt — it's free →
+              </Link>
+            </p>
+          )}
         </section>
       </main>
     </div>

@@ -103,3 +103,13 @@ export function migrateSession(session) {
 export function listServerSessions() {
   return request("/api/sessions");
 }
+
+// --- Billing ---
+
+export function createCheckoutSession() {
+  return postJSON("/api/billing/create-checkout-session", {});
+}
+
+export function getBillingPortalUrl() {
+  return request("/api/billing/portal");
+}

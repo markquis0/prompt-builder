@@ -1,13 +1,25 @@
-import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext.jsx";
-import AuthModal from "./AuthModal.jsx";
+import { getBillingPortalUrl } from "../api.js";
 import "./NavHeader.css";
 
 export default function NavHeader() {
   const { pathname } = useLocation();
-  const { user, authLoading, logout } = useAuth();
-  const [showAuthModal, setShowAuthModal] = useState(false);
+  const { user, authLoading, logout, openAuthModal } = useAuth();
+
+  async function handleManageSubscription() {
+    try {
+      const { portalUrl } = await getBillingPortalUrl();
+      window.location.href = portalUrl;
+    } catch (err) {
+      console.error("[prompt-builder] Failed to open billing portal:", err);
+    }
+  }
+
+  // Anyone who's ever started a subscription (including a canceled one) can
+  // still get to the Stripe portal — it shows invoice history and lets them
+  // resubscribe, not just manage an active plan.
+  const hasBillingHistory = user?.subscriptionStatus && user.subscriptionStatus !== "none";
 
   return (
     <header className="nav-header">
@@ -37,19 +49,22 @@ export default function NavHeader() {
           {user ? (
             <>
               <span className="nav-account-email">{user.email}</span>
+              {hasBillingHistory && (
+                <button type="button" className="link-button" onClick={handleManageSubscription}>
+                  Manage subscription
+                </button>
+              )}
               <button type="button" className="link-button" onClick={logout}>
                 Log out
               </button>
             </>
           ) : (
-            <button type="button" className="link-button" onClick={() => setShowAuthModal(true)}>
+            <button type="button" className="link-button" onClick={() => openAuthModal()}>
               Log in / Sign up
             </button>
           )}
         </div>
       )}
-
-      {showAuthModal && <AuthModal onClose={() => setShowAuthModal(false)} />}
     </header>
   );
 }

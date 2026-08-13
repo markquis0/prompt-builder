@@ -127,6 +127,18 @@
   font-size: 14px;
 }
 
+.pro-cta-secondary {
+  margin: 8px 0 0;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+.pro-cta-error {
+  max-width: 380px;
+  margin: 16px auto 0;
+  text-align: left;
+}
+
 @media (max-width: 767px) {
   .pro-rules-grid {
     grid-template-columns: 1fr;
