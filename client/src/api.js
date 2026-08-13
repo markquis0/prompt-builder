@@ -3,14 +3,19 @@
 // (e.g. https://prompt-builder-api.onrender.com) — no trailing slash.
 const API_BASE = import.meta.env.VITE_API_BASE_URL || "";
 
-async function postJSON(path, body) {
+// credentials: "include" is required on every call, not just auth ones —
+// it's what makes the browser send/accept the httpOnly session cookie
+// across the Vercel/Render origin split. Harmless on routes that don't
+// need auth (questions/assemble): no cookie to send, nothing changes.
+async function request(path, { method = "GET", body } = {}) {
   const url = `${API_BASE}${path}`;
   let res;
   try {
     res = await fetch(url, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
+      method,
+      credentials: "include",
+      headers: body ? { "Content-Type": "application/json" } : undefined,
+      body: body ? JSON.stringify(body) : undefined,
     });
   } catch {
     throw new Error("Couldn't reach the server. Check your connection and try again.");
@@ -28,6 +33,10 @@ async function postJSON(path, body) {
   }
 
   return data;
+}
+
+function postJSON(path, body) {
+  return request(path, { method: "POST", body });
 }
 
 export function fetchQuestions({ prompt, promptType }) {
@@ -48,4 +57,49 @@ export async function assemblePrompt({ originalPrompt, supportingContext, qaPair
     return { promptObject: null, rawAssembled: data.prompt };
   }
   return { promptObject: null, rawAssembled: "" };
+}
+
+// --- Auth ---
+
+export function signup(email, password) {
+  return postJSON("/api/auth/signup", { email, password });
+}
+
+export function login(email, password) {
+  return postJSON("/api/auth/login", { email, password });
+}
+
+export function logout() {
+  return postJSON("/api/auth/logout", {});
+}
+
+export function getMe() {
+  return request("/api/auth/me");
+}
+
+// --- Sessions (logged-in save/history + anonymous->account migration) ---
+
+function toSessionPayload(session) {
+  return {
+    originalPrompt: session.prompt,
+    qaPairs: (session.questions || []).map((q) => ({
+      question: q.text,
+      answer: session.answers?.[q.id] || "",
+    })),
+    supportingContext: session.supportingContext,
+    promptObject: session.promptObject,
+    rawAssembled: session.rawAssembled,
+  };
+}
+
+export function saveServerSession(session) {
+  return postJSON("/api/sessions", toSessionPayload(session));
+}
+
+export function migrateSession(session) {
+  return postJSON("/api/sessions/migrate", toSessionPayload(session));
+}
+
+export function listServerSessions() {
+  return request("/api/sessions");
 }

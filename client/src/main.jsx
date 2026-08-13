@@ -8,6 +8,7 @@ import './index.css'
 import HomePage from './pages/HomePage.jsx'
 import LearnPage from './pages/LearnPage.jsx'
 import ProPage from './pages/ProPage.jsx'
+import { AuthProvider } from './context/AuthContext.jsx'
 
 // Guarded so local dev without PostHog configured never errors — funnel
 // events become silent no-ops (posthog-js queues/no-ops calls made before
@@ -22,16 +23,18 @@ if (import.meta.env.VITE_POSTHOG_KEY) {
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <HelmetProvider>
-      <BrowserRouter>
-        {/* Was mounted only on the old App.jsx (the `/` route) — moved here
-            so every route gets pageview tracking, not just the homepage. */}
-        <Analytics />
-        <Routes>
-          <Route path="/" element={<HomePage />} />
-          <Route path="/learn/*" element={<LearnPage />} />
-          <Route path="/pro" element={<ProPage />} />
-        </Routes>
-      </BrowserRouter>
+      <AuthProvider>
+        <BrowserRouter>
+          {/* Was mounted only on the old App.jsx (the `/` route) — moved here
+              so every route gets pageview tracking, not just the homepage. */}
+          <Analytics />
+          <Routes>
+            <Route path="/" element={<HomePage />} />
+            <Route path="/learn/*" element={<LearnPage />} />
+            <Route path="/pro" element={<ProPage />} />
+          </Routes>
+        </BrowserRouter>
+      </AuthProvider>
     </HelmetProvider>
   </StrictMode>,
 )

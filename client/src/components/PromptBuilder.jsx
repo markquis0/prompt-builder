@@ -3,8 +3,9 @@ import posthog from "posthog-js";
 import IntakeForm from "./IntakeForm.jsx";
 import QAFlow from "./QAFlow.jsx";
 import ResultPreview from "./ResultPreview.jsx";
-import { fetchQuestions, assemblePrompt } from "../api.js";
+import { fetchQuestions, assemblePrompt, saveServerSession } from "../api.js";
 import { loadSession, saveSession, clearSession } from "../storage.js";
+import { useAuth } from "../context/AuthContext.jsx";
 import "./PromptBuilder.css";
 
 const EMPTY_SESSION = {
@@ -24,6 +25,7 @@ const EMPTY_SESSION = {
 // can live inside HomePage.jsx alongside marketing content. Behavior is
 // unchanged from before the extraction; only where it's mounted changed.
 export default function PromptBuilder() {
+  const { user } = useAuth();
   const [session, setSession] = useState(() => loadSession() || EMPTY_SESSION);
   const [questionsLoading, setQuestionsLoading] = useState(false);
   const [questionsError, setQuestionsError] = useState(null);
@@ -83,6 +85,15 @@ export default function PromptBuilder() {
       posthog.capture("result_generated");
       setAssembleLoading(false);
       patchSession({ stage: "result", promptObject, rawAssembled });
+
+      // Additive only — anonymous users are completely unaffected. Fire-
+      // and-forget: a failed save shouldn't interrupt someone looking at
+      // the result they just got, so it's logged, not surfaced in the UI.
+      if (user) {
+        saveServerSession({ ...current, promptObject, rawAssembled }).catch((err) => {
+          console.error("[prompt-builder] Failed to save session:", err);
+        });
+      }
     } catch (err) {
       posthog.capture("assemble_request_failed");
       setAssembleLoading(false);

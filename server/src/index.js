@@ -5,6 +5,7 @@ import cookieParser from "cookie-parser";
 import questionsRouter from "./routes/questions.js";
 import assembleRouter from "./routes/assemble.js";
 import authRouter from "./routes/auth.js";
+import sessionsRouter from "./routes/sessions.js";
 import { applySchema } from "./db/applySchema.js";
 
 const app = express();
@@ -45,6 +46,7 @@ app.get("/api/health", (_req, res) => res.json({ ok: true }));
 app.use("/api/questions", questionsRouter);
 app.use("/api/assemble", assembleRouter);
 app.use("/api/auth", authRouter);
+app.use("/api/sessions", sessionsRouter);
 
 app.use((err, _req, res, _next) => {
   console.error("[prompt-builder] Unhandled error:", err);

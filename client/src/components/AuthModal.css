@@ -1,0 +1,66 @@
+.auth-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  z-index: 100;
+}
+
+.auth-modal {
+  width: 100%;
+  max-width: 380px;
+}
+
+.auth-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.auth-modal-header h2 {
+  margin: 0;
+  font-size: 20px;
+}
+
+.auth-modal-close {
+  font-size: 20px;
+  line-height: 1;
+  padding: 4px 8px;
+}
+
+.auth-modal input[type="email"],
+.auth-modal input[type="password"] {
+  width: 100%;
+  font: inherit;
+  color: var(--text);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 12px;
+}
+
+.auth-modal input:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.auth-modal-hint {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin: 4px 0 0;
+}
+
+.auth-modal-submit {
+  width: 100%;
+  margin-top: 20px;
+}
+
+.auth-modal-toggle {
+  display: block;
+  margin: 16px auto 0;
+  font-size: 13px;
+}
