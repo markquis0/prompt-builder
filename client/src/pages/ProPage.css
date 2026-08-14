@@ -185,6 +185,12 @@
   flex-wrap: wrap;
 }
 
+.pro-cta-disclosure {
+  margin: 8px 0 0;
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
 .pro-cta-secondary {
   margin: 8px 0 0;
   color: var(--text-muted);

@@ -79,6 +79,10 @@ export default function ResourcesPage() {
 
   const filtered = useMemo(() => {
     return resources.filter((r) => {
+      // Already shown in the "Start with these" strip above — excluded
+      // here (not just visually skipped) so it can't reappear under any
+      // filter combination either.
+      if (BEGINNER_URLS.includes(r.url)) return false;
       if (filters.category !== "all" && r.category !== filters.category) return false;
       if (filters.audience !== "all" && r.audience !== filters.audience) return false;
       if (filters.model !== "all" && !r.modelFamily.includes(filters.model)) return false;

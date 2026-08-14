@@ -10,6 +10,7 @@ import LearnPage from './pages/LearnPage.jsx'
 import ProPage from './pages/ProPage.jsx'
 import ResourcesPage from './pages/ResourcesPage.jsx'
 import PromptLibraryPage from './pages/PromptLibraryPage.jsx'
+import LegalPage from './pages/LegalPage.jsx'
 import { AuthProvider } from './context/AuthContext.jsx'
 
 // Guarded so local dev without PostHog configured never errors — funnel
@@ -36,6 +37,9 @@ createRoot(document.getElementById('root')).render(
             <Route path="/pro" element={<ProPage />} />
             <Route path="/resources" element={<ResourcesPage />} />
             <Route path="/prompts" element={<PromptLibraryPage />} />
+            <Route path="/privacy" element={<LegalPage page="privacy" />} />
+            <Route path="/terms" element={<LegalPage page="terms" />} />
+            <Route path="/refund-policy" element={<LegalPage page="refund" />} />
           </Routes>
         </BrowserRouter>
       </AuthProvider>

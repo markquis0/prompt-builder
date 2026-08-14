@@ -165,6 +165,16 @@ input:focus {
   background: var(--accent-hover);
 }
 
+/* Disabled primary buttons used to just be the enabled purple at 50%
+   opacity — close enough to a normal secondary button's tint that it read
+   as clickable. Flat gray reads as "off" at a glance; the lighter-purple
+   tint stays reserved for the enabled hover state above. */
+.btn-primary:disabled {
+  background: #d1d5db;
+  color: #9ca3af;
+  opacity: 1;
+}
+
 .btn-secondary {
   background: transparent;
   border-color: var(--border);

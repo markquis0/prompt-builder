@@ -6,7 +6,7 @@ import "./NavHeader.css";
 
 export default function NavHeader() {
   const { pathname } = useLocation();
-  const { user, authLoading, logout, openAuthModal } = useAuth();
+  const { user, authLoading, logout, openAuthModal, isPaidUser } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const mobileMenuRef = useRef(null);
 
@@ -67,6 +67,13 @@ export default function NavHeader() {
           className={pathname === "/pro" ? "nav-link nav-link-pro nav-link-active" : "nav-link nav-link-pro"}
         >
           Pro
+          <span className="nav-pro-badge-slot">
+            {isPaidUser && (
+              <span className="nav-pro-badge" title="Your subscription is active">
+                Active
+              </span>
+            )}
+          </span>
         </Link>
       </nav>
 
@@ -84,11 +91,11 @@ export default function NavHeader() {
                   {user.email}
                 </span>
                 {hasBillingHistory && (
-                  <button type="button" className="link-button" onClick={handleManageSubscription}>
+                  <button type="button" className="nav-manage-btn" onClick={handleManageSubscription}>
                     Manage subscription
                   </button>
                 )}
-                <button type="button" className="link-button" onClick={logout}>
+                <button type="button" className="nav-logout-link" onClick={logout}>
                   Log out
                 </button>
               </div>

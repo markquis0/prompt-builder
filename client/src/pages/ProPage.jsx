@@ -261,6 +261,17 @@ export default function ProPage() {
                 </div>
               )}
               <p className="pro-cta-note">No credit card charge for 7 days. Cancel anytime.</p>
+              <p className="pro-cta-disclosure">
+                By starting your trial you agree to our{" "}
+                <Link to="/terms" onClick={() => trackCta("terms_link")}>
+                  Terms of Service
+                </Link>{" "}
+                and{" "}
+                <Link to="/privacy" onClick={() => trackCta("privacy_link")}>
+                  Privacy Policy
+                </Link>
+                .
+              </p>
               <p className="pro-cta-secondary">
                 Just want the free builder?{" "}
                 <Link to="/#builder" onClick={() => trackCta("try_builder")}>
