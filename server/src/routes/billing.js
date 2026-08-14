@@ -38,6 +38,13 @@ router.post("/create-checkout-session", requireAuth, async (req, res) => {
       mode: "subscription",
       customer_email: user.email,
       line_items: [{ price: process.env.STRIPE_PRICE_ID, quantity: 1 }],
+      // Managed Payments is on by default for this account and requires a
+      // tax_code on the Product before it'll process a session at all
+      // ("Invalid line_items[0]: this product tax code is ineligible for
+      // Managed Payments"). Tax collection is a deliberate business decision
+      // to make later (see README), not something to back into via this
+      // error — explicitly opting out here until that decision is made.
+      managed_payments: { enabled: false },
       subscription_data: {
         trial_period_days: 7,
         // Also on the subscription itself, not just the Checkout Session —
