@@ -16,10 +16,20 @@ const PORT = process.env.PORT || 3001;
 
 // Comma-separated list of allowed origins. Defaults to the Vite dev server;
 // set ALLOWED_ORIGIN in production to the deployed frontend's origin(s).
+//
+// http://localhost:4888 is always allowed on top of that list — it's the
+// static server client/scripts/prerender.mjs boots during `npm run build`
+// (on Vercel's build machine, not a public origin anyone can actually send
+// a browser request from). Any page that fetches data on mount — currently
+// just /resources — needs this or the prerendered HTML silently bakes in
+// an empty/error state instead of real content: Puppeteer's headless
+// browser really does send `Origin: http://localhost:4888` on that fetch,
+// and without this it gets rejected by CORS before ever reaching the route.
 const allowedOrigins = (process.env.ALLOWED_ORIGIN || "http://localhost:5173")
   .split(",")
   .map((s) => s.trim())
-  .filter(Boolean);
+  .filter(Boolean)
+  .concat("http://localhost:4888");
 
 app.use(
   cors({
