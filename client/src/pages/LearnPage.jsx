@@ -252,6 +252,12 @@ export default function LearnPage() {
                     </>
                   )}
 
+                  {part.resourcesPointer && (
+                    <p className="conversion-hook">
+                      <Link to="/resources">Browse the resources directory →</Link>
+                    </p>
+                  )}
+
                   {part.linkGroups &&
                     part.linkGroups.map((group, i) => (
                       <div key={i} className="link-group">

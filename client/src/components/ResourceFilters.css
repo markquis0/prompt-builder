@@ -1,0 +1,31 @@
+.resource-filters {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 24px 0 32px;
+}
+
+.resource-search {
+  font-size: 15px;
+  padding: 10px 14px;
+}
+
+.resource-filter-selects {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.resource-filter-selects select {
+  width: auto;
+  min-width: 160px;
+}
+
+@media (max-width: 600px) {
+  .resource-filter-selects {
+    flex-direction: column;
+  }
+  .resource-filter-selects select {
+    width: 100%;
+  }
+}

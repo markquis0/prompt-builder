@@ -113,3 +113,9 @@ export function createCheckoutSession() {
 export function getBillingPortalUrl() {
   return request("/api/billing/portal");
 }
+
+// --- Resources ---
+
+export function listResources() {
+  return request("/api/resources");
+}

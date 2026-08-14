@@ -7,7 +7,9 @@ import assembleRouter from "./routes/assemble.js";
 import authRouter from "./routes/auth.js";
 import sessionsRouter from "./routes/sessions.js";
 import billingRouter, { handleStripeWebhook } from "./routes/billing.js";
+import resourcesRouter from "./routes/resources.js";
 import { applySchema } from "./db/applySchema.js";
+import { seedStarterResources } from "./db/seedResources.js";
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -58,6 +60,7 @@ app.use("/api/assemble", assembleRouter);
 app.use("/api/auth", authRouter);
 app.use("/api/sessions", sessionsRouter);
 app.use("/api/billing", billingRouter);
+app.use("/api/resources", resourcesRouter);
 
 app.use((err, _req, res, _next) => {
   console.error("[prompt-builder] Unhandled error:", err);
@@ -68,8 +71,9 @@ app.use((err, _req, res, _next) => {
 // server from booting — /api/questions and /api/assemble don't depend on
 // the database, and shouldn't go down because of an unrelated DB problem.
 applySchema()
+  .then(() => seedStarterResources())
   .catch((err) => {
-    console.error("[prompt-builder] Schema apply failed at startup:", err);
+    console.error("[prompt-builder] Schema apply/seed failed at startup:", err);
   })
   .finally(() => {
     app.listen(PORT, () => {

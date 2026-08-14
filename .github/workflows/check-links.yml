@@ -1,0 +1,34 @@
+name: Check resource links
+
+on:
+  schedule:
+    # Mondays 09:00 UTC. GitHub Actions cron can lag by up to ~15 minutes
+    # at peak load — not time-sensitive here, so that's fine.
+    - cron: "0 9 * * 1"
+  workflow_dispatch: {}
+
+jobs:
+  check-links:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install server dependencies
+        working-directory: server
+        run: npm install
+
+      - name: Check links
+        working-directory: server
+        env:
+          # Must be Render's EXTERNAL Database URL, not internal — this
+          # runner isn't on Render's private network. Set as a repo secret:
+          # Settings -> Secrets and variables -> Actions -> New repository secret.
+          DATABASE_URL: ${{ secrets.DATABASE_URL_EXTERNAL }}
+          # The external URL requires SSL, unlike the internal one Render
+          # itself uses (see server/src/db/pool.js).
+          DATABASE_SSL: "true"
+        run: node scripts/check-links.mjs

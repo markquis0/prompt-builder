@@ -37,6 +37,12 @@ export default function NavHeader() {
           Learn
         </Link>
         <Link
+          to="/resources"
+          className={pathname === "/resources" ? "nav-link nav-link-active" : "nav-link"}
+        >
+          Resources
+        </Link>
+        <Link
           to="/pro"
           className={pathname === "/pro" ? "nav-link nav-link-pro nav-link-active" : "nav-link nav-link-pro"}
         >

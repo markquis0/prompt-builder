@@ -210,62 +210,24 @@ export const PARTS = [
     id: "resources",
     number: 6,
     title: "Learn more",
+    paragraphs: [
+      "We keep a full, filterable directory of official docs, research, and guides — including everything referenced on this page — in one place, searchable by category, audience, and model.",
+    ],
+    resourcesPointer: true,
     linkGroups: [
       {
-        heading: "Start here if you're new",
+        heading: "A few to start with",
         links: [
           { label: "Learn Prompting — Introduction", url: "https://learnprompting.org/docs/introduction" },
           {
-            label: "Google Workspace with Gemini Prompt Guide (PDF, organised by job role)",
+            label: "Google Workspace with Gemini Prompt Guide (PDF)",
             url: "https://workspace.google.com/learning/content/gemini-prompt-guide",
           },
-        ],
-      },
-      {
-        heading: "The reference guides",
-        links: [
-          { label: "Prompt Engineering Guide (DAIR.AI)", url: "https://www.promptingguide.ai/" },
           {
             label: "Anthropic — Prompt engineering overview",
             url: "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/overview",
           },
-          {
-            label: "OpenAI — Prompt guidance",
-            url: "https://developers.openai.com/api/docs/guides/latest-model",
-          },
-          {
-            label: "Google — Prompt design strategies",
-            url: "https://ai.google.dev/gemini-api/docs/prompting-strategies",
-          },
-        ],
-      },
-      {
-        heading: "The research",
-        links: [
-          { label: "The Prompt Report (58 techniques, catalogued)", url: "https://arxiv.org/abs/2406.06608" },
-          {
-            label: "↳ plain-language summary",
-            url: "https://learnprompting.org/blog/the_prompt_report",
-          },
-          {
-            label: "Wharton Prompting Science Reports (what actually holds up under testing)",
-            url: "https://gail.wharton.upenn.edu/research-and-insights/",
-          },
-          {
-            label: "When \"A Helpful Assistant\" Is Not Really Helpful (personas)",
-            url: "https://aclanthology.org/2024.findings-emnlp.888/",
-          },
-          {
-            label: "Structured Context Engineering for File-Native Agentic Systems (format vs. architecture)",
-            url: "https://arxiv.org/abs/2602.05447",
-          },
-        ],
-      },
-      {
-        heading: "To stay current",
-        links: [
-          { label: "Simon Willison's Weblog", url: "https://simonwillison.net/" },
-          { label: "One Useful Thing, by Ethan Mollick", url: "https://www.oneusefulthing.org/" },
+          { label: "Prompt Engineering Guide (DAIR.AI)", url: "https://www.promptingguide.ai/" },
         ],
       },
     ],

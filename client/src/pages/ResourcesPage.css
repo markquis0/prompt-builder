@@ -1,0 +1,62 @@
+.resources-shell {
+  max-width: 760px;
+}
+
+.resources-main {
+  padding-bottom: 60px;
+}
+
+.resources-main h1 {
+  font-size: 30px;
+  margin: 8px 0 10px;
+  color: var(--text-h);
+}
+
+.resources-subtitle {
+  color: var(--text-muted);
+  font-size: 16px;
+  line-height: 1.55;
+  margin: 0 0 8px;
+}
+
+.resources-subtitle a {
+  color: var(--accent);
+}
+
+.resources-beginner-strip {
+  margin: 28px 0;
+  padding: 18px 20px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--accent-bg);
+}
+
+.resources-beginner-label {
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--accent);
+  margin: 0 0 12px;
+}
+
+.resources-beginner-grid .resource-card {
+  background: var(--card-bg);
+}
+
+.resources-group {
+  margin-top: 28px;
+}
+
+.resources-group h2 {
+  font-size: 20px;
+  color: var(--text-h);
+  margin: 0 0 12px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--border);
+}
+
+.resources-empty {
+  color: var(--text-muted);
+  padding: 20px 0;
+}

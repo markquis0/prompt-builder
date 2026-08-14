@@ -22,6 +22,7 @@ const ROUTES = [
   "/learn/context-engineering",
   "/learn/resources",
   "/pro",
+  "/resources",
 ];
 
 // Vercel's build container is missing the shared libraries plain `puppeteer`'s
