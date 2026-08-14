@@ -1,0 +1,100 @@
+{
+  "_comment": "Deliverable 6 v2.0. contentType 'markdown' means fetch the URL as-is (already returns text/markdown, verified at build time — see open question 4 in the spec) and only whitespace-collapse before hashing, skipping the HTML strip rules. learnImpacting is a hand-maintained list, not derived from learnContent.js automatically — keep in sync manually if /learn's citations change.",
+  "userAgent": "PromptBuilder-DocMonitor/1.0 (+https://promptme.host/contact)",
+  "politenessDelayMs": 2000,
+  "maxRedirects": 5,
+  "requestTimeoutMs": 15000,
+  "failureThreshold": 3,
+  "urls": [
+    {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/overview",
+      "vendor": "Anthropic",
+      "pageTitle": "Prompt engineering overview",
+      "pollIntervalHours": 24,
+      "contentType": "html",
+      "learnImpacting": true
+    },
+    {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
+      "vendor": "Anthropic",
+      "pageTitle": "Prompting best practices",
+      "pollIntervalHours": 24,
+      "contentType": "html",
+      "learnImpacting": false
+    },
+    {
+      "url": "https://developers.openai.com/api/docs/guides/prompt-guidance.md",
+      "resourceMatchUrl": "https://developers.openai.com/api/docs/guides/prompt-guidance",
+      "vendor": "OpenAI",
+      "pageTitle": "Prompt guidance hub",
+      "pollIntervalHours": 24,
+      "contentType": "markdown",
+      "learnImpacting": false
+    },
+    {
+      "url": "https://cookbook.openai.com/examples/gpt-5/gpt-5-2_prompting_guide.md",
+      "resourceMatchUrl": "https://cookbook.openai.com/examples/gpt-5/gpt-5-2_prompting_guide",
+      "vendor": "OpenAI",
+      "pageTitle": "GPT-5.2 prompting guide",
+      "pollIntervalHours": 48,
+      "contentType": "markdown",
+      "learnImpacting": false
+    },
+    {
+      "url": "https://ai.google.dev/gemini-api/docs/prompting-strategies",
+      "vendor": "Google",
+      "pageTitle": "Prompt design strategies",
+      "pollIntervalHours": 24,
+      "contentType": "html",
+      "learnImpacting": false
+    },
+    {
+      "url": "https://ai.google.dev/gemini-api/docs/whats-new-gemini-3.5",
+      "vendor": "Google",
+      "pageTitle": "Gemini 3.5 Flash notes",
+      "pollIntervalHours": 24,
+      "contentType": "html",
+      "learnImpacting": false
+    },
+    {
+      "url": "https://developer.meta.com/ai/docs/how-to-guides/prompting/",
+      "vendor": "Meta",
+      "pageTitle": "Prompt engineering how-to",
+      "pollIntervalHours": 48,
+      "contentType": "html",
+      "learnImpacting": false
+    },
+    {
+      "url": "https://docs.mistral.ai/models/best-practices/prompt-engineering",
+      "vendor": "Mistral",
+      "pageTitle": "Prompt engineering best practices",
+      "pollIntervalHours": 48,
+      "contentType": "html",
+      "learnImpacting": false
+    },
+    {
+      "url": "https://docs.x.ai/docs/guides/prompt-engineering",
+      "vendor": "xAI",
+      "pageTitle": "Prompt engineering guide",
+      "pollIntervalHours": 48,
+      "contentType": "html",
+      "learnImpacting": false
+    },
+    {
+      "url": "https://api-docs.deepseek.com/prompt-library/",
+      "vendor": "DeepSeek",
+      "pageTitle": "Prompt library",
+      "pollIntervalHours": 48,
+      "contentType": "html",
+      "learnImpacting": false
+    },
+    {
+      "url": "https://api-docs.deepseek.com/",
+      "vendor": "DeepSeek",
+      "pageTitle": "API documentation",
+      "pollIntervalHours": 48,
+      "contentType": "html",
+      "learnImpacting": false
+    }
+  ]
+}

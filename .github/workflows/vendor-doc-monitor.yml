@@ -1,0 +1,51 @@
+name: Vendor documentation monitor
+
+on:
+  schedule:
+    # Daily 08:00 UTC. Poll intervals per URL (24h/48h) are enforced inside
+    # monitor.mjs itself via state.json's lastCheckedAt — a 48h-interval URL
+    # simply reports "not due" and gets skipped on the days in between,
+    # rather than needing two separate cron schedules here.
+    - cron: "0 8 * * *"
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+  issues: write
+
+jobs:
+  monitor:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install server dependencies
+        working-directory: server
+        run: npm install
+
+      - name: Run monitor
+        working-directory: server
+        env:
+          # Same external-URL + SSL requirement as check-links.yml — this
+          # runner isn't on Render's private network.
+          DATABASE_URL: ${{ secrets.DATABASE_URL_EXTERNAL }}
+          DATABASE_SSL: "true"
+          # Auto-provided by Actions; used to open a notification issue
+          # (labeled vendor-doc-monitor) when a change or a possibly_broken
+          # URL is found this run. No new secret needed.
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: node scripts/monitor.mjs
+
+      - name: Commit updated state
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add server/scripts/monitor-state/state.json server/scripts/monitor-state/changes.json
+          git diff --staged --quiet && echo "No state changes to commit." && exit 0
+          git commit -m "Vendor doc monitor: update state [skip ci]"
+          git push
