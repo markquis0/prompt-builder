@@ -1,0 +1,64 @@
+.builder-stepper {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.builder-stepper-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.builder-stepper-number {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--border);
+  color: var(--text-muted);
+  font-size: 13px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.builder-stepper-item.current .builder-stepper-number {
+  background: var(--accent);
+  color: white;
+}
+
+.builder-stepper-item.done .builder-stepper-number {
+  background: var(--accent-bg);
+  color: var(--accent);
+}
+
+.builder-stepper-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.builder-stepper-item.current .builder-stepper-label {
+  color: var(--text-h);
+}
+
+/* Connecting line between steps, purely decorative. */
+.builder-stepper-item:not(:last-child)::after {
+  content: "";
+  width: 20px;
+  height: 1px;
+  background: var(--border);
+  margin-left: 10px;
+}
+
+@media (max-width: 480px) {
+  .builder-stepper-label {
+    display: none;
+  }
+  .builder-stepper-item:not(:last-child)::after {
+    width: 12px;
+  }
+}

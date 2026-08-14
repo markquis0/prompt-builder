@@ -1,7 +1,11 @@
 :root {
   --text: #3a3742;
   --text-h: #08060d;
-  --text-muted: #78748a;
+  /* Darkened from #78748a (Stage 0.3 contrast audit: 4.29:1 against --bg,
+     fails AA normal-text's 4.5:1). #736f84 -> 4.62:1, visually
+     indistinguishable from the original at normal viewing distance. Dark
+     mode's --text-muted already passes (6.1:1+) and is unchanged. */
+  --text-muted: #736f84;
   --bg: #faf9fc;
   --card-bg: #fff;
   --border: #e5e4e7;

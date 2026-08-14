@@ -157,6 +157,22 @@
   -webkit-overflow-scrolling: touch;
 }
 
+.table-scroll-hint {
+  display: none;
+  font-size: 12px;
+  color: var(--text-muted);
+  margin: -8px 0 8px;
+}
+
+/* Table's own min-width already forces horizontal scroll under this width
+   (Phase 1) — this just makes that scrollability visible rather than
+   implicit, since nothing else about a scrollable div signals it. */
+@media (max-width: 600px) {
+  .table-scroll-hint {
+    display: block;
+  }
+}
+
 .learn-content table {
   width: 100%;
   border-collapse: collapse;
@@ -167,7 +183,7 @@
 .learn-content th,
 .learn-content td {
   text-align: left;
-  padding: 10px 12px;
+  padding: 16px 12px;
   border-bottom: 1px solid var(--border);
   vertical-align: top;
 }
@@ -176,6 +192,28 @@
   color: var(--text-h);
   font-weight: 700;
   background: var(--accent-bg);
+}
+
+.learn-content tbody tr:nth-child(even) {
+  background: var(--card-bg);
+}
+
+.table-cell-expand {
+  display: block;
+  margin-top: 4px;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--accent);
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+.table-cell-expand:hover {
+  color: var(--accent-hover);
+  text-decoration: underline;
 }
 
 /* Conversion hooks */

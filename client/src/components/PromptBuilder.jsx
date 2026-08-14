@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import posthog from "posthog-js";
 import IntakeForm from "./IntakeForm.jsx";
+import BuilderStepper from "./BuilderStepper.jsx";
 import QAFlow from "./QAFlow.jsx";
 import ResultPreview from "./ResultPreview.jsx";
 import { fetchQuestions, assemblePrompt, saveServerSession } from "../api.js";
@@ -203,6 +204,7 @@ export default function PromptBuilder() {
 
   return (
     <div className="prompt-builder">
+      <BuilderStepper stage={session.stage} />
       {session.stage !== "intake" && (
         <div className="prompt-builder-toolbar">
           <button type="button" className="btn btn-ghost" onClick={startOver}>

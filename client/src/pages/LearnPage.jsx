@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useLocation, Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import posthog from "posthog-js";
@@ -96,6 +96,29 @@ function renderInline(text) {
     }
     return part;
   });
+}
+
+// Caps long table cells with an inline expand — not a sentence-boundary
+// regex (this table's own content is full of version numbers like
+// "GPT-4.1" and "Gemini 3.1"; splitting on "." would cut mid-number), a
+// safe word-boundary character cap instead.
+const TABLE_CELL_CHAR_LIMIT = 110;
+
+function ExpandableCell({ text }) {
+  const [expanded, setExpanded] = useState(false);
+  const needsTruncation = text.length > TABLE_CELL_CHAR_LIMIT;
+  const cut = text.slice(0, TABLE_CELL_CHAR_LIMIT).replace(/\s+\S*$/, "");
+  const display = !needsTruncation || expanded ? text : `${cut}…`;
+  return (
+    <>
+      {renderInline(display)}
+      {needsTruncation && (
+        <button type="button" className="table-cell-expand" onClick={() => setExpanded((v) => !v)}>
+          {expanded ? "Show less" : "Read more →"}
+        </button>
+      )}
+    </>
+  );
 }
 
 function ExternalLink({ href, section, children }) {
@@ -215,28 +238,31 @@ export default function LearnPage() {
                   {part.paragraphs && <Paragraphs items={part.paragraphs} />}
 
                   {part.table && (
-                    <div className="table-scroll">
-                      <table>
-                        <thead>
-                          <tr>
-                            {part.table.headers.map((h, i) => (
-                              <th key={i}>{h}</th>
-                            ))}
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {part.table.rows.map((row, i) => (
-                            <tr key={i}>
-                              {row.map((cell, j) => (
-                                <td key={j} data-label={part.table.headers[j]}>
-                                  {renderInline(cell)}
-                                </td>
+                    <>
+                      <p className="table-scroll-hint">← Scroll to see all columns →</p>
+                      <div className="table-scroll">
+                        <table>
+                          <thead>
+                            <tr>
+                              {part.table.headers.map((h, i) => (
+                                <th key={i}>{h}</th>
                               ))}
                             </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
+                          </thead>
+                          <tbody>
+                            {part.table.rows.map((row, i) => (
+                              <tr key={i}>
+                                {row.map((cell, j) => (
+                                  <td key={j} data-label={part.table.headers[j]}>
+                                    {j === 0 ? renderInline(cell) : <ExpandableCell text={cell} />}
+                                  </td>
+                                ))}
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </>
                   )}
 
                   {part.builderNote && !part.sections && (

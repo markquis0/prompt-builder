@@ -27,16 +27,22 @@ const RULES = [
     accent: "gemini",
     title: "Gemini wants your context first.",
     body: 'Google’s documentation says to put instructions after long context and open with "Based on the preceding information…" — the opposite of what most people do.',
+    sourceUrl: "https://ai.google.dev/gemini-api/docs/prompting-strategies",
+    sourceLabel: "Google's prompt design strategies",
   },
   {
     accent: "openai",
     title: "ChatGPT reads Markdown better than XML.",
     body: "GPT-5.x is trained on more Markdown than XML. Structured headers give it cleaner signal than angle brackets.",
+    sourceUrl: "https://developers.openai.com/api/docs/guides/prompt-guidance",
+    sourceLabel: "OpenAI's prompt guidance",
   },
   {
     accent: "claude",
     title: "Claude is the opposite.",
     body: "Claude’s own documentation recommends XML-style tags for section boundaries. Same information, different packaging.",
+    sourceUrl: "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/overview",
+    sourceLabel: "Anthropic's prompt engineering overview",
   },
 ];
 
@@ -151,6 +157,19 @@ export default function ProPage() {
               <div key={rule.title} className={`pro-rule-card pro-rule-${rule.accent}`}>
                 <p className="pro-rule-title">{rule.title}</p>
                 <p className="pro-rule-body">{rule.body}</p>
+                {/* Additive to the summary disclaimer below, not a
+                    replacement — links straight to the specific doc this
+                    card's claim comes from. */}
+                <a
+                  href={rule.sourceUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="pro-rule-source"
+                  title={rule.sourceLabel}
+                  onClick={() => trackCta("rule_source_" + rule.accent)}
+                >
+                  Source →
+                </a>
               </div>
             ))}
           </div>

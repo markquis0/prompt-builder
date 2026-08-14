@@ -48,6 +48,20 @@
   background: var(--card-bg);
 }
 
+.pro-rule-source {
+  display: inline-block;
+  margin-top: 10px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-decoration: none;
+}
+
+.pro-rule-source:hover {
+  color: var(--accent);
+  text-decoration: underline;
+}
+
 .pro-rule-claude {
   border-top-color: #e08a3c;
 }
