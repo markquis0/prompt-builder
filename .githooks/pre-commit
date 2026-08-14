@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+# Blocks a commit if it introduces what looks like a real API key.
+#
+# One-time setup per clone (not automatic — git doesn't run hooks from
+# .githooks/ unless told to):
+#   git config core.hooksPath .githooks
+#
+# Patterns require a long, hyphen-free run of characters right after the
+# key prefix, specifically so placeholders like "sk_test_your-key-here" in
+# .env.example (short, contains hyphens) never match — only real key shapes
+# do. Extend the alternation below if a new provider's key format shows up
+# in this repo.
+set -euo pipefail
+
+PATTERN='sk_live_[A-Za-z0-9]{20,}|rk_live_[A-Za-z0-9]{20,}|sk_test_[A-Za-z0-9]{20,}|rk_test_[A-Za-z0-9]{20,}|sk-ant-api[0-9]{2}-[A-Za-z0-9_-]{40,}'
+
+# Only scan added lines in the staged diff, not the whole file — avoids
+# false positives from unrelated unstaged context in the same file, and
+# means deleting a key doesn't itself trip the check.
+matches=$(git diff --cached -U0 -- . | grep -E '^\+' | grep -vE '^\+\+\+' | grep -E "$PATTERN" || true)
+
+if [ -n "$matches" ]; then
+  echo "pre-commit: this commit looks like it contains a real API key:" >&2
+  echo "$matches" | sed 's/^/  /' >&2
+  echo >&2
+  echo "Never commit real Stripe or Anthropic keys — use env vars instead (see server/.env.example)." >&2
+  echo "If this is a false positive, rename the placeholder so it doesn't match a real key's shape." >&2
+  exit 1
+fi

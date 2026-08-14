@@ -6,5 +6,16 @@
     { "source": "/learn/:path*", "destination": "/learn/:path*/index.html" },
     { "source": "/pro", "destination": "/pro/index.html" },
     { "source": "/(.*)", "destination": "/index.html" }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "Content-Security-Policy",
+          "value": "default-src 'self'; script-src 'self' https://*.i.posthog.com https://*.stripe.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://*.i.posthog.com; font-src 'self'; connect-src 'self' https://*.i.posthog.com https://formspree.io https://prompt-builder-api-od5m.onrender.com https://*.stripe.com; frame-src https://*.stripe.com; form-action 'self' https://formspree.io; base-uri 'self'; object-src 'none'"
+        }
+      ]
+    }
   ]
 }

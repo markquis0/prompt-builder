@@ -105,6 +105,14 @@ cp server/.env.example server/.env
 # then edit server/.env and paste your ANTHROPIC_API_KEY
 ```
 
+Turn on the pre-commit hook that blocks real-looking API keys (Stripe,
+Anthropic) from being committed — a git config setting, not a package,
+so it has to be enabled per clone:
+
+```bash
+git config core.hooksPath .githooks
+```
+
 ## Run
 
 Two terminals:
