@@ -128,11 +128,20 @@ export async function handleStripeWebhook(req, res) {
       }
       case "customer.subscription.updated": {
         const sub = event.data.object;
+        // trial_end is null once the trial ends or never applied — that's
+        // fine, to_timestamp(null) is just null, same as current_period_end
+        // already handles. Nothing wrote this column before now (not even
+        // checkout.session.completed, which only has the session/customer
+        // IDs to work with, not the subscription's own trial_end field) —
+        // this event is the first place in the flow that actually carries
+        // it, and it fires right after checkout in addition to every later
+        // status change.
         await pool.query(
           `UPDATE users
-           SET subscription_status = $1, current_period_ends_at = to_timestamp($2)
-           WHERE stripe_subscription_id = $3`,
-          [sub.status, sub.current_period_end, sub.id]
+           SET subscription_status = $1, current_period_ends_at = to_timestamp($2),
+               trial_ends_at = to_timestamp($3)
+           WHERE stripe_subscription_id = $4`,
+          [sub.status, sub.current_period_end, sub.trial_end, sub.id]
         );
         break;
       }

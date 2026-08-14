@@ -200,8 +200,9 @@ export default function ProPage() {
               {user.subscriptionStatus === "trialing" ? (
                 <>
                   <p className="pro-status-heading">
-                    You're on your free trial — {daysUntil(user.trialEndsAt)} day
-                    {daysUntil(user.trialEndsAt) === 1 ? "" : "s"} left
+                    {user.trialEndsAt
+                      ? `You're on your free trial — ${daysUntil(user.trialEndsAt)} day${daysUntil(user.trialEndsAt) === 1 ? "" : "s"} left`
+                      : "You're on your free trial"}
                   </p>
                   <p className="pro-status-detail">
                     {user.currentPeriodEndsAt
