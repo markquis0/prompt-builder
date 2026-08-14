@@ -55,10 +55,91 @@
   font-size: 14px;
 }
 
+.nav-account-desktop {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
 .nav-account-email {
   color: var(--text-muted);
   max-width: 180px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  cursor: default;
+}
+
+.nav-account-mobile {
+  display: none;
+  position: relative;
+}
+
+.nav-account-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: none;
+  background: var(--accent);
+  color: white;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.nav-account-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  min-width: 220px;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow: var(--shadow);
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  z-index: 20;
+}
+
+.nav-account-dropdown-email {
+  font-size: 13px;
+  color: var(--text-muted);
+  padding: 6px 8px 10px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 6px;
+  word-break: break-all;
+}
+
+.nav-account-dropdown-item {
+  font: inherit;
+  font-size: 14px;
+  text-align: left;
+  background: none;
+  border: none;
+  color: var(--text);
+  padding: 10px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  min-height: 44px;
+}
+
+.nav-account-dropdown-item:hover {
+  background: var(--accent-bg);
+}
+
+/* Same breakpoint used elsewhere in the app (ResourceFilters, PromptCard,
+   etc.) — below this, the inline email/actions cluster is more likely to
+   crowd or wrap against the nav links than to stay usable. */
+@media (max-width: 600px) {
+  .nav-account-desktop {
+    display: none;
+  }
+  .nav-account-mobile {
+    display: block;
+  }
 }

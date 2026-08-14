@@ -6,8 +6,21 @@ import NavHeader from "../components/NavHeader.jsx";
 import ProDemo from "../components/ProDemo.jsx";
 import ScoringDemo from "../components/ScoringDemo.jsx";
 import { useAuth } from "../context/AuthContext.jsx";
-import { createCheckoutSession } from "../api.js";
+import { createCheckoutSession, getBillingPortalUrl } from "../api.js";
 import "./ProPage.css";
+
+function formatDate(isoString) {
+  if (!isoString) return null;
+  return new Date(isoString).toLocaleDateString(undefined, { year: "numeric", month: "long", day: "numeric" });
+}
+
+// Ceil, not floor/round — someone 30 minutes from their trial ending still
+// reads as "0 days left," not "-1" or a confusing rollover to a full day.
+function daysUntil(isoString) {
+  if (!isoString) return null;
+  const ms = new Date(isoString).getTime() - Date.now();
+  return Math.max(0, Math.ceil(ms / (1000 * 60 * 60 * 24)));
+}
 
 const RULES = [
   {
@@ -31,9 +44,11 @@ export default function ProPage() {
   const location = useLocation();
   const navigate = useNavigate();
   const fromLockedTab = Boolean(location.state?.fromLockedTab);
-  const { user, isPaidUser, openAuthModal, refreshUser } = useAuth();
+  const { user, openAuthModal, refreshUser } = useAuth();
   const [checkoutLoading, setCheckoutLoading] = useState(false);
   const [checkoutError, setCheckoutError] = useState(null);
+  const [portalLoading, setPortalLoading] = useState(false);
+  const [portalError, setPortalError] = useState(null);
 
   useEffect(() => {
     posthog.capture("pro_page_view", {
@@ -81,6 +96,21 @@ export default function ProPage() {
 
   function handleSubscribeClick() {
     openAuthModal(goToCheckout);
+  }
+
+  // Same GET /api/billing/portal the header's "Manage subscription" link
+  // already uses (monetisation gate) — not a second portal-session flow.
+  async function goToBillingPortal() {
+    trackCta("manage_billing");
+    setPortalError(null);
+    setPortalLoading(true);
+    try {
+      const { portalUrl } = await getBillingPortalUrl();
+      window.location.href = portalUrl;
+    } catch (err) {
+      setPortalLoading(false);
+      setPortalError(err.message);
+    }
   }
 
   return (
@@ -165,10 +195,52 @@ export default function ProPage() {
         </section>
 
         <section className="pro-cta-section">
-          {isPaidUser ? (
-            <Link to="/#builder" className="btn btn-primary pro-cta-btn" onClick={() => trackCta("try_builder")}>
-              Go to your builder →
-            </Link>
+          {user?.subscriptionStatus === "trialing" || user?.subscriptionStatus === "active" ? (
+            <div className="pro-status-card">
+              {user.subscriptionStatus === "trialing" ? (
+                <>
+                  <p className="pro-status-heading">
+                    You're on your free trial — {daysUntil(user.trialEndsAt)} day
+                    {daysUntil(user.trialEndsAt) === 1 ? "" : "s"} left
+                  </p>
+                  <p className="pro-status-detail">
+                    {user.currentPeriodEndsAt
+                      ? `$5/month starting ${formatDate(user.currentPeriodEndsAt)}, unless you cancel first.`
+                      : "Cancel anytime before it ends and you won't be charged."}
+                  </p>
+                </>
+              ) : (
+                <>
+                  <p className="pro-status-heading">You're on PromptMe Pro — $5/month</p>
+                  <p className="pro-status-detail">
+                    {user.currentPeriodEndsAt
+                      ? `Renews ${formatDate(user.currentPeriodEndsAt)}.`
+                      : "Active subscription."}
+                  </p>
+                </>
+              )}
+              <div className="pro-status-actions">
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={goToBillingPortal}
+                  disabled={portalLoading}
+                >
+                  {portalLoading ? "One sec…" : "Manage billing"}
+                </button>
+                <Link to="/#builder" className="btn btn-primary" onClick={() => trackCta("try_builder")}>
+                  Go to your builder →
+                </Link>
+              </div>
+              {portalError && (
+                <div className="error-banner pro-cta-error">
+                  <span>{portalError}</span>
+                  <button type="button" className="btn btn-secondary" onClick={goToBillingPortal}>
+                    Retry
+                  </button>
+                </div>
+              )}
+            </div>
           ) : (
             <>
               <button
@@ -187,20 +259,14 @@ export default function ProPage() {
                   </button>
                 </div>
               )}
+              <p className="pro-cta-note">No credit card charge for 7 days. Cancel anytime.</p>
+              <p className="pro-cta-secondary">
+                Just want the free builder?{" "}
+                <Link to="/#builder" onClick={() => trackCta("try_builder")}>
+                  Build a prompt — it's free →
+                </Link>
+              </p>
             </>
-          )}
-          <p className="pro-cta-note">
-            {isPaidUser
-              ? "You're on Pro — build a prompt and pick a model tab."
-              : "No credit card charge for 7 days. Cancel anytime."}
-          </p>
-          {!isPaidUser && (
-            <p className="pro-cta-secondary">
-              Just want the free builder?{" "}
-              <Link to="/#builder" onClick={() => trackCta("try_builder")}>
-                Build a prompt — it's free →
-              </Link>
-            </p>
           )}
         </section>
       </main>
