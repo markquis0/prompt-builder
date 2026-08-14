@@ -4,6 +4,7 @@ import { Helmet } from "react-helmet-async";
 import posthog from "posthog-js";
 import NavHeader from "../components/NavHeader.jsx";
 import ProDemo from "../components/ProDemo.jsx";
+import ScoringDemo from "../components/ScoringDemo.jsx";
 import { useAuth } from "../context/AuthContext.jsx";
 import { createCheckoutSession } from "../api.js";
 import "./ProPage.css";
@@ -131,6 +132,23 @@ export default function ProPage() {
           </p>
         </section>
 
+        <section className="pro-scoring-section">
+          <h2>Know what's missing before you send it</h2>
+          <p className="pro-scoring-intro">
+            Most advice about writing better prompts is either vague or unproven. We built a
+            completeness check instead — it tells you specifically what's missing from your
+            prompt, based on the one thing research actually shows matters: whether you've said
+            enough.
+          </p>
+          <ScoringDemo />
+          <p className="pro-scoring-disclosure">
+            This isn't a quality score — research shows prompt effectiveness varies too much by
+            task and model to promise that. It's a completeness check: does your prompt say
+            enough for an AI to work with? That part is measurable, and it's exactly what our
+            guided questions help you fix.
+          </p>
+        </section>
+
         <section className="pro-offer">
           <h2>PromptMe Pro — $5/month</h2>
           <p className="pro-offer-intro">Everything in the free builder, plus:</p>
@@ -138,6 +156,7 @@ export default function ProPage() {
             <li>Copy your prompt formatted for Claude, ChatGPT, or Gemini</li>
             <li>Each format follows that model's own documentation</li>
             <li>New model formats added as guidance changes</li>
+            <li>A completeness check with specific, actionable fixes — not just a score</li>
           </ul>
           <p className="pro-offer-note">
             The builder itself is always free. Build unlimited prompts, get a structured result

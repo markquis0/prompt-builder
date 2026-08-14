@@ -1,0 +1,15 @@
+.scoring-demo {
+  padding: 24px;
+}
+
+/* Reused inside a standalone card here, not appended below a result —
+   drop the divider CompletenessScore.css adds for that context. */
+.scoring-demo .completeness-score {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: none;
+}
+
+.scoring-demo .completeness-info-btn {
+  cursor: default;
+}

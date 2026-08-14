@@ -169,10 +169,11 @@ export default function HomePage() {
                 <h3>{step.title}</h3>
                 {step.number === 3 ? (
                   <p>
-                    Get a detailed, tagged prompt ready to paste into any AI tool. Or copy it
-                    formatted specifically for Claude, ChatGPT, or Gemini.{" "}
+                    Get a detailed, tagged prompt ready to paste into any AI tool. See a
+                    completeness check for free, or unlock formatting for Claude, ChatGPT, and
+                    Gemini specifically.{" "}
                     <Link to="/pro" onClick={handleProLinkClick}>
-                      Learn why that matters →
+                      See what Pro adds →
                     </Link>
                   </p>
                 ) : (

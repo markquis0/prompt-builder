@@ -80,6 +80,35 @@
   margin: 0;
 }
 
+.pro-scoring-section {
+  margin-bottom: 56px;
+}
+
+.pro-scoring-section h2 {
+  font-size: 24px;
+  text-align: center;
+  margin: 0 0 12px;
+  color: var(--text-h);
+}
+
+.pro-scoring-intro {
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--text-muted);
+  max-width: 640px;
+  margin: 0 auto 24px;
+  text-align: center;
+}
+
+.pro-scoring-disclosure {
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: var(--text-muted);
+  max-width: 640px;
+  margin: 20px auto 0;
+  text-align: center;
+}
+
 .pro-offer {
   border: 1px solid var(--border);
   border-radius: 12px;
