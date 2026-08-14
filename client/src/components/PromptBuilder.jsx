@@ -41,6 +41,30 @@ export default function PromptBuilder() {
     if (prefillPrompt) {
       return { ...EMPTY_SESSION, prompt: prefillPrompt };
     }
+    const resumeSession = location.state?.resumeSession;
+    if (resumeSession) {
+      // qaPairs from the API don't carry the original per-question ids
+      // (only question text + answer) — synthesized here from array index.
+      // Only matters if the user clicks "Edit answers" afterward; doesn't
+      // need to match whatever ids existed when this was first built.
+      const questions = (resumeSession.qaPairs || []).map((pair, i) => ({
+        id: `q${i}`,
+        text: pair.question,
+      }));
+      const answers = Object.fromEntries((resumeSession.qaPairs || []).map((pair, i) => [`q${i}`, pair.answer]));
+      return {
+        ...EMPTY_SESSION,
+        stage: "result",
+        prompt: resumeSession.originalPrompt,
+        supportingContext: resumeSession.supportingContext || "",
+        promptObject: resumeSession.promptObject,
+        rawAssembled: resumeSession.rawAssembled,
+        questions,
+        answers,
+        currentIndex: Math.max(0, questions.length - 1),
+        serverSessionId: resumeSession.id,
+      };
+    }
     return loadSession() || EMPTY_SESSION;
   });
   const [questionsLoading, setQuestionsLoading] = useState(false);
@@ -58,7 +82,7 @@ export default function PromptBuilder() {
   // returning-visitor autoscroll, then clear the state via replace so a
   // later browser-back doesn't silently re-apply an old prefill.
   useEffect(() => {
-    if (location.state?.prefillPrompt) {
+    if (location.state?.prefillPrompt || location.state?.resumeSession) {
       document.getElementById("builder")?.scrollIntoView({ behavior: "smooth" });
       navigate(location.pathname, { replace: true, state: {} });
     }
