@@ -1,0 +1,55 @@
+.prompt-card {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 18px 20px;
+  margin-bottom: 12px;
+  background: var(--card-bg);
+}
+
+.prompt-label {
+  font-size: 15px;
+  font-weight: 700;
+  margin: 0 0 8px;
+  color: var(--text-h);
+}
+
+.prompt-text {
+  font-size: 14.5px;
+  line-height: 1.6;
+  color: var(--text);
+  margin: 0 0 14px;
+}
+
+/* The whole point of this component — has to read as obviously different
+   from surrounding prose at a glance, not just on close inspection. */
+.prompt-placeholder {
+  color: var(--accent);
+  background: var(--accent-bg);
+  border-radius: 4px;
+  padding: 0 3px;
+  font-weight: 600;
+}
+
+.prompt-card-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+/* Minimum 44px tap target per the handoff's mobile guidance — the
+   .btn-secondary base padding alone doesn't guarantee that on small text. */
+.prompt-card-actions .copy-button {
+  min-height: 44px;
+}
+
+.prompt-card-actions .link-button {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+}
+
+@media (max-width: 600px) {
+  .prompt-card-actions {
+    justify-content: space-between;
+  }
+}

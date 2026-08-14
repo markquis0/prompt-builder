@@ -1,0 +1,33 @@
+.category-chips {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 4px 2px 14px;
+  margin-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+  -webkit-overflow-scrolling: touch;
+}
+
+.category-chip {
+  flex-shrink: 0;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-muted);
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 6px 14px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.category-chip:hover {
+  color: var(--text-h);
+}
+
+.category-chip.active {
+  color: var(--accent);
+  border-color: var(--accent);
+  background: var(--accent-bg);
+}

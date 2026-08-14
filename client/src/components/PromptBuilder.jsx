@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import posthog from "posthog-js";
 import IntakeForm from "./IntakeForm.jsx";
 import QAFlow from "./QAFlow.jsx";
@@ -28,7 +29,19 @@ const EMPTY_SESSION = {
 // unchanged from before the extraction; only where it's mounted changed.
 export default function PromptBuilder() {
   const { user } = useAuth();
-  const [session, setSession] = useState(() => loadSession() || EMPTY_SESSION);
+  const location = useLocation();
+  const navigate = useNavigate();
+  // Checked in the lazy initializer, not an effect — IntakeForm reads
+  // `initialPrompt` into its own local state only once, on its first
+  // mount (see IntakeForm.jsx), so the prefill has to already be correct
+  // by the time session.prompt is first computed, not patched in afterward.
+  const [session, setSession] = useState(() => {
+    const prefillPrompt = location.state?.prefillPrompt;
+    if (prefillPrompt) {
+      return { ...EMPTY_SESSION, prompt: prefillPrompt };
+    }
+    return loadSession() || EMPTY_SESSION;
+  });
   const [questionsLoading, setQuestionsLoading] = useState(false);
   const [questionsError, setQuestionsError] = useState(null);
   const [assembleLoading, setAssembleLoading] = useState(false);
@@ -38,6 +51,20 @@ export default function PromptBuilder() {
   useEffect(() => {
     saveSession(session);
   }, [session]);
+
+  // "Build on this" from the Prompt Library (PromptCard.jsx) navigates here
+  // with this state set. Scroll to the builder same as the Phase 2c
+  // returning-visitor autoscroll, then clear the state via replace so a
+  // later browser-back doesn't silently re-apply an old prefill.
+  useEffect(() => {
+    if (location.state?.prefillPrompt) {
+      document.getElementById("builder")?.scrollIntoView({ behavior: "smooth" });
+      navigate(location.pathname, { replace: true, state: {} });
+    }
+    // Only on the state actually changing, not on every navigate() call
+    // this effect itself causes.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.state]);
 
   function patchSession(patch) {
     setSession((s) => ({ ...s, ...patch }));

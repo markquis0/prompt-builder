@@ -1,0 +1,97 @@
+.prompt-library-shell {
+  max-width: 760px;
+}
+
+.prompt-library-main {
+  padding-bottom: 60px;
+}
+
+.prompt-library-main h1 {
+  font-size: 30px;
+  margin: 8px 0 10px;
+  color: var(--text-h);
+}
+
+.prompt-library-subtitle {
+  color: var(--text-muted);
+  font-size: 16px;
+  line-height: 1.55;
+  margin: 0 0 20px;
+}
+
+.prompt-library-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-bottom: 8px;
+}
+
+.prompt-library-search {
+  font-size: 15px;
+  padding: 10px 14px;
+}
+
+.section-tabs {
+  display: flex;
+  gap: 8px;
+}
+
+.section-tab {
+  flex: 1;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-muted);
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 16px;
+  cursor: pointer;
+  min-height: 44px;
+}
+
+.section-tab:hover {
+  color: var(--text-h);
+}
+
+.section-tab.active {
+  color: var(--accent);
+  border-color: var(--accent);
+  background: var(--accent-bg);
+}
+
+.prompt-library-group {
+  margin-top: 28px;
+  scroll-margin-top: 16px;
+}
+
+.prompt-library-group h2 {
+  font-size: 20px;
+  color: var(--text-h);
+  margin: 0 0 12px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--border);
+}
+
+.prompt-library-empty {
+  color: var(--text-muted);
+  padding: 20px 0;
+}
+
+/* Search stays reachable while scrolling through a long list of category
+   groups, per the handoff's mobile guidance — desktop doesn't need this,
+   the page isn't long enough there to lose the search box off-screen. */
+@media (max-width: 600px) {
+  .prompt-library-controls {
+    position: sticky;
+    top: 0;
+    z-index: 5;
+    background: var(--bg);
+    padding-top: 10px;
+    margin-bottom: 0;
+  }
+
+  .section-tabs {
+    flex-direction: column;
+  }
+}

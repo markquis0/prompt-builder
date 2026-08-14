@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import posthog from "posthog-js";
 import FeedbackWidget from "./FeedbackWidget.jsx";
 import CompletenessScore from "./CompletenessScore.jsx";
+import { copyToClipboard } from "../clipboard.js";
 import { RENDERERS } from "../renderers/index.js";
 import { useAuth } from "../context/AuthContext.jsx";
 import { createCheckoutSession } from "../api.js";
@@ -19,26 +20,6 @@ function stripFormatting(text) {
     .replace(/<!--[\s\S]*?-->/g, "")
     .replace(/\n{3,}/g, "\n\n")
     .trim();
-}
-
-// Legacy fallback for browsers/contexts where the async Clipboard API is
-// unavailable or denied (e.g. insecure context, restrictive permissions policy).
-function legacyCopy(text) {
-  const el = document.createElement("textarea");
-  el.value = text;
-  el.style.position = "fixed";
-  el.style.opacity = "0";
-  document.body.appendChild(el);
-  el.focus();
-  el.select();
-  let ok = false;
-  try {
-    ok = document.execCommand("copy");
-  } catch {
-    ok = false;
-  }
-  document.body.removeChild(el);
-  return ok;
 }
 
 export default function ResultPreview({
@@ -144,16 +125,7 @@ export default function ResultPreview({
       was_edited: Boolean(editedVariants[editKey]),
     });
     setCopyFailed(false);
-    try {
-      await navigator.clipboard.writeText(displayText);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-      return;
-    } catch {
-      // fall through to legacy fallback below
-    }
-
-    if (legacyCopy(displayText)) {
+    if (await copyToClipboard(displayText)) {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } else {
