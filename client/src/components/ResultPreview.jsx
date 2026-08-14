@@ -2,6 +2,7 @@ import { useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import posthog from "posthog-js";
 import FeedbackWidget from "./FeedbackWidget.jsx";
+import CompletenessScore from "./CompletenessScore.jsx";
 import { RENDERERS } from "../renderers/index.js";
 import { useAuth } from "../context/AuthContext.jsx";
 import { createCheckoutSession } from "../api.js";
@@ -48,6 +49,7 @@ export default function ResultPreview({
   error,
   onRetry,
   originalPrompt,
+  sessionId,
 }) {
   const [activeModel, setActiveModel] = useState("generic");
   const [editedVariants, setEditedVariants] = useState({});
@@ -310,6 +312,16 @@ export default function ResultPreview({
               <pre>{displayText}</pre>
             </div>
           </div>
+        )}
+
+        {hasPromptObject && (
+          <CompletenessScore
+            promptObject={promptObject}
+            originalPrompt={originalPrompt}
+            rawAssembled={rawAssembled}
+            sessionId={sessionId}
+            onEditAnswers={onEditAnswers}
+          />
         )}
       </div>
       <FeedbackWidget originalPrompt={originalPrompt} />

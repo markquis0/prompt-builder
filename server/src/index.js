@@ -8,6 +8,7 @@ import authRouter from "./routes/auth.js";
 import sessionsRouter from "./routes/sessions.js";
 import billingRouter, { handleStripeWebhook } from "./routes/billing.js";
 import resourcesRouter from "./routes/resources.js";
+import scoreRouter from "./routes/score.js";
 import { applySchema } from "./db/applySchema.js";
 import { seedStarterResources } from "./db/seedResources.js";
 
@@ -71,6 +72,7 @@ app.use("/api/auth", authRouter);
 app.use("/api/sessions", sessionsRouter);
 app.use("/api/billing", billingRouter);
 app.use("/api/resources", resourcesRouter);
+app.use("/api/score", scoreRouter);
 
 app.use((err, _req, res, _next) => {
   console.error("[prompt-builder] Unhandled error:", err);

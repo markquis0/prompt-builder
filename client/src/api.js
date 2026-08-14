@@ -1,3 +1,5 @@
+import { scoreCompleteness } from "./completeness.js";
+
 // In dev this is empty, so requests hit the Vite proxy (see vite.config.js).
 // In production, set VITE_API_BASE_URL to the deployed backend's origin
 // (e.g. https://prompt-builder-api.onrender.com) — no trailing slash.
@@ -80,6 +82,7 @@ export function getMe() {
 // --- Sessions (logged-in save/history + anonymous->account migration) ---
 
 function toSessionPayload(session) {
+  const { score, checks } = scoreCompleteness(session.promptObject);
   return {
     originalPrompt: session.prompt,
     qaPairs: (session.questions || []).map((q) => ({
@@ -89,6 +92,11 @@ function toSessionPayload(session) {
     supportingContext: session.supportingContext,
     promptObject: session.promptObject,
     rawAssembled: session.rawAssembled,
+    // Layer 1 (completeness.js) is computed here rather than server-side —
+    // it's the same free/instant deterministic check either way, just
+    // saved alongside the session for the user's own history.
+    deterministicScore: score,
+    deterministicChecks: checks,
   };
 }
 
@@ -118,4 +126,10 @@ export function getBillingPortalUrl() {
 
 export function listResources() {
   return request("/api/resources");
+}
+
+// --- Completeness score, Layer 2 (paid, on-demand) ---
+
+export function getPromptCritique({ originalPrompt, assembledPrompt, sessionId }) {
+  return postJSON("/api/score/critique", { originalPrompt, assembledPrompt, sessionId });
 }

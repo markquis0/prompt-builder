@@ -70,3 +70,15 @@ CREATE INDEX IF NOT EXISTS idx_resources_category ON resources(category);
 CREATE INDEX IF NOT EXISTS idx_resources_audience ON resources(audience);
 CREATE INDEX IF NOT EXISTS idx_resources_model_family ON resources USING GIN(model_family);
 CREATE INDEX IF NOT EXISTS idx_resources_verification_status ON resources(verification_status);
+
+-- Phase 4 (completeness scoring). ADD COLUMN rather than a new table —
+-- extends the existing sessions row a critique was scored against.
+-- deterministic_score/checks are Layer 1 (free, computed client-side,
+-- written here only for the user's own history); llm_critique/
+-- critique_version/scored_at are Layer 2 (paid, one LLM call). Both are
+-- nullable — most session rows will never be scored at all.
+ALTER TABLE sessions ADD COLUMN IF NOT EXISTS deterministic_score INTEGER;
+ALTER TABLE sessions ADD COLUMN IF NOT EXISTS deterministic_checks JSONB;
+ALTER TABLE sessions ADD COLUMN IF NOT EXISTS llm_critique JSONB;
+ALTER TABLE sessions ADD COLUMN IF NOT EXISTS critique_version TEXT;
+ALTER TABLE sessions ADD COLUMN IF NOT EXISTS scored_at TIMESTAMPTZ;

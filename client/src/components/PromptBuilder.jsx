@@ -6,6 +6,7 @@ import ResultPreview from "./ResultPreview.jsx";
 import { fetchQuestions, assemblePrompt, saveServerSession } from "../api.js";
 import { loadSession, saveSession, clearSession } from "../storage.js";
 import { useAuth } from "../context/AuthContext.jsx";
+import { scoreCompleteness, COMPLETENESS_BEFORE_EDIT_KEY } from "../completeness.js";
 import "./PromptBuilder.css";
 
 const EMPTY_SESSION = {
@@ -18,6 +19,7 @@ const EMPTY_SESSION = {
   supportingContext: "",
   promptObject: null,
   rawAssembled: "",
+  serverSessionId: null,
 };
 
 // The intake/QA/result stage machine — previously App.jsx owned both this
@@ -84,15 +86,24 @@ export default function PromptBuilder() {
       });
       posthog.capture("result_generated");
       setAssembleLoading(false);
-      patchSession({ stage: "result", promptObject, rawAssembled });
+      // serverSessionId reset here, not just left stale from a previous
+      // assembly — insertSession always creates a new row, so the old id
+      // no longer points at this result. Layer 2 critique (see
+      // ResultPreview.jsx) works fine with no id yet; it just can't
+      // persist until the save below resolves.
+      patchSession({ stage: "result", promptObject, rawAssembled, serverSessionId: null });
 
       // Additive only — anonymous users are completely unaffected. Fire-
       // and-forget: a failed save shouldn't interrupt someone looking at
       // the result they just got, so it's logged, not surfaced in the UI.
       if (user) {
-        saveServerSession({ ...current, promptObject, rawAssembled }).catch((err) => {
-          console.error("[prompt-builder] Failed to save session:", err);
-        });
+        saveServerSession({ ...current, promptObject, rawAssembled })
+          .then(({ session: saved }) => {
+            patchSession({ serverSessionId: saved.id });
+          })
+          .catch((err) => {
+            console.error("[prompt-builder] Failed to save session:", err);
+          });
       }
     } catch (err) {
       posthog.capture("assemble_request_failed");
@@ -140,7 +151,15 @@ export default function PromptBuilder() {
   }
 
   function editAnswers() {
-    patchSession({ stage: "qa", currentIndex: Math.max(0, session.questions.length - 1) });
+    if (session.promptObject) {
+      const { score } = scoreCompleteness(session.promptObject);
+      sessionStorage.setItem(COMPLETENESS_BEFORE_EDIT_KEY, String(score));
+    }
+    patchSession({
+      stage: "qa",
+      currentIndex: Math.max(0, session.questions.length - 1),
+      serverSessionId: null,
+    });
   }
 
   function startOver() {
@@ -203,6 +222,7 @@ export default function PromptBuilder() {
           error={assembleError}
           onRetry={() => requestAssembly(session)}
           originalPrompt={session.prompt}
+          sessionId={session.serverSessionId}
         />
       )}
     </div>

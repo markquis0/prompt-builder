@@ -1,0 +1,251 @@
+{
+  "_meta": {
+    "purpose": "Stage 1 calibration set for Phase 4 (prompt completeness scoring). Used to sanity-check that Layer 2's LLM critique separates vague prompts from thorough ones before shipping it — run a handful of these through /api/score/critique and compare the LLM's per-dimension verdicts against `expectedPresent` below.",
+    "dimensions": ["task", "audience", "format", "context", "constraints", "example", "success_criteria"],
+    "note": "Only 6 real sessions existed in production at the time this was built (site launched same day as this phase). The 6 marked source:'real' below are those, pulled verbatim. The other 24 are synthetic — written to deliberately span the vague-to-thorough spectrum, which is more useful for calibration than waiting on organic traffic to reach 50. Recalibrate against real sessions once volume grows; don't treat these synthetic scores as ground truth for user behavior, only as a spread of clear-cut cases for spotting a miscalibrated LLM grader.",
+    "scoredBy": "AI-assisted (Claude), not independently human-verified — spot-check before relying on this for a go/no-go call on Layer 2's system prompt.",
+    "createdAt": "2026-08-14"
+  },
+  "examples": [
+    {
+      "id": "real-1",
+      "source": "real",
+      "originalPrompt": "Write a business plan for selling bananas by the beach for surfers and volleyball players in California.",
+      "expectedPresent": ["task", "format", "success_criteria"],
+      "expectedScore": 3,
+      "note": "Task, format, and success criteria all specified via Q&A answers; audience/context/constraints/example were skipped or not asked."
+    },
+    {
+      "id": "real-2",
+      "source": "real",
+      "originalPrompt": "Write a short blog post about the benefits of daily walking for desk workers",
+      "expectedPresent": ["task", "format"],
+      "expectedScore": 2,
+      "note": "All clarifying questions were skipped except what fed task/format."
+    },
+    {
+      "id": "real-3",
+      "source": "real",
+      "originalPrompt": "Write a product description for a smart water bottle",
+      "expectedPresent": ["task"],
+      "expectedScore": 1,
+      "note": "Bare task only — no audience, features, tone, or length given."
+    },
+    {
+      "id": "real-4",
+      "source": "real",
+      "originalPrompt": "Write a product description for a smart water bottle",
+      "expectedPresent": [],
+      "expectedScore": 0,
+      "note": "Skipped to result with nothing filled in — floor case."
+    },
+    {
+      "id": "real-5",
+      "source": "real",
+      "originalPrompt": "Write release notes",
+      "expectedPresent": ["task"],
+      "expectedScore": 1,
+      "note": "Extremely bare original prompt; only task survives."
+    },
+    {
+      "id": "real-6",
+      "source": "real",
+      "originalPrompt": "Write a tagline for a bakery",
+      "expectedPresent": ["task"],
+      "expectedScore": 1,
+      "note": "Same pattern — one-line prompt, no follow-through on clarifying questions."
+    },
+    {
+      "id": "synth-1",
+      "source": "synthetic",
+      "originalPrompt": "write something",
+      "expectedPresent": [],
+      "expectedScore": 0,
+      "note": "Floor case: no task verb, no object, nothing to work with."
+    },
+    {
+      "id": "synth-2",
+      "source": "synthetic",
+      "originalPrompt": "help me with my resume",
+      "expectedPresent": ["task"],
+      "expectedScore": 1,
+      "note": "Task is inferable (edit/write a resume) but nothing else specified."
+    },
+    {
+      "id": "synth-3",
+      "source": "synthetic",
+      "originalPrompt": "Summarize this article for me in 3 bullet points",
+      "expectedPresent": ["task", "format"],
+      "expectedScore": 2,
+      "note": "Format (3 bullets) is explicit in the prompt itself."
+    },
+    {
+      "id": "synth-4",
+      "source": "synthetic",
+      "originalPrompt": "Write a cover letter for a marketing manager role, aimed at a hiring manager, under 300 words",
+      "expectedPresent": ["task", "audience", "format"],
+      "expectedScore": 3,
+      "note": "Task, audience (hiring manager), and format (300 words) all stated."
+    },
+    {
+      "id": "synth-5",
+      "source": "synthetic",
+      "originalPrompt": "Write a cover letter for a marketing manager role at a mid-size CPG company, aimed at the hiring manager, under 300 words, emphasizing my 5 years of brand campaign experience and don't mention my current employer by name",
+      "expectedPresent": ["task", "audience", "format", "constraints"],
+      "expectedScore": 4,
+      "note": "Adds a hard constraint (don't name current employer) beyond synth-4."
+    },
+    {
+      "id": "synth-6",
+      "source": "synthetic",
+      "originalPrompt": "Draft an email to our newsletter subscribers announcing a 20%-off weekend sale. Audience is existing customers who've bought from us before. Keep it under 150 words, casual and warm tone, and include one clear call-to-action button text suggestion. Here's context: we're a small candle company, this is our first-ever sale, and we want to avoid sounding desperate or overly salesy.",
+      "expectedPresent": ["task", "audience", "format", "context", "constraints"],
+      "expectedScore": 5,
+      "note": "Missing only a concrete example and explicit success criteria."
+    },
+    {
+      "id": "synth-7",
+      "source": "synthetic",
+      "originalPrompt": "Write a product description for a smart water bottle. Audience: fitness-focused millennials shopping on Amazon. Format: 100-150 words, 3 bullet feature points, punchy first line. Context: the bottle tracks hydration via an app, has a 24-hour temperature hold, and this is a mid-market brand (not luxury, not budget). Constraint: don't use the word 'revolutionary' or make unverified health claims. Here's an example of a listing tone we like: 'Meet the bottle that remembers to drink water so you don't have to.' Success looks like: a shopper stops scrolling and adds it to cart within one read.",
+      "expectedPresent": ["task", "audience", "format", "context", "constraints", "example", "success_criteria"],
+      "expectedScore": 7,
+      "note": "Ceiling case — every dimension explicitly present."
+    },
+    {
+      "id": "synth-8",
+      "source": "synthetic",
+      "originalPrompt": "Explain quantum entanglement",
+      "expectedPresent": ["task"],
+      "expectedScore": 1,
+      "note": "No audience given — 'explain to whom' is the single biggest missing lever here per the checklist."
+    },
+    {
+      "id": "synth-9",
+      "source": "synthetic",
+      "originalPrompt": "Explain quantum entanglement to a curious 10-year-old, in about 4 sentences, using an everyday analogy rather than equations",
+      "expectedPresent": ["task", "audience", "format", "constraints"],
+      "expectedScore": 4,
+      "note": "'using an everyday analogy rather than equations' reads as a constraint (what to avoid: equations)."
+    },
+    {
+      "id": "synth-10",
+      "source": "synthetic",
+      "originalPrompt": "Give me feedback on this cover letter: [pasted text]. I'm applying for a UX design internship at a startup. Tell me if it's too long, whether the tone matches a startup culture, and flag anything that sounds generic or AI-written.",
+      "expectedPresent": ["task", "audience", "context", "success_criteria"],
+      "expectedScore": 4,
+      "note": "The three explicit checks requested (length, tone-fit, genericness) function as success criteria; the pasted letter is context, not an example of desired output."
+    },
+    {
+      "id": "synth-11",
+      "source": "synthetic",
+      "originalPrompt": "make a workout plan",
+      "expectedPresent": ["task"],
+      "expectedScore": 1,
+      "note": "No goal, fitness level, equipment, or schedule constraint given."
+    },
+    {
+      "id": "synth-12",
+      "source": "synthetic",
+      "originalPrompt": "Make a 4-day-a-week strength training plan for a beginner with access to just dumbbells and a pull-up bar, goal is general strength not bodybuilding, each session under 45 minutes",
+      "expectedPresent": ["task", "audience", "format", "constraints"],
+      "expectedScore": 4,
+      "note": "'beginner' functions as audience/skill-level here; equipment + time cap are constraints; frequency is format."
+    },
+    {
+      "id": "synth-13",
+      "source": "synthetic",
+      "originalPrompt": "Translate this paragraph into Spanish",
+      "expectedPresent": ["task"],
+      "expectedScore": 1,
+      "note": "No target dialect/register (formal vs. Latin American vs. European Spanish) or audience given."
+    },
+    {
+      "id": "synth-14",
+      "source": "synthetic",
+      "originalPrompt": "Translate this paragraph into Latin American Spanish for a WhatsApp message to a friend, so keep it casual and conversational, not formal",
+      "expectedPresent": ["task", "audience", "format"],
+      "expectedScore": 3,
+      "note": "Register/tone-as-format plus implied audience (a friend)."
+    },
+    {
+      "id": "synth-15",
+      "source": "synthetic",
+      "originalPrompt": "Categorize these 50 customer support tickets into billing, technical, or account-access, output as a CSV with columns ticket_id and category, and if a ticket doesn't clearly fit any category mark it 'uncertain' rather than guessing",
+      "expectedPresent": ["task", "format", "constraints", "success_criteria"],
+      "expectedScore": 4,
+      "note": "The 'mark uncertain rather than guessing' rule is both a constraint and an implicit success criterion (don't force-fit)."
+    },
+    {
+      "id": "synth-16",
+      "source": "synthetic",
+      "originalPrompt": "sort my emails",
+      "expectedPresent": [],
+      "expectedScore": 0,
+      "note": "Not even a clear single-step task without follow-up — ambiguous what 'sort' means (by date? read/unread? category?)."
+    },
+    {
+      "id": "synth-17",
+      "source": "synthetic",
+      "originalPrompt": "Write a bedtime story for my 6-year-old daughter about a dragon who's afraid of the dark, needs to be gentle and end on a comforting note since she's had nightmares lately, around 500 words, and here's a story she loved before so match this vibe: [pasted story]",
+      "expectedPresent": ["task", "audience", "format", "context", "constraints", "example"],
+      "expectedScore": 6,
+      "note": "Missing only an explicit success-criteria statement — 'comforting note' is closer to a constraint/tone note than a testable success check."
+    },
+    {
+      "id": "synth-18",
+      "source": "synthetic",
+      "originalPrompt": "review my code",
+      "expectedPresent": ["task"],
+      "expectedScore": 1,
+      "note": "No language, no what to check for, no code pasted as context."
+    },
+    {
+      "id": "synth-19",
+      "source": "synthetic",
+      "originalPrompt": "Review this Python function for correctness and readability (not style-guide nitpicks). Here's the function: [pasted code]. It's meant to deduplicate a list of dicts by their 'id' key while preserving insertion order. Flag anything that would break on an empty list or missing 'id' key.",
+      "expectedPresent": ["task", "context", "constraints", "success_criteria"],
+      "expectedScore": 4,
+      "note": "Edge cases named (empty list, missing key) function as testable success criteria; 'not style-guide nitpicks' is a constraint."
+    },
+    {
+      "id": "synth-20",
+      "source": "synthetic",
+      "originalPrompt": "come up with names",
+      "expectedPresent": [],
+      "expectedScore": 0,
+      "note": "Names for what? No object of the task at all."
+    },
+    {
+      "id": "synth-21",
+      "source": "synthetic",
+      "originalPrompt": "Come up with 10 name ideas for a podcast about personal finance aimed at people in their 20s just starting to invest, avoid anything that sounds preachy or uses the words 'wealth' or 'hustle', tone should be approachable and a little funny",
+      "expectedPresent": ["task", "audience", "format", "constraints"],
+      "expectedScore": 4,
+      "note": "10 names = format/quantity; tone note doubles as an implicit constraint alongside the explicit word-avoidance list."
+    },
+    {
+      "id": "synth-22",
+      "source": "synthetic",
+      "originalPrompt": "Plan a birthday party",
+      "expectedPresent": ["task"],
+      "expectedScore": 1,
+      "note": "No age, budget, guest count, or venue given — task alone."
+    },
+    {
+      "id": "synth-23",
+      "source": "synthetic",
+      "originalPrompt": "Plan a 7th birthday party for my son, 10 kids max, budget around $200, outdoor backyard setting, he's really into dinosaurs right now, needs to work for a 2-hour window since some parents are staying and some are dropping off",
+      "expectedPresent": ["task", "context", "constraints", "format"],
+      "expectedScore": 4,
+      "note": "Budget/guest-cap/time-window are constraints; dinosaur theme + drop-off logistics are context; 2-hour window also shapes format/structure."
+    },
+    {
+      "id": "synth-24",
+      "source": "synthetic",
+      "originalPrompt": "Write a LinkedIn post announcing I got a new job as a senior engineer at a fintech startup, aimed at my professional network, should sound genuinely excited but not braggy, under 150 words, no emoji, end with something that invites people to reach out rather than just congratulate — here's a post I wrote before that got good engagement, match that voice: [pasted post]. I'll know it worked if people comment asking about the role, not just hitting like.",
+      "expectedPresent": ["task", "audience", "format", "constraints", "example", "success_criteria"],
+      "expectedScore": 6,
+      "note": "Missing only explicit background/context about the company beyond 'fintech startup' — near-ceiling case."
+    }
+  ]
+}

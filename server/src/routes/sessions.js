@@ -15,6 +15,11 @@ function sanitizeSession(row) {
     promptObject: row.prompt_object,
     rawAssembled: row.raw_assembled,
     metaPromptVersion: row.meta_prompt_version,
+    deterministicScore: row.deterministic_score,
+    deterministicChecks: row.deterministic_checks,
+    llmCritique: row.llm_critique,
+    critiqueVersion: row.critique_version,
+    scoredAt: row.scored_at,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
@@ -27,15 +32,25 @@ function sanitizeSession(row) {
 // from the moment the page loads — see PromptBuilder.jsx — so "exists" and
 // "has content" are different questions).
 async function insertSession(userId, body) {
-  const { originalPrompt, qaPairs, supportingContext, promptObject, rawAssembled } = body || {};
+  const {
+    originalPrompt,
+    qaPairs,
+    supportingContext,
+    promptObject,
+    rawAssembled,
+    deterministicScore,
+    deterministicChecks,
+  } = body || {};
 
   if (typeof originalPrompt !== "string" || originalPrompt.trim().length === 0) {
     return null;
   }
 
   const { rows } = await pool.query(
-    `INSERT INTO sessions (user_id, original_prompt, qa_pairs, supporting_context, prompt_object, raw_assembled)
-     VALUES ($1, $2, $3, $4, $5, $6)
+    `INSERT INTO sessions
+      (user_id, original_prompt, qa_pairs, supporting_context, prompt_object, raw_assembled,
+       deterministic_score, deterministic_checks)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
      RETURNING *`,
     [
       userId,
@@ -44,6 +59,8 @@ async function insertSession(userId, body) {
       typeof supportingContext === "string" ? supportingContext : "",
       promptObject ? JSON.stringify(promptObject) : null,
       typeof rawAssembled === "string" ? rawAssembled : "",
+      Number.isInteger(deterministicScore) ? deterministicScore : null,
+      Array.isArray(deterministicChecks) ? JSON.stringify(deterministicChecks) : null,
     ]
   );
   return rows[0];

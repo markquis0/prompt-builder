@@ -165,3 +165,84 @@ ${supportingContext || ""}
 Clarifying Q&A:
 ${qaLines}`;
 }
+
+// Phase 4, Layer 2 — the one paid LLM call in the scoring feature (call #3,
+// after the questions call and the assembly call). Bump this whenever the
+// rubric or grading instructions change; stored alongside each critique in
+// sessions.critique_version so past critiques stay attributable to the
+// prompt version that produced them.
+export const CRITIQUE_META_PROMPT_VERSION = "v1-checklist-7dim";
+
+// Same 7 dimensions as CHECKLIST_ITEMS in client/src/pages/learnContent.js
+// (/learn/checklist) — deliberately not a different taxonomy. See
+// completeness.js on the client for why: Layer 1 already checks these same
+// 7 fields for presence/absence. Layer 2 grades HOW WELL each one was
+// specified, not just whether it's present.
+export function getCritiqueSystemPrompt() {
+  return `You are grading how well-specified a prompt is — NOT how good the
+output would be. This distinction matters: research on prompt engineering
+shows technique effects are contingent and inconsistent, so there is no
+universal way to predict output quality from a prompt. What CAN be graded
+reliably is completeness of specification: did the person say what they
+want clearly enough for someone else to do the task without guessing.
+
+Never use the word "quality" anywhere in your response. This is a
+completeness assessment only.
+
+Grade the assembled prompt against exactly these 7 dimensions, same ones
+used throughout this product's /learn page:
+1. task — what's wanted, as a clear instruction (not just a topic)
+2. audience — who reads/uses the output
+3. format — length, structure, medium
+4. context — background the model couldn't otherwise guess
+5. constraints — what to avoid, hard limits
+6. example — a concrete example of desired (or undesired) output
+7. success_criteria — how the person will know it worked
+
+For each dimension, return:
+- "present": true if this dimension has real, specific content; false if
+  missing, vague, or a placeholder (e.g. audience: "everyone" counts as
+  vague/false — that's not a specific audience).
+- "score": 0, 1, or 2. 0 = missing entirely. 1 = present but vague/thin
+  (e.g. format says "medium length" with no actual length or structure).
+  2 = specific and actionable.
+- "diagnosis": one sentence, plain language, describing what's actually
+  missing or vague about this dimension in THIS prompt — reference the
+  prompt's actual content, don't give a generic definition of the
+  dimension.
+- "fix": one sentence, a concrete, specific suggestion the person could
+  add to fix it. Not "add more detail" — say what detail. Write it as
+  something that could become a clarifying question, e.g. "Specify
+  whether this is for internal engineers or external customers."
+
+If a dimension is already fully specified (score 2), diagnosis and fix
+should say so briefly rather than inventing something to criticize —
+never manufacture a fix for a dimension that doesn't need one.
+
+Respond with ONLY valid JSON, no preamble, no markdown code fences,
+matching exactly this schema:
+
+{
+  "dimensions": {
+    "task": { "present": boolean, "score": 0|1|2, "diagnosis": "string", "fix": "string" },
+    "audience": { "present": boolean, "score": 0|1|2, "diagnosis": "string", "fix": "string" },
+    "format": { "present": boolean, "score": 0|1|2, "diagnosis": "string", "fix": "string" },
+    "context": { "present": boolean, "score": 0|1|2, "diagnosis": "string", "fix": "string" },
+    "constraints": { "present": boolean, "score": 0|1|2, "diagnosis": "string", "fix": "string" },
+    "example": { "present": boolean, "score": 0|1|2, "diagnosis": "string", "fix": "string" },
+    "success_criteria": { "present": boolean, "score": 0|1|2, "diagnosis": "string", "fix": "string" }
+  }
+}`;
+}
+
+export function buildCritiqueUserMessage({ originalPrompt, assembledPrompt }) {
+  return `Original rough prompt the person started with:
+"""
+${originalPrompt}
+"""
+
+Assembled prompt to grade:
+"""
+${assembledPrompt}
+"""`;
+}
