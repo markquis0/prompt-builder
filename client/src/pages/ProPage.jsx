@@ -132,7 +132,7 @@ export default function ProPage() {
         </section>
 
         <section className="pro-offer">
-          <h2>PromptMe Pro — $8/month</h2>
+          <h2>PromptMe Pro — $5/month</h2>
           <p className="pro-offer-intro">Everything in the free builder, plus:</p>
           <ul className="pro-offer-list">
             <li>Copy your prompt formatted for Claude, ChatGPT, or Gemini</li>
