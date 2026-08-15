@@ -86,10 +86,10 @@ function isDue(entry) {
 
 async function checkOne(entry) {
   await politeWait(entry.url);
-  const s = state[entry.url] || { consecutiveFailures: 0 };
+  const previousState = state[entry.url] || { consecutiveFailures: 0 };
   const headers = { "User-Agent": config.userAgent };
-  if (s.etag) headers["If-None-Match"] = s.etag;
-  if (s.lastModified) headers["If-Modified-Since"] = s.lastModified;
+  if (previousState.etag) headers["If-None-Match"] = previousState.etag;
+  if (previousState.lastModified) headers["If-Modified-Since"] = previousState.lastModified;
 
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), config.requestTimeoutMs);
@@ -98,7 +98,7 @@ async function checkOne(entry) {
     clearTimeout(timeout);
 
     if (res.status === 304) {
-      return { ...s, lastCheckedAt: new Date().toISOString(), consecutiveFailures: 0, status: "ok" };
+      return { ...previousState, lastCheckedAt: new Date().toISOString(), consecutiveFailures: 0, status: "ok" };
     }
     if (!res.ok) {
       throw new Error(`HTTP ${res.status}`);
@@ -106,7 +106,7 @@ async function checkOne(entry) {
 
     const text = await res.text();
     const newHash = hashContent(entry, text);
-    const changed = s.hash && s.hash !== newHash;
+    const changed = previousState.hash && previousState.hash !== newHash;
 
     if (changed) {
       changes.push({
@@ -114,7 +114,7 @@ async function checkOne(entry) {
         vendor: entry.vendor,
         pageTitle: entry.pageTitle,
         detectedAt: new Date().toISOString(),
-        oldHash: s.hash,
+        oldHash: previousState.hash,
         newHash,
         reviewed: false,
         learnImpacting: Boolean(entry.learnImpacting),
@@ -126,17 +126,17 @@ async function checkOne(entry) {
       etag: res.headers.get("etag") || undefined,
       lastModified: res.headers.get("last-modified") || undefined,
       lastCheckedAt: new Date().toISOString(),
-      lastChangedAt: changed ? new Date().toISOString() : s.lastChangedAt,
+      lastChangedAt: changed ? new Date().toISOString() : previousState.lastChangedAt,
       consecutiveFailures: 0,
       status: "ok",
       changedThisRun: changed,
     };
   } catch (err) {
     clearTimeout(timeout);
-    const consecutiveFailures = (s.consecutiveFailures || 0) + 1;
+    const consecutiveFailures = (previousState.consecutiveFailures || 0) + 1;
     console.error(`[monitor] ${entry.url} failed (${consecutiveFailures}x): ${err.message}`);
     return {
-      ...s,
+      ...previousState,
       consecutiveFailures,
       lastCheckedAt: new Date().toISOString(),
       status: consecutiveFailures >= config.failureThreshold ? "possibly_broken" : "error",

@@ -1,8 +1,8 @@
 {
   "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/overview": {
-    "hash": "bbb0e28576eeb9c7571635d79aaf8fb44dd546594b80f77a6c4ee11573800391",
-    "lastCheckedAt": "2026-08-14T21:34:02.000Z",
-    "lastChangedAt": "2026-08-14T21:34:02.000Z",
+    "hash": "b88749b9a74947cbb87696f29ed1793c09f17b1b0b249e8604ec277996c23f42",
+    "lastCheckedAt": "2026-08-15T04:58:43.659Z",
+    "lastChangedAt": "2026-08-15T04:58:43.659Z",
     "consecutiveFailures": 0,
     "status": "ok",
     "changedThisRun": true

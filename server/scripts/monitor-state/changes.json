@@ -1,1 +1,12 @@
-[]
+[
+  {
+    "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/overview",
+    "vendor": "Anthropic",
+    "pageTitle": "Prompt engineering overview",
+    "detectedAt": "2026-08-15T04:58:43.657Z",
+    "oldHash": "bbb0e28576eeb9c7571635d79aaf8fb44dd546594b80f77a6c4ee11573800391",
+    "newHash": "b88749b9a74947cbb87696f29ed1793c09f17b1b0b249e8604ec277996c23f42",
+    "reviewed": false,
+    "learnImpacting": true
+  }
+]
