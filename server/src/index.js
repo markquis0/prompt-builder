@@ -1,6 +1,7 @@
 import "dotenv/config";
 import express from "express";
 import cors from "cors";
+import helmet from "helmet";
 import cookieParser from "cookie-parser";
 import questionsRouter from "./routes/questions.js";
 import assembleRouter from "./routes/assemble.js";
@@ -46,6 +47,28 @@ app.use(
     credentials: true,
   })
 );
+// Standard security headers (X-Content-Type-Options, Referrer-Policy,
+// Cross-Origin-Opener-Policy, etc — see helmet's README for the full set).
+// crossOriginResourcePolicy is explicitly overridden from helmet's
+// "same-origin" default to "cross-origin": this API is deliberately
+// consumed cross-origin (Vercel frontend, Render backend), and the
+// same-origin default would tell browsers to block the frontend from
+// reading these responses even though CORS above already permits it.
+// Permissions-Policy isn't one of helmet's built-in headers (as of v8), so
+// it's set separately right after.
+app.use(
+  helmet({
+    crossOriginResourcePolicy: { policy: "cross-origin" },
+  })
+);
+app.use((_req, res, next) => {
+  res.setHeader(
+    "Permissions-Policy",
+    "geolocation=(), camera=(), microphone=(), payment=(), usb=()"
+  );
+  next();
+});
+
 app.use(cookieParser());
 
 // Registered BEFORE express.json() below, and deliberately not part of
