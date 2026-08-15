@@ -10,8 +10,3 @@ export const RENDERERS = {
   openai: { render: renderOpenai, label: "ChatGPT", icon: "🟢" },
   gemini: { render: renderGemini, label: "Gemini", icon: "🔵" },
 };
-
-export function renderForModel(model, promptObject, options) {
-  const renderer = RENDERERS[model] || RENDERERS.generic;
-  return renderer.render(promptObject, options);
-}

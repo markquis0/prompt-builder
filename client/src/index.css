@@ -68,23 +68,6 @@ h2 {
   padding: 0 20px 60px;
 }
 
-.app-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 24px 0;
-}
-
-.app-title {
-  font-weight: 700;
-  font-size: 18px;
-  color: var(--text-h);
-}
-
-.app-main {
-  flex: 1;
-}
-
 .card {
   background: var(--card-bg);
   border: 1px solid var(--border);

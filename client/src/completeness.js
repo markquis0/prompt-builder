@@ -9,7 +9,7 @@
 // "quality" — presence/absence only. This is why the score is named
 // "completeness," never "quality": it cannot and does not claim the
 // output will be good, only that the spec going in was well-formed.
-export const COMPLETENESS_DIMENSIONS = [
+const COMPLETENESS_DIMENSIONS = [
   { field: "task", label: "Task", checklistLabel: "The task — what you want, as a verb." },
   { field: "audience", label: "Audience", checklistLabel: "The audience — who reads the output." },
   { field: "format", label: "Format", checklistLabel: "The format — length, structure, medium." },
