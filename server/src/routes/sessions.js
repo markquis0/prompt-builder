@@ -5,6 +5,21 @@ import { requireAuth } from "../middleware/requireAuth.js";
 const router = Router();
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const DEFAULT_SESSIONS_LIMIT = 20;
+const MAX_SESSIONS_LIMIT = 100;
+
+// Clamps rather than rejects — a client asking for a huge page (or an
+// invalid one) just gets capped/defaulted, same as a normal pagination API,
+// not treated as a validation error the way oversized content is elsewhere
+// in this codebase.
+function parsePagination(query) {
+  const rawLimit = Number.parseInt(query.limit, 10);
+  const rawOffset = Number.parseInt(query.offset, 10);
+  const limit =
+    Number.isInteger(rawLimit) && rawLimit > 0 ? Math.min(rawLimit, MAX_SESSIONS_LIMIT) : DEFAULT_SESSIONS_LIMIT;
+  const offset = Number.isInteger(rawOffset) && rawOffset > 0 ? rawOffset : 0;
+  return { limit, offset };
+}
 
 function sanitizeSession(row) {
   return {
@@ -80,11 +95,13 @@ router.post("/", requireAuth, async (req, res) => {
 });
 
 router.get("/", requireAuth, async (req, res) => {
+  const { limit, offset } = parsePagination(req.query);
   try {
-    const { rows } = await pool.query("SELECT * FROM sessions WHERE user_id = $1 ORDER BY created_at DESC", [
-      req.userId,
-    ]);
-    res.json({ sessions: rows.map(sanitizeSession) });
+    const { rows } = await pool.query(
+      "SELECT * FROM sessions WHERE user_id = $1 ORDER BY created_at DESC LIMIT $2 OFFSET $3",
+      [req.userId, limit, offset]
+    );
+    res.json({ sessions: rows.map(sanitizeSession), limit, offset });
   } catch (err) {
     console.error("[prompt-builder] GET /api/sessions error:", err);
     res.status(500).json({ error: "Failed to load sessions. Please try again." });
