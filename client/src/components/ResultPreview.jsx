@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import posthog from "posthog-js";
 import FeedbackWidget from "./FeedbackWidget.jsx";
 import CompletenessScore from "./CompletenessScore.jsx";
-import { copyToClipboard } from "../clipboard.js";
+import { copyToClipboard, COPY_CONFIRMATION_MS } from "../clipboard.js";
 import { RENDERERS } from "../renderers/index.js";
 import { useAuth } from "../context/AuthContext.jsx";
 import { createCheckoutSession } from "../api.js";
@@ -155,7 +155,7 @@ export default function ResultPreview({
     setCopyFailed(false);
     if (await copyToClipboard(displayText)) {
       setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
+      setTimeout(() => setCopied(false), COPY_CONFIRMATION_MS);
     } else {
       // Last resort: select the textarea text so the user can copy manually.
       textareaRef.current?.select();

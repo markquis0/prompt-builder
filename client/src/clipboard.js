@@ -20,6 +20,10 @@ function legacyCopy(text) {
   return ok;
 }
 
+// How long the "Copied!" / "✓ Copied" confirmation stays up before
+// reverting, in both ResultPreview.jsx and PromptCard.jsx.
+export const COPY_CONFIRMATION_MS = 2000;
+
 export async function copyToClipboard(text) {
   try {
     await navigator.clipboard.writeText(text);

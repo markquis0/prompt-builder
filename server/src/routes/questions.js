@@ -8,6 +8,11 @@ import { stripCodeFences } from "../lib/jsonUtils.js";
 
 const router = Router();
 
+// Mirrors MAX_LENGTH in client/src/components/IntakeForm.jsx. No shared
+// module between client and server in this project, so this has to be
+// kept in sync by hand — if one changes, change the other.
+const MAX_PROMPT_LENGTH = 5000;
+
 function isValidQuestionsPayload(payload) {
   if (!payload || !Array.isArray(payload.questions)) return false;
   return payload.questions.every(
@@ -25,8 +30,10 @@ router.post("/", async (req, res) => {
   if (typeof prompt !== "string" || prompt.trim().length === 0) {
     return res.status(400).json({ error: "A non-empty 'prompt' is required." });
   }
-  if (prompt.length > 5000) {
-    return res.status(400).json({ error: "Prompt exceeds 5,000 character limit." });
+  if (prompt.length > MAX_PROMPT_LENGTH) {
+    return res.status(400).json({
+      error: `Prompt exceeds ${MAX_PROMPT_LENGTH.toLocaleString()} character limit.`,
+    });
   }
 
   try {

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import posthog from "posthog-js";
-import { copyToClipboard } from "../clipboard.js";
+import { copyToClipboard, COPY_CONFIRMATION_MS } from "../clipboard.js";
 import "./PromptCard.css";
 
 // Splits on [bracketed] segments so placeholders render visually distinct
@@ -32,7 +32,7 @@ export default function PromptCard({ prompt, categoryId }) {
     if (await copyToClipboard(prompt.text)) {
       setCopied(true);
       posthog.capture("prompt_library_copy", { prompt_id: prompt.id, category: categoryId });
-      setTimeout(() => setCopied(false), 2000);
+      setTimeout(() => setCopied(false), COPY_CONFIRMATION_MS);
     }
   }
 
