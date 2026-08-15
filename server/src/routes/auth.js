@@ -3,6 +3,7 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { pool } from "../db/pool.js";
 import { requireAuth } from "../middleware/requireAuth.js";
+import { signupLimiter, loginIpLimiter, loginEmailLimiter } from "../middleware/authRateLimit.js";
 
 const router = Router();
 
@@ -44,7 +45,7 @@ function issueSessionCookie(res, userId) {
   res.cookie("session", token, SESSION_COOKIE_OPTIONS);
 }
 
-router.post("/signup", async (req, res) => {
+router.post("/signup", signupLimiter, async (req, res) => {
   const { email, password } = req.body || {};
 
   if (typeof email !== "string" || !EMAIL_RE.test(email.trim())) {
@@ -78,7 +79,7 @@ router.post("/signup", async (req, res) => {
   }
 });
 
-router.post("/login", async (req, res) => {
+router.post("/login", loginIpLimiter, loginEmailLimiter, async (req, res) => {
   const { email, password } = req.body || {};
 
   if (typeof email !== "string" || typeof password !== "string") {
