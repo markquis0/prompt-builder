@@ -3,12 +3,19 @@ import { callClaude } from "../lib/anthropic.js";
 import { getCritiqueSystemPrompt, buildCritiqueUserMessage, CRITIQUE_META_PROMPT_VERSION } from "../lib/prompts.js";
 import { stripCodeFences } from "../lib/jsonUtils.js";
 import { requirePaid } from "../middleware/requirePaid.js";
+import { critiqueLimiter } from "../middleware/scoreRateLimit.js";
 import { pool } from "../db/pool.js";
 
 const router = Router();
 
 const DIMENSIONS = ["task", "audience", "format", "context", "constraints", "example", "success_criteria"];
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+// Mirrors MAX_PROMPT_LENGTH in questions.js. assembledPrompt gets more
+// headroom since it's the LLM-assembled output (XML-tagged, multiple
+// sections) rather than the user's raw typed prompt.
+const MAX_ORIGINAL_PROMPT_LENGTH = 5000;
+const MAX_ASSEMBLED_PROMPT_LENGTH = 20000;
 
 function isValidCritiquePayload(payload) {
   if (!payload || typeof payload.dimensions !== "object" || payload.dimensions === null) return false;
@@ -28,14 +35,24 @@ function isValidCritiquePayload(payload) {
 // spend a paid user's API cost on every single build, including ones they
 // never look at the score for). Gated by requirePaid, not requireAuth —
 // Layer 1 (client-side, completeness.js) is the free tier; this is Layer 2.
-router.post("/critique", requirePaid, async (req, res) => {
+router.post("/critique", requirePaid, critiqueLimiter, async (req, res) => {
   const { originalPrompt, assembledPrompt, sessionId } = req.body || {};
 
   if (typeof originalPrompt !== "string" || originalPrompt.trim().length === 0) {
     return res.status(400).json({ error: "A non-empty 'originalPrompt' is required." });
   }
+  if (originalPrompt.length > MAX_ORIGINAL_PROMPT_LENGTH) {
+    return res.status(400).json({
+      error: `originalPrompt exceeds ${MAX_ORIGINAL_PROMPT_LENGTH.toLocaleString()} character limit.`,
+    });
+  }
   if (typeof assembledPrompt !== "string" || assembledPrompt.trim().length === 0) {
     return res.status(400).json({ error: "A non-empty 'assembledPrompt' is required." });
+  }
+  if (assembledPrompt.length > MAX_ASSEMBLED_PROMPT_LENGTH) {
+    return res.status(400).json({
+      error: `assembledPrompt exceeds ${MAX_ASSEMBLED_PROMPT_LENGTH.toLocaleString()} character limit.`,
+    });
   }
 
   try {
