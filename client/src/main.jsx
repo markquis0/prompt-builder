@@ -1,4 +1,4 @@
-import { StrictMode } from 'react'
+import { StrictMode, Suspense, lazy } from 'react'
 import { createRoot } from 'react-dom/client'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { HelmetProvider } from 'react-helmet-async'
@@ -6,12 +6,19 @@ import { Analytics } from '@vercel/analytics/react'
 import posthog from 'posthog-js'
 import './index.css'
 import HomePage from './pages/HomePage.jsx'
-import LearnPage from './pages/LearnPage.jsx'
 import ProPage from './pages/ProPage.jsx'
 import ResourcesPage from './pages/ResourcesPage.jsx'
-import PromptLibraryPage from './pages/PromptLibraryPage.jsx'
 import LegalPage from './pages/LegalPage.jsx'
 import { AuthProvider } from './context/AuthContext.jsx'
+
+// Split out of the main bundle — per the dependency/codebase audit, these
+// two carry the largest first-party payloads (learnContent.js ~21KB,
+// promptLibraryContent.js ~52KB of the 260 prompt-library entries), and
+// most visitors landing on / or /pro never touch either. Prerendering is
+// unaffected: prerender.mjs navigates to the real route and waits for
+// networkidle0, which already accounts for the extra chunk request.
+const LearnPage = lazy(() => import('./pages/LearnPage.jsx'))
+const PromptLibraryPage = lazy(() => import('./pages/PromptLibraryPage.jsx'))
 
 // Guarded so local dev without PostHog configured never errors — funnel
 // events become silent no-ops (posthog-js queues/no-ops calls made before
@@ -31,16 +38,18 @@ createRoot(document.getElementById('root')).render(
           {/* Was mounted only on the old App.jsx (the `/` route) — moved here
               so every route gets pageview tracking, not just the homepage. */}
           <Analytics />
-          <Routes>
-            <Route path="/" element={<HomePage />} />
-            <Route path="/learn/*" element={<LearnPage />} />
-            <Route path="/pro" element={<ProPage />} />
-            <Route path="/resources" element={<ResourcesPage />} />
-            <Route path="/prompts" element={<PromptLibraryPage />} />
-            <Route path="/privacy" element={<LegalPage page="privacy" />} />
-            <Route path="/terms" element={<LegalPage page="terms" />} />
-            <Route path="/refund-policy" element={<LegalPage page="refund" />} />
-          </Routes>
+          <Suspense fallback={<p className="loading-text">Loading…</p>}>
+            <Routes>
+              <Route path="/" element={<HomePage />} />
+              <Route path="/learn/*" element={<LearnPage />} />
+              <Route path="/pro" element={<ProPage />} />
+              <Route path="/resources" element={<ResourcesPage />} />
+              <Route path="/prompts" element={<PromptLibraryPage />} />
+              <Route path="/privacy" element={<LegalPage page="privacy" />} />
+              <Route path="/terms" element={<LegalPage page="terms" />} />
+              <Route path="/refund-policy" element={<LegalPage page="refund" />} />
+            </Routes>
+          </Suspense>
         </BrowserRouter>
       </AuthProvider>
     </HelmetProvider>
