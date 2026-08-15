@@ -15,7 +15,7 @@ export async function requirePaid(req, res, next) {
   }
   let userId;
   try {
-    const payload = jwt.verify(token, process.env.JWT_SECRET);
+    const payload = jwt.verify(token, process.env.JWT_SECRET, { algorithms: ["HS256"] });
     userId = payload.user_id;
   } catch {
     return res.status(401).json({ error: "Invalid session" });
