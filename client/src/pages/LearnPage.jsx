@@ -10,19 +10,9 @@ import "./LearnPage.css";
 
 const SITE_URL = "https://promptme.host";
 
-// Which Part id a given /learn/* pathname should scroll to on load.
-const PATH_TO_PART_ID = {
-  "/learn/what-works": "what-works",
-  "/learn/what-doesnt": "what-doesnt",
-  "/learn/by-model": "by-model",
-  "/learn/checklist": "checklist",
-  "/learn/context-engineering": "context-engineering",
-  "/learn/resources": "resources",
-};
-
-// The reverse: which Part id has a dedicated standalone route (for the TOC).
-// Part 7 ("sources") has no dedicated route per the roadmap — it's reached
-// via in-page anchor only.
+// Which Part id has a dedicated standalone route (for the TOC). Part 7
+// ("sources") has no dedicated route per the roadmap — it's reached via
+// in-page anchor only.
 const ROUTE_FOR_PART = {
   "what-works": "/learn/what-works",
   "what-doesnt": "/learn/what-doesnt",
@@ -31,6 +21,12 @@ const ROUTE_FOR_PART = {
   "context-engineering": "/learn/context-engineering",
   resources: "/learn/resources",
 };
+
+// The reverse: which Part id a given /learn/* pathname should scroll to on
+// load. Derived from ROUTE_FOR_PART so the two can't drift out of sync.
+const PATH_TO_PART_ID = Object.fromEntries(
+  Object.entries(ROUTE_FOR_PART).map(([partId, route]) => [route, partId])
+);
 
 const DEFAULT_META = {
   title: "What Actually Makes a Prompt Work — PromptMe",

@@ -9,6 +9,7 @@ import WelcomeBackHero from "../components/WelcomeBackHero.jsx";
 import { loadSession } from "../storage.js";
 import { useAuth } from "../context/AuthContext.jsx";
 import { listServerSessions } from "../api.js";
+import { scrollToElement } from "../scrollToElement.js";
 import "./HomePage.css";
 
 const STEPS = [
@@ -106,15 +107,7 @@ export default function HomePage() {
   function handleHeroCtaClick(e) {
     e.preventDefault();
     posthog.capture("hero_cta_clicked");
-    const el = document.getElementById("builder");
-    if (el) {
-      try {
-        el.scrollIntoView({ behavior: "smooth" });
-      } catch {
-        // iOS Safari has historically had issues with smooth-scroll options.
-        el.scrollIntoView();
-      }
-    }
+    scrollToElement(document.getElementById("builder"));
   }
 
   function handleLearnLinkClick() {

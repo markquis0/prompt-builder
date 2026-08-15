@@ -7,6 +7,7 @@ import ProDemo from "../components/ProDemo.jsx";
 import ScoringDemo from "../components/ScoringDemo.jsx";
 import { useAuth } from "../context/AuthContext.jsx";
 import { createCheckoutSession, getBillingPortalUrl } from "../api.js";
+import { useStripeRedirect } from "../useStripeRedirect.js";
 import "./ProPage.css";
 
 function formatDate(isoString) {
@@ -50,11 +51,9 @@ export default function ProPage() {
   const location = useLocation();
   const navigate = useNavigate();
   const fromLockedTab = Boolean(location.state?.fromLockedTab);
-  const { user, openAuthModal, refreshUser } = useAuth();
-  const [checkoutLoading, setCheckoutLoading] = useState(false);
-  const [checkoutError, setCheckoutError] = useState(null);
-  const [portalLoading, setPortalLoading] = useState(false);
-  const [portalError, setPortalError] = useState(null);
+  const { user, isPaidUser, openAuthModal, refreshUser } = useAuth();
+  const checkout = useStripeRedirect(createCheckoutSession, "checkoutUrl");
+  const portal = useStripeRedirect(getBillingPortalUrl, "portalUrl");
 
   useEffect(() => {
     posthog.capture("pro_page_view", {
@@ -87,17 +86,9 @@ export default function ProPage() {
     posthog.capture("pro_cta_clicked", { action });
   }
 
-  async function goToCheckout() {
+  function goToCheckout() {
     trackCta(user ? "subscribe" : "start_trial");
-    setCheckoutError(null);
-    setCheckoutLoading(true);
-    try {
-      const { checkoutUrl } = await createCheckoutSession();
-      window.location.href = checkoutUrl;
-    } catch (err) {
-      setCheckoutLoading(false);
-      setCheckoutError(err.message);
-    }
+    return checkout.go();
   }
 
   function handleSubscribeClick() {
@@ -106,17 +97,9 @@ export default function ProPage() {
 
   // Same GET /api/billing/portal the header's "Manage subscription" link
   // already uses (monetisation gate) — not a second portal-session flow.
-  async function goToBillingPortal() {
+  function goToBillingPortal() {
     trackCta("manage_billing");
-    setPortalError(null);
-    setPortalLoading(true);
-    try {
-      const { portalUrl } = await getBillingPortalUrl();
-      window.location.href = portalUrl;
-    } catch (err) {
-      setPortalLoading(false);
-      setPortalError(err.message);
-    }
+    return portal.go();
   }
 
   return (
@@ -214,7 +197,7 @@ export default function ProPage() {
         </section>
 
         <section className="pro-cta-section">
-          {user?.subscriptionStatus === "trialing" || user?.subscriptionStatus === "active" ? (
+          {isPaidUser ? (
             <div className="pro-status-card">
               {user.subscriptionStatus === "trialing" ? (
                 <>
@@ -244,17 +227,17 @@ export default function ProPage() {
                   type="button"
                   className="btn btn-secondary"
                   onClick={goToBillingPortal}
-                  disabled={portalLoading}
+                  disabled={portal.loading}
                 >
-                  {portalLoading ? "One sec…" : "Manage billing"}
+                  {portal.loading ? "One sec…" : "Manage billing"}
                 </button>
                 <Link to="/#builder" className="btn btn-primary" onClick={() => trackCta("try_builder")}>
                   Go to your builder →
                 </Link>
               </div>
-              {portalError && (
+              {portal.error && (
                 <div className="error-banner pro-cta-error">
-                  <span>{portalError}</span>
+                  <span>{portal.error}</span>
                   <button type="button" className="btn btn-secondary" onClick={goToBillingPortal}>
                     Retry
                   </button>
@@ -267,13 +250,13 @@ export default function ProPage() {
                 type="button"
                 className="btn btn-primary pro-cta-btn"
                 onClick={handleSubscribeClick}
-                disabled={checkoutLoading}
+                disabled={checkout.loading}
               >
-                {checkoutLoading ? "One sec…" : "Start 7-day free trial →"}
+                {checkout.loading ? "One sec…" : "Start 7-day free trial →"}
               </button>
-              {checkoutError && (
+              {checkout.error && (
                 <div className="error-banner pro-cta-error">
-                  <span>{checkoutError}</span>
+                  <span>{checkout.error}</span>
                   <button type="button" className="btn btn-secondary" onClick={goToCheckout}>
                     Retry
                   </button>

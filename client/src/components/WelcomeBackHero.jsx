@@ -1,6 +1,7 @@
 import { forwardRef } from "react";
 import { useNavigate } from "react-router-dom";
 import posthog from "posthog-js";
+import { scrollToElement } from "../scrollToElement.js";
 import "./WelcomeBackHero.css";
 
 function truncate(text, max = 80) {
@@ -34,7 +35,7 @@ const WelcomeBackHero = forwardRef(function WelcomeBackHero({ sessions }, ref) {
 
   function handleNewPrompt() {
     posthog.capture("home_new_prompt_clicked");
-    document.getElementById("builder")?.scrollIntoView({ behavior: "smooth" });
+    scrollToElement(document.getElementById("builder"));
   }
 
   return (

@@ -7,6 +7,7 @@ import { copyToClipboard, COPY_CONFIRMATION_MS } from "../clipboard.js";
 import { RENDERERS } from "../renderers/index.js";
 import { useAuth } from "../context/AuthContext.jsx";
 import { createCheckoutSession } from "../api.js";
+import { useStripeRedirect } from "../useStripeRedirect.js";
 import "./ResultPreview.css";
 
 // Survives a refresh within the tab but not a new browser session — once
@@ -66,8 +67,10 @@ export default function ResultPreview({
   // state, only a CSS-visibility class.
   const [outputFocused, setOutputFocused] = useState(false);
   const [lockedCardModel, setLockedCardModel] = useState(null);
-  const [checkoutLoading, setCheckoutLoading] = useState(false);
-  const [checkoutError, setCheckoutError] = useState(null);
+  const { go: goToCheckout, loading: checkoutLoading, error: checkoutError } = useStripeRedirect(
+    createCheckoutSession,
+    "checkoutUrl"
+  );
   const textareaRef = useRef(null);
   const { isPaidUser, openAuthModal } = useAuth();
 
@@ -116,18 +119,6 @@ export default function ResultPreview({
 
   function handleLockedCardLearnMore() {
     posthog.capture("locked_tab_cta_clicked", { model: lockedCardModel, action: "learn_more" });
-  }
-
-  async function goToCheckout() {
-    setCheckoutError(null);
-    setCheckoutLoading(true);
-    try {
-      const { checkoutUrl } = await createCheckoutSession();
-      window.location.href = checkoutUrl;
-    } catch (err) {
-      setCheckoutLoading(false);
-      setCheckoutError(err.message);
-    }
   }
 
   function handleStartTrial() {

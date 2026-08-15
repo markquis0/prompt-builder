@@ -5,6 +5,7 @@ import NavHeader from "../components/NavHeader.jsx";
 import CategoryChips from "../components/CategoryChips.jsx";
 import PromptCard from "../components/PromptCard.jsx";
 import { PROMPT_LIBRARY } from "./promptLibraryContent.js";
+import { scrollToElement } from "../scrollToElement.js";
 import "./PromptLibraryPage.css";
 
 const SITE_URL = "https://promptme.host";
@@ -79,13 +80,7 @@ export default function PromptLibraryPage() {
 
   function handleJump(categoryId) {
     posthog.capture("prompt_library_category_jumped", { category: categoryId });
-    const el = groupRefs.current[categoryId];
-    if (!el) return;
-    try {
-      el.scrollIntoView({ behavior: "smooth", block: "start" });
-    } catch {
-      el.scrollIntoView();
-    }
+    scrollToElement(groupRefs.current[categoryId], { block: "start" });
   }
 
   return (

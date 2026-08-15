@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext.jsx";
 import { getBillingPortalUrl } from "../api.js";
+import { useStripeRedirect } from "../useStripeRedirect.js";
 import "./NavHeader.css";
 
 export default function NavHeader() {
@@ -9,6 +10,11 @@ export default function NavHeader() {
   const { user, authLoading, logout, openAuthModal, isPaidUser } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const mobileMenuRef = useRef(null);
+  // No loading/error UI here by design — failure stays a silent console.error,
+  // same as before this hook existed.
+  const { go: handleManageSubscription } = useStripeRedirect(getBillingPortalUrl, "portalUrl", (err) =>
+    console.error("[prompt-builder] Failed to open billing portal:", err)
+  );
 
   useEffect(() => {
     if (!mobileMenuOpen) return;
@@ -20,15 +26,6 @@ export default function NavHeader() {
     document.addEventListener("mousedown", handleOutsideClick);
     return () => document.removeEventListener("mousedown", handleOutsideClick);
   }, [mobileMenuOpen]);
-
-  async function handleManageSubscription() {
-    try {
-      const { portalUrl } = await getBillingPortalUrl();
-      window.location.href = portalUrl;
-    } catch (err) {
-      console.error("[prompt-builder] Failed to open billing portal:", err);
-    }
-  }
 
   // Anyone who's ever started a subscription (including a canceled one) can
   // still get to the Stripe portal — it shows invoice history and lets them

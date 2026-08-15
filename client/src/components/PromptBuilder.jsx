@@ -9,6 +9,7 @@ import { fetchQuestions, assemblePrompt, saveServerSession } from "../api.js";
 import { loadSession, saveSession, clearSession } from "../storage.js";
 import { useAuth } from "../context/AuthContext.jsx";
 import { scoreCompleteness, COMPLETENESS_BEFORE_EDIT_KEY } from "../completeness.js";
+import { scrollToElement } from "../scrollToElement.js";
 import "./PromptBuilder.css";
 
 const EMPTY_SESSION = {
@@ -24,6 +25,41 @@ const EMPTY_SESSION = {
   serverSessionId: null,
 };
 
+// Three ways this component can start: prefilled from the Prompt Library
+// ("Build on this"), resumed from a saved server session, or (the common
+// case) whatever's already in local storage.
+function getInitialSession(location) {
+  const prefillPrompt = location.state?.prefillPrompt;
+  if (prefillPrompt) {
+    return { ...EMPTY_SESSION, prompt: prefillPrompt };
+  }
+  const resumeSession = location.state?.resumeSession;
+  if (resumeSession) {
+    // qaPairs from the API don't carry the original per-question ids
+    // (only question text + answer) — synthesized here from array index.
+    // Only matters if the user clicks "Edit answers" afterward; doesn't
+    // need to match whatever ids existed when this was first built.
+    const questions = (resumeSession.qaPairs || []).map((pair, i) => ({
+      id: `q${i}`,
+      text: pair.question,
+    }));
+    const answers = Object.fromEntries((resumeSession.qaPairs || []).map((pair, i) => [`q${i}`, pair.answer]));
+    return {
+      ...EMPTY_SESSION,
+      stage: "result",
+      prompt: resumeSession.originalPrompt,
+      supportingContext: resumeSession.supportingContext || "",
+      promptObject: resumeSession.promptObject,
+      rawAssembled: resumeSession.rawAssembled,
+      questions,
+      answers,
+      currentIndex: Math.max(0, questions.length - 1),
+      serverSessionId: resumeSession.id,
+    };
+  }
+  return loadSession() || EMPTY_SESSION;
+}
+
 // The intake/QA/result stage machine — previously App.jsx owned both this
 // and the `/` route. Now it's a self-contained, embeddable component so it
 // can live inside HomePage.jsx alongside marketing content. Behavior is
@@ -36,37 +72,7 @@ export default function PromptBuilder() {
   // `initialPrompt` into its own local state only once, on its first
   // mount (see IntakeForm.jsx), so the prefill has to already be correct
   // by the time session.prompt is first computed, not patched in afterward.
-  const [session, setSession] = useState(() => {
-    const prefillPrompt = location.state?.prefillPrompt;
-    if (prefillPrompt) {
-      return { ...EMPTY_SESSION, prompt: prefillPrompt };
-    }
-    const resumeSession = location.state?.resumeSession;
-    if (resumeSession) {
-      // qaPairs from the API don't carry the original per-question ids
-      // (only question text + answer) — synthesized here from array index.
-      // Only matters if the user clicks "Edit answers" afterward; doesn't
-      // need to match whatever ids existed when this was first built.
-      const questions = (resumeSession.qaPairs || []).map((pair, i) => ({
-        id: `q${i}`,
-        text: pair.question,
-      }));
-      const answers = Object.fromEntries((resumeSession.qaPairs || []).map((pair, i) => [`q${i}`, pair.answer]));
-      return {
-        ...EMPTY_SESSION,
-        stage: "result",
-        prompt: resumeSession.originalPrompt,
-        supportingContext: resumeSession.supportingContext || "",
-        promptObject: resumeSession.promptObject,
-        rawAssembled: resumeSession.rawAssembled,
-        questions,
-        answers,
-        currentIndex: Math.max(0, questions.length - 1),
-        serverSessionId: resumeSession.id,
-      };
-    }
-    return loadSession() || EMPTY_SESSION;
-  });
+  const [session, setSession] = useState(() => getInitialSession(location));
   const [questionsLoading, setQuestionsLoading] = useState(false);
   const [questionsError, setQuestionsError] = useState(null);
   const [assembleLoading, setAssembleLoading] = useState(false);
@@ -83,7 +89,7 @@ export default function PromptBuilder() {
   // later browser-back doesn't silently re-apply an old prefill.
   useEffect(() => {
     if (location.state?.prefillPrompt || location.state?.resumeSession) {
-      document.getElementById("builder")?.scrollIntoView({ behavior: "smooth" });
+      scrollToElement(document.getElementById("builder"));
       navigate(location.pathname, { replace: true, state: {} });
     }
     // Only on the state actually changing, not on every navigate() call

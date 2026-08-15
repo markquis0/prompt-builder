@@ -12,6 +12,28 @@ const WOULD_RETURN_OPTIONS = [
   "Other",
 ];
 
+// Local to this file — the three chip rows below are its only call sites.
+function ChipGroup({ question, options, selected, onSelect }) {
+  return (
+    <>
+      <p className="feedback-question">{question}</p>
+      <div className="chip-row" role="group" aria-label={question}>
+        {options.map((opt) => (
+          <button
+            key={opt}
+            type="button"
+            className={`chip ${selected === opt ? "chip-selected" : ""}`}
+            aria-pressed={selected === opt}
+            onClick={() => onSelect(opt)}
+          >
+            {opt}
+          </button>
+        ))}
+      </div>
+    </>
+  );
+}
+
 // Cold, public traffic (Reddit/HN) — no account, no DB. Submits via the
 // official @formspree/react SDK; see README "Deploy" for how the form ID
 // is set (VITE_FEEDBACK_FORM_ID).
@@ -128,50 +150,26 @@ export default function FeedbackWidget({ originalPrompt }) {
         </button>
       </div>
 
-      <p className="feedback-question">Were the clarifying questions useful?</p>
-      <div className="chip-row" role="group" aria-label="Were the clarifying questions useful?">
-        {QUESTIONS_USEFUL_OPTIONS.map((opt) => (
-          <button
-            key={opt}
-            type="button"
-            className={`chip ${questionsUseful === opt ? "chip-selected" : ""}`}
-            aria-pressed={questionsUseful === opt}
-            onClick={() => setQuestionsUseful(opt)}
-          >
-            {opt}
-          </button>
-        ))}
-      </div>
+      <ChipGroup
+        question="Were the clarifying questions useful?"
+        options={QUESTIONS_USEFUL_OPTIONS}
+        selected={questionsUseful}
+        onSelect={setQuestionsUseful}
+      />
 
-      <p className="feedback-question">Would you use this prompt as-is?</p>
-      <div className="chip-row" role="group" aria-label="Would you use this prompt as-is?">
-        {WOULD_USE_OPTIONS.map((opt) => (
-          <button
-            key={opt}
-            type="button"
-            className={`chip ${wouldUseAsIs === opt ? "chip-selected" : ""}`}
-            aria-pressed={wouldUseAsIs === opt}
-            onClick={() => setWouldUseAsIs(opt)}
-          >
-            {opt}
-          </button>
-        ))}
-      </div>
+      <ChipGroup
+        question="Would you use this prompt as-is?"
+        options={WOULD_USE_OPTIONS}
+        selected={wouldUseAsIs}
+        onSelect={setWouldUseAsIs}
+      />
 
-      <p className="feedback-question">What would make you more likely to use this again?</p>
-      <div className="chip-row" role="group" aria-label="What would make you more likely to use this again?">
-        {WOULD_RETURN_OPTIONS.map((opt) => (
-          <button
-            key={opt}
-            type="button"
-            className={`chip ${wouldReturnFor === opt ? "chip-selected" : ""}`}
-            aria-pressed={wouldReturnFor === opt}
-            onClick={() => handleSelectWouldReturnFor(opt)}
-          >
-            {opt}
-          </button>
-        ))}
-      </div>
+      <ChipGroup
+        question="What would make you more likely to use this again?"
+        options={WOULD_RETURN_OPTIONS}
+        selected={wouldReturnFor}
+        onSelect={handleSelectWouldReturnFor}
+      />
 
       {wouldReturnFor === "Other" && (
         <>
