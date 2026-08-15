@@ -281,9 +281,16 @@ export default function ResultPreview({
             {!outputFocused && (
               <pre
                 className="result-output-highlighted"
+                role="button"
                 tabIndex={0}
+                aria-label="Click to edit"
                 onClick={() => textareaRef.current?.focus()}
-                onFocus={() => textareaRef.current?.focus()}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    textareaRef.current?.focus();
+                  }
+                }}
               >
                 {highlightTags(displayText)}
               </pre>
