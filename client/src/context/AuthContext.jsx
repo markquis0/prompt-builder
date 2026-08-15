@@ -18,11 +18,9 @@ export function AuthProvider({ children }) {
       .getMe()
       .then(({ user }) => {
         setUser(user);
-        return user;
       })
       .catch(() => {
         setUser(null);
-        return null;
       });
   }, []);
 
