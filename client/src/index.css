@@ -373,23 +373,40 @@ input:focus {
   padding: 20px 24px;
 }
 
+/* Compact and low-weight on purpose — shouldn't compete with the result
+   screen's actual content above it. Not a .card; no border/shadow/full
+   width. */
 .feedback-collapsed {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 6px;
+  margin-top: 12px;
 }
 
-.feedback-prompt-text {
+.feedback-collapsed-cta {
+  font-size: 12.5px;
+  font-weight: 500;
   color: var(--text-muted);
-  font-size: 14px;
 }
 
-.feedback-collapsed-actions {
-  display: flex;
-  align-items: center;
-  gap: 4px;
+.feedback-collapsed-cta:hover {
+  color: var(--accent);
+}
+
+.feedback-collapsed-dismiss {
+  font: inherit;
+  font-size: 16px;
+  line-height: 1;
+  color: var(--text-muted);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 2px 4px;
+}
+
+.feedback-collapsed-dismiss:hover {
+  color: var(--text-h);
 }
 
 .feedback-header {

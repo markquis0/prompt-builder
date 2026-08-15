@@ -22,6 +22,25 @@ function stripFormatting(text) {
     .trim();
 }
 
+// Same technique as BeforeAfter.jsx's highlightTags — muted-color the XML
+// tag names so structure reads at a glance. Only used for the read-only
+// preview (see isEditingOutput below); the actual edit surface stays a
+// plain textarea, since syntax-coloring live-edited text without a much
+// heavier contenteditable/overlay rig is out of scope here and risks
+// regressing editing itself, which Stage 5 explicitly must not touch.
+function highlightTags(text) {
+  const parts = text.split(/(<\/?[a-z_]+>)/g);
+  return parts.map((part, i) =>
+    /^<\/?[a-z_]+>$/.test(part) ? (
+      <span key={i} className="xml-tag">
+        {part}
+      </span>
+    ) : (
+      part
+    )
+  );
+}
+
 export default function ResultPreview({
   promptObject,
   rawAssembled,
@@ -38,6 +57,14 @@ export default function ResultPreview({
   const [copyFailed, setCopyFailed] = useState(false);
   const [plainView, setPlainView] = useState(false);
   const [showDiff, setShowDiff] = useState(false);
+  // Read-only highlighted view by default; clicking in reveals the real
+  // textarea (autofocused) for editing. Reset on tab switch so the newly
+  // active tab's content isn't silently left in edit mode.
+  // Controls only which layer is visible (see result-output-wrapper below)
+  // — the textarea itself is always mounted with the same ref/value/
+  // onChange, so toggling this never touches its focus/cursor/selection
+  // state, only a CSS-visibility class.
+  const [outputFocused, setOutputFocused] = useState(false);
   const [lockedCardModel, setLockedCardModel] = useState(null);
   const [checkoutLoading, setCheckoutLoading] = useState(false);
   const [checkoutError, setCheckoutError] = useState(null);
@@ -77,6 +104,7 @@ export default function ResultPreview({
     }
     setLockedCardModel(null);
     setActiveModel(key);
+    setOutputFocused(false);
     posthog.capture("model_tab_selected", { model: key });
   }
 
@@ -197,11 +225,10 @@ export default function ResultPreview({
                     {icon}
                   </span>
                   {label}
-                  {isLocked && (
-                    <span className="lock-icon" aria-hidden="true">
-                      🔒
-                    </span>
-                  )}
+                  {/* Suppressed entirely for trialing/active — isLocked is
+                      already exactly `key !== "generic" && !isPaidUser`,
+                      so this never shows for a paid user on any tab. */}
+                  {isLocked && <span className="model-tab-pro-chip">Pro</span>}
                 </button>
               );
             })}
@@ -250,18 +277,33 @@ export default function ResultPreview({
         {plainView ? (
           <div className="result-plain-view">{stripFormatting(displayText)}</div>
         ) : (
-          <textarea
-            ref={textareaRef}
-            className="result-textarea"
-            value={displayText}
-            onChange={(e) => handleEdit(e.target.value)}
-            rows={16}
-          />
+          <div className="result-output-wrapper">
+            {!outputFocused && (
+              <pre
+                className="result-output-highlighted"
+                tabIndex={0}
+                onClick={() => textareaRef.current?.focus()}
+                onFocus={() => textareaRef.current?.focus()}
+              >
+                {highlightTags(displayText)}
+              </pre>
+            )}
+            <textarea
+              ref={textareaRef}
+              className={`result-textarea ${!outputFocused ? "result-textarea-layered" : ""}`}
+              value={displayText}
+              onChange={(e) => handleEdit(e.target.value)}
+              onFocus={() => setOutputFocused(true)}
+              onBlur={() => setOutputFocused(false)}
+              rows={16}
+            />
+            <div className="result-output-fade" aria-hidden="true" />
+          </div>
         )}
 
         <div className="copy-row">
           <button type="button" className="btn btn-primary copy-btn" onClick={handleCopy}>
-            {copied ? "Copied!" : "Copy"}
+            {copied ? "Copied!" : hasPromptObject ? `Copy ${RENDERERS[activeModel].label} version` : "Copy"}
           </button>
           {copyFailed && (
             <span className="copy-fallback-hint">
@@ -269,7 +311,7 @@ export default function ResultPreview({
             </span>
           )}
           <button type="button" className="link-button diff-toggle" onClick={toggleDiff}>
-            {showDiff ? "Hide comparison" : "See what changed"}
+            <span aria-hidden="true">⇄</span> {showDiff ? "Hide comparison" : "See what changed"}
           </button>
         </div>
 

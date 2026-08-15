@@ -91,16 +91,18 @@ export default function FeedbackWidget({ originalPrompt }) {
 
   if (!expanded) {
     return (
-      <div className="card feedback-widget feedback-collapsed">
-        <span className="feedback-prompt-text">Got a sec for quick feedback?</span>
-        <div className="feedback-collapsed-actions">
-          <button type="button" className="link-button" onClick={() => setExpanded(true)}>
-            Give feedback
-          </button>
-          <button type="button" className="btn btn-ghost" onClick={handleDismiss}>
-            Not now
-          </button>
-        </div>
+      <div className="feedback-collapsed">
+        <button type="button" className="link-button feedback-collapsed-cta" onClick={() => setExpanded(true)}>
+          Got a sec for quick feedback?
+        </button>
+        <button
+          type="button"
+          className="feedback-collapsed-dismiss"
+          onClick={handleDismiss}
+          aria-label="Dismiss feedback prompt"
+        >
+          ×
+        </button>
       </div>
     );
   }

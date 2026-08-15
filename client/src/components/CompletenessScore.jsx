@@ -25,6 +25,7 @@ export default function CompletenessScore({ promptObject, originalPrompt, rawAss
   const [beforeScore, setBeforeScore] = useState(null);
 
   const { score, total, checks } = scoreCompleteness(promptObject);
+  const percent = Math.round((score / total) * 100);
 
   // Stage 4 before/after: one-shot read. If this result screen exists
   // because the user just came back from "Edit answers," show the delta
@@ -66,26 +67,34 @@ export default function CompletenessScore({ promptObject, originalPrompt, rawAss
     posthog.capture("completeness_upgrade_clicked");
   }
 
+  // Generic re-entry into the Q&A flow, same destination "Edit answers"
+  // always used — there's no per-question dimension tag stored anywhere
+  // (questions are freely LLM-generated per prompt, not drawn from a fixed
+  // per-dimension pool), so this can't jump to a specific question yet.
+  function handlePillClick(field) {
+    posthog.capture("completeness_pill_clicked", { dimension: field });
+    onEditAnswers();
+  }
+
   return (
     <div className="completeness-score">
       <div className="completeness-header">
         <h3>
           Completeness: {score}/{total}
         </h3>
-        <button
-          type="button"
-          className="completeness-info-btn"
-          aria-label="What's this?"
-          onClick={() => setShowInfo((v) => !v)}
-        >
+        <button type="button" className="completeness-info-link" onClick={() => setShowInfo((v) => !v)}>
           What's this?
         </button>
       </div>
 
+      <div className="completeness-progress-track" role="progressbar" aria-valuenow={score} aria-valuemin={0} aria-valuemax={total}>
+        <div className="completeness-progress-fill" style={{ width: `${percent}%` }} />
+      </div>
+
       {showInfo && (
         <p className="completeness-info-text">
-          This measures whether your prompt specifies the 7 things that make a prompt easy to act
-          on — not whether the output will be good. See the{" "}
+          This checks which sections are present, not a quality score — it measures whether your
+          prompt specifies the 7 things that make a prompt easy to act on. See the{" "}
           <a href="/learn/checklist" target="_blank" rel="noopener noreferrer">
             full checklist
           </a>
@@ -100,44 +109,65 @@ export default function CompletenessScore({ promptObject, originalPrompt, rawAss
         </p>
       )}
 
-      <ul className="completeness-checklist">
-        {checks.map((check) => {
-          const critiqueDim = critique?.[DIMENSION_KEY_MAP[check.field]];
-          return (
-            <li key={check.field} className={check.present ? "check-present" : "check-missing"}>
-              <span className="check-icon" aria-hidden="true">
-                {check.present ? "✓" : "○"}
-              </span>
-              <span className="check-label">{check.label}</span>
-              {critiqueDim && (
-                <div className="critique-detail">
-                  <p className="critique-diagnosis">{critiqueDim.diagnosis}</p>
-                  {critiqueDim.score < 2 && (
-                    <p className="critique-fix">
-                      <strong>Fix:</strong> {critiqueDim.fix}{" "}
-                      <button type="button" className="link-button" onClick={onEditAnswers}>
-                        Edit answers →
-                      </button>
-                    </p>
-                  )}
-                </div>
-              )}
-            </li>
-          );
-        })}
-      </ul>
+      <div className="completeness-pills">
+        {checks.map((check) =>
+          check.present ? (
+            <span key={check.field} className="completeness-pill completeness-pill-complete">
+              <span aria-hidden="true">✓</span> {check.label}
+            </span>
+          ) : (
+            <button
+              key={check.field}
+              type="button"
+              className="completeness-pill completeness-pill-incomplete"
+              onClick={() => handlePillClick(check.field)}
+            >
+              + Add {check.label}
+            </button>
+          )
+        )}
+      </div>
+
+      {critique && (
+        <ul className="completeness-critique-detail-list">
+          {checks.map((check) => {
+            const critiqueDim = critique[DIMENSION_KEY_MAP[check.field]];
+            if (!critiqueDim || critiqueDim.score >= 2) return null;
+            return (
+              <li key={check.field} className="critique-detail">
+                <p className="critique-detail-label">{check.label}</p>
+                <p className="critique-diagnosis">{critiqueDim.diagnosis}</p>
+                <p className="critique-fix">
+                  <strong>Fix:</strong> {critiqueDim.fix}{" "}
+                  <button type="button" className="link-button" onClick={onEditAnswers}>
+                    Edit answers →
+                  </button>
+                </p>
+              </li>
+            );
+          })}
+        </ul>
+      )}
 
       {isPaidUser ? (
-        <div className="completeness-layer2">
-          {!critique && (
-            <button
-              type="button"
-              className="btn btn-secondary"
-              onClick={handleGradeClick}
-              disabled={critiqueLoading}
-            >
-              {critiqueLoading ? "Grading…" : "Get AI-graded critique"}
-            </button>
+        <div className="completeness-layer2-panel">
+          {!critique ? (
+            <>
+              <div className="completeness-layer2-copy">
+                <p className="completeness-layer2-title">Get AI-graded critique</p>
+                <p className="completeness-layer2-desc">Per-section diagnosis with fix suggestions.</p>
+              </div>
+              <button
+                type="button"
+                className="btn btn-primary completeness-layer2-btn"
+                onClick={handleGradeClick}
+                disabled={critiqueLoading}
+              >
+                {critiqueLoading ? "Grading…" : "Grade this prompt"}
+              </button>
+            </>
+          ) : (
+            <p className="completeness-layer2-done">✓ Graded — see fixes above for incomplete sections.</p>
           )}
           {critiqueError && <p className="critique-error">Couldn't grade this prompt: {critiqueError}</p>}
         </div>
