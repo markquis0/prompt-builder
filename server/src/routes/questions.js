@@ -5,6 +5,7 @@ import {
   buildQuestionGeneratorUserMessage,
 } from "../lib/prompts.js";
 import { stripCodeFences } from "../lib/jsonUtils.js";
+import { llmCallLimiter } from "../middleware/llmRateLimit.js";
 
 const router = Router();
 
@@ -24,7 +25,7 @@ function isValidQuestionsPayload(payload) {
   );
 }
 
-router.post("/", async (req, res) => {
+router.post("/", llmCallLimiter, async (req, res) => {
   const { prompt, promptType } = req.body || {};
 
   if (typeof prompt !== "string" || prompt.trim().length === 0) {

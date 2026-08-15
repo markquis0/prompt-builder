@@ -5,8 +5,22 @@ import {
   getAssemblerSystemPrompt,
   buildFinalAssemblerUserMessage,
 } from "../lib/prompts.js";
+import { llmCallLimiter } from "../middleware/llmRateLimit.js";
 
 const router = Router();
+
+// Mirrors MAX_LENGTH in client/src/components/IntakeForm.jsx, same as
+// questions.js's MAX_PROMPT_LENGTH. No shared module between client and
+// server in this project, so this has to be kept in sync by hand.
+const MAX_PROMPT_LENGTH = 5000;
+// Supporting context is meant for pasted background docs/notes, so it gets
+// more headroom than the original prompt itself.
+const MAX_SUPPORTING_CONTEXT_LENGTH = 10000;
+// The question generator asks for 3-6 questions (see prompts.js) — this
+// caps well above that to allow for legitimate variance while still
+// rejecting a tampered client sending an unbounded qaPairs array.
+const MAX_QA_PAIRS = 20;
+const MAX_ANSWER_LENGTH = 2000;
 
 // The frontend always sends "generic" for the single assembly call —
 // per-model formatting now happens client-side (see client/src/renderers/),
@@ -55,11 +69,34 @@ function parseAssembledPrompt(rawText) {
   return result;
 }
 
-router.post("/", async (req, res) => {
+router.post("/", llmCallLimiter, async (req, res) => {
   const { originalPrompt, supportingContext, qaPairs, targetModel } = req.body || {};
 
   if (typeof originalPrompt !== "string" || originalPrompt.trim().length === 0) {
     return res.status(400).json({ error: "A non-empty 'originalPrompt' is required." });
+  }
+  if (originalPrompt.length > MAX_PROMPT_LENGTH) {
+    return res.status(400).json({
+      error: `Prompt exceeds ${MAX_PROMPT_LENGTH.toLocaleString()} character limit.`,
+    });
+  }
+  if (typeof supportingContext === "string" && supportingContext.length > MAX_SUPPORTING_CONTEXT_LENGTH) {
+    return res.status(400).json({
+      error: `Supporting context exceeds ${MAX_SUPPORTING_CONTEXT_LENGTH.toLocaleString()} character limit.`,
+    });
+  }
+  if (Array.isArray(qaPairs)) {
+    if (qaPairs.length > MAX_QA_PAIRS) {
+      return res.status(400).json({ error: `Too many question/answer pairs (max ${MAX_QA_PAIRS}).` });
+    }
+    const answerTooLong = qaPairs.some(
+      (pair) => typeof pair?.answer === "string" && pair.answer.length > MAX_ANSWER_LENGTH
+    );
+    if (answerTooLong) {
+      return res.status(400).json({
+        error: `An answer exceeds the ${MAX_ANSWER_LENGTH.toLocaleString()} character limit.`,
+      });
+    }
   }
 
   const safeQaPairs = Array.isArray(qaPairs) ? qaPairs : [];
