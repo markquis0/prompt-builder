@@ -11,26 +11,22 @@ import resourcesRouter from "./routes/resources.js";
 import scoreRouter from "./routes/score.js";
 import { applySchema } from "./db/applySchema.js";
 import { seedStarterResources } from "./db/seedResources.js";
+import { allowedOrigins } from "./lib/allowedOrigins.js";
+import { requireAllowedOrigin } from "./middleware/requireAllowedOrigin.js";
 
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// Comma-separated list of allowed origins. Defaults to the Vite dev server;
-// set ALLOWED_ORIGIN in production to the deployed frontend's origin(s).
-//
-// http://localhost:4888 is always allowed on top of that list — it's the
-// static server client/scripts/prerender.mjs boots during `npm run build`
-// (on Vercel's build machine, not a public origin anyone can actually send
-// a browser request from). Any page that fetches data on mount — currently
-// just /resources — needs this or the prerendered HTML silently bakes in
-// an empty/error state instead of real content: Puppeteer's headless
-// browser really does send `Origin: http://localhost:4888` on that fetch,
-// and without this it gets rejected by CORS before ever reaching the route.
-const allowedOrigins = (process.env.ALLOWED_ORIGIN || "http://localhost:5173")
-  .split(",")
-  .map((s) => s.trim())
-  .filter(Boolean)
-  .concat("http://localhost:4888");
+// http://localhost:4888 is always allowed on top of the configured list —
+// it's the static server client/scripts/prerender.mjs boots during
+// `npm run build` (on Vercel's build machine, not a public origin anyone
+// can actually send a browser request from). Any page that fetches data on
+// mount — currently just /resources — needs this or the prerendered HTML
+// silently bakes in an empty/error state instead of real content:
+// Puppeteer's headless browser really does send `Origin: http://localhost:4888`
+// on that fetch, and without this it gets rejected by CORS before ever
+// reaching the route. (See lib/allowedOrigins.js — shared with the CSRF
+// Origin/Referer check below so the two allowlists can't drift apart.)
 
 app.use(
   cors({
@@ -61,6 +57,12 @@ app.use(cookieParser());
 app.post("/api/billing/webhook", express.raw({ type: "application/json" }), handleStripeWebhook);
 
 app.use(express.json({ limit: "1mb" }));
+
+// CSRF defense-in-depth for every route below — registered after the
+// Stripe webhook above, which is fully handled by handleStripeWebhook
+// without calling next() and so never reaches this check. See
+// middleware/requireAllowedOrigin.js for the full rationale.
+app.use(requireAllowedOrigin);
 
 // Plain, unprefixed health check for hosting-platform probes (Render, etc).
 app.get("/health", (_req, res) => res.json({ ok: true }));
