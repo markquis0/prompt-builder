@@ -2,6 +2,7 @@ import { Router } from "express";
 import Stripe from "stripe";
 import { pool } from "../db/pool.js";
 import { requireAuth } from "../middleware/requireAuth.js";
+import { captureServerEvent } from "../lib/posthogServer.js";
 
 // Constructed lazily, not at module load — `new Stripe()` throws
 // synchronously if given an empty/missing key, which would crash the
@@ -145,6 +146,27 @@ export async function handleStripeWebhook(req, res) {
       }
       case "customer.subscription.updated": {
         const sub = event.data.object;
+
+        // Read the pre-update status so the trial->active transition (the
+        // "paid" end of the signup->trial->paid funnel) can be detected
+        // below — this is client-invisible, since Stripe flips it on its
+        // own schedule with no user necessarily on the site at the time.
+        // A separate SELECT rather than a RETURNING clause on the UPDATE
+        // below: RETURNING only ever reflects post-update values in
+        // Postgres, so there's no way to recover the prior value from the
+        // same statement without a trigger. This does open a small race
+        // window against a concurrent webhook for the same subscription,
+        // but the only consequence is a possibly missed/duplicated
+        // analytics event — the UPDATE's own WHERE-clause ordering guard
+        // (unaffected by this) remains the sole source of truth for the
+        // actual subscription_status column.
+        const { rows: beforeRows } = await pool.query(
+          "SELECT id, subscription_status FROM users WHERE stripe_subscription_id = $1",
+          [sub.id]
+        );
+        const previousStatus = beforeRows[0]?.subscription_status;
+        const userId = beforeRows[0]?.id;
+
         // trial_end is null once the trial ends or never applied — that's
         // fine, to_timestamp(null) is just null, same as current_period_end
         // already handles. Nothing wrote this column before now (not even
@@ -170,6 +192,20 @@ export async function handleStripeWebhook(req, res) {
              AND (subscription_event_created_at IS NULL OR subscription_event_created_at < to_timestamp($5))`,
           [sub.status, sub.current_period_end, sub.trial_end, sub.id, event.created]
         );
+
+        // Same distinct_id the client's posthog.identify() calls use
+        // (AuthContext.jsx) — user.id — so this attributes to the same
+        // PostHog person as the rest of that user's funnel, not a
+        // disconnected server-only profile. Only fires on a genuine
+        // trialing->active transition, not any other path into "active"
+        // (e.g. past_due->active is a payment recovery, a different event
+        // from initial trial conversion), and only when the guarded UPDATE
+        // above actually applied — a stale/duplicate event must not
+        // double-count a conversion that was already recorded.
+        if (rowCount > 0 && userId && previousStatus === "trialing" && sub.status === "active") {
+          captureServerEvent({ distinctId: userId, event: "trial_converted" });
+        }
+
         if (rowCount === 0) {
           // Two possible reasons: no user row matches this subscription yet
           // (same silent no-op as before this change — e.g.

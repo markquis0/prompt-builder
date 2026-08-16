@@ -95,10 +95,8 @@ export default function ProPage() {
       // charge, so "trial_started" is accurate, not "subscribed". The
       // later trial->active transition happens entirely server-side via
       // the Stripe webhook (customer.subscription.updated) with no client
-      // visit necessarily involved, so it isn't observable here — closing
-      // that half of the signup->trial->paid funnel would need a
-      // server-side PostHog call from the webhook handler, a separate,
-      // bigger piece of work than this fix.
+      // visit necessarily involved — that half of the funnel is tracked
+      // server-side instead, as "trial_converted" (see billing.js).
       posthog.capture("trial_started");
     }
     // Strip the query param either way so a refresh doesn't re-trigger this.
