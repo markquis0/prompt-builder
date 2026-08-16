@@ -34,3 +34,13 @@ export const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: useSSL ? { rejectUnauthorized: true } : false,
 });
+
+// Without this, an error on an idle pooled client (e.g. the DB connection
+// dropping entirely, not just a bad query) is an unhandled 'error' event on
+// the Pool itself — Node treats that as an uncaught exception and kills the
+// whole process. pg's Pool already discards and replaces a broken idle
+// client the next time one is checked out; this handler's only job is to
+// stop that error from being unhandled, not to reconnect or retry anything.
+pool.on("error", (err) => {
+  console.error("[prompt-builder] Unexpected error on idle Postgres client:", err);
+});
