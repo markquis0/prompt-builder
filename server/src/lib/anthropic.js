@@ -6,8 +6,14 @@ if (!process.env.ANTHROPIC_API_KEY) {
   );
 }
 
+// Defaults are 10 minutes / 2 retries — way past this app's 3s p95 target
+// on LLM-calling endpoints, so a slow Anthropic response would hang far
+// longer than any caller is actually waiting around for instead of failing
+// fast. timeout is generous headroom over 3s, not a tight budget.
 export const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
+  timeout: 9000,
+  maxRetries: 1,
 });
 
 export const MODEL = process.env.CLAUDE_MODEL || "claude-haiku-4-5-20251001";

@@ -12,7 +12,9 @@ import { requireAuth } from "../middleware/requireAuth.js";
 let stripeClient = null;
 function getStripe() {
   if (!stripeClient) {
-    stripeClient = new Stripe(process.env.STRIPE_SECRET_KEY);
+    // Default is 80s, well past what "latency-sensitive" checkout
+    // initiation should ever wait before failing fast.
+    stripeClient = new Stripe(process.env.STRIPE_SECRET_KEY, { timeout: 12000 });
   }
   return stripeClient;
 }
