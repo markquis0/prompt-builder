@@ -99,3 +99,10 @@ CREATE TABLE IF NOT EXISTS stripe_webhook_events (
 -- subscription_status backward. Stores the event.created (not sub.created)
 -- of the last update actually applied for this row's subscription.
 ALTER TABLE users ADD COLUMN IF NOT EXISTS subscription_event_created_at TIMESTAMPTZ;
+
+-- Account settings (password/email change). Bumped on every password
+-- change and embedded in each issued JWT (see routes/auth.js's
+-- issueSessionCookie) so requireAuth/requirePaid can reject tokens signed
+-- before the bump — the only way to invalidate an already-issued,
+-- unexpired JWT without a separate revocation-list table.
+ALTER TABLE users ADD COLUMN IF NOT EXISTS token_version INTEGER NOT NULL DEFAULT 0;

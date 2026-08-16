@@ -4,10 +4,11 @@ import jwt from "jsonwebtoken";
 import { pool } from "../db/pool.js";
 import { requireAuth } from "../middleware/requireAuth.js";
 import { signupLimiter, loginIpLimiter, loginEmailLimiter } from "../middleware/authRateLimit.js";
+import { isValidEmail, isValidPassword } from "../lib/validators.js";
 
 const router = Router();
 
-const BCRYPT_COST = 12;
+export const BCRYPT_COST = 12;
 const SESSION_MAX_AGE_MS = 30 * 24 * 60 * 60 * 1000; // 30 days, fixed expiry
 
 // promptme.host (Vercel) and the Render backend are different registrable
@@ -25,9 +26,7 @@ const SESSION_COOKIE_OPTIONS = {
   path: "/",
 };
 
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-function sanitizeUser(row) {
+export function sanitizeUser(row) {
   return {
     id: row.id,
     email: row.email,
@@ -38,8 +37,15 @@ function sanitizeUser(row) {
   };
 }
 
-function issueSessionCookie(res, userId) {
-  const token = jwt.sign({ user_id: userId }, process.env.JWT_SECRET, {
+// tokenVersion is embedded in every issued JWT and checked against the
+// users row on every authenticated request (see requireAuth.js/
+// requirePaid.js) — it's how a password change invalidates every
+// previously-issued token without a separate revocation-list table.
+// Callers that just changed it (routes/account.js's password change) pass
+// the fresh value straight through so this request's own new cookie is
+// already in sync, rather than re-reading it back from the DB.
+export function issueSessionCookie(res, userId, tokenVersion) {
+  const token = jwt.sign({ user_id: userId, token_version: tokenVersion }, process.env.JWT_SECRET, {
     expiresIn: `${SESSION_MAX_AGE_MS / 1000}s`,
   });
   res.cookie("session", token, SESSION_COOKIE_OPTIONS);
@@ -48,10 +54,10 @@ function issueSessionCookie(res, userId) {
 router.post("/signup", signupLimiter, async (req, res) => {
   const { email, password } = req.body || {};
 
-  if (typeof email !== "string" || !EMAIL_RE.test(email.trim())) {
+  if (!isValidEmail(email)) {
     return res.status(400).json({ error: "A valid email is required." });
   }
-  if (typeof password !== "string" || password.length < 8) {
+  if (!isValidPassword(password)) {
     return res.status(400).json({ error: "Password must be at least 8 characters." });
   }
 
@@ -66,12 +72,12 @@ router.post("/signup", signupLimiter, async (req, res) => {
     const passwordHash = await bcrypt.hash(password, BCRYPT_COST);
     const { rows } = await pool.query(
       `INSERT INTO users (email, password_hash) VALUES ($1, $2)
-       RETURNING id, email, created_at, subscription_status, trial_ends_at, current_period_ends_at`,
+       RETURNING id, email, created_at, subscription_status, trial_ends_at, current_period_ends_at, token_version`,
       [normalizedEmail, passwordHash]
     );
     const user = rows[0];
 
-    issueSessionCookie(res, user.id);
+    issueSessionCookie(res, user.id, user.token_version);
     res.status(201).json({ user: sanitizeUser(user) });
   } catch (err) {
     // 23505 = unique_violation on users.email. The pre-check above closes
@@ -99,7 +105,8 @@ router.post("/login", loginIpLimiter, loginEmailLimiter, async (req, res) => {
 
   try {
     const { rows } = await pool.query(
-      `SELECT id, email, password_hash, created_at, subscription_status, trial_ends_at, current_period_ends_at
+      `SELECT id, email, password_hash, created_at, subscription_status, trial_ends_at,
+              current_period_ends_at, token_version
        FROM users WHERE email = $1`,
       [normalizedEmail]
     );
@@ -115,7 +122,7 @@ router.post("/login", loginIpLimiter, loginEmailLimiter, async (req, res) => {
       return res.status(401).json({ error: "Incorrect email or password." });
     }
 
-    issueSessionCookie(res, user.id);
+    issueSessionCookie(res, user.id, user.token_version);
     res.json({ user: sanitizeUser(user) });
   } catch (err) {
     console.error("[prompt-builder] /api/auth/login error:", err);

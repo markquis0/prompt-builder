@@ -87,6 +87,9 @@ export default function NavHeader() {
                 <span className="nav-account-email" title={user.email}>
                   {user.email}
                 </span>
+                <Link to="/settings" className="nav-manage-btn">
+                  Account settings
+                </Link>
                 {hasBillingHistory && (
                   <button type="button" className="nav-manage-btn" onClick={handleManageSubscription}>
                     Manage subscription
@@ -111,6 +114,13 @@ export default function NavHeader() {
                 {mobileMenuOpen && (
                   <div className="nav-account-dropdown" role="menu">
                     <span className="nav-account-dropdown-email">{user.email}</span>
+                    <Link
+                      to="/settings"
+                      className="nav-account-dropdown-item"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      Account settings
+                    </Link>
                     {hasBillingHistory && (
                       <button
                         type="button"

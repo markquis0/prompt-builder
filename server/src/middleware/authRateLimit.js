@@ -36,3 +36,18 @@ export const loginEmailLimiter = rateLimit({
     return email || req.ip;
   },
 });
+
+// Per-user, not per-IP/email — these routes (routes/account.js) are behind
+// requireAuth, so req.userId is already known and is a more precise key
+// than IP (multiple legitimate users can share an IP; a single account
+// changing its own password/email repeatedly is the actual thing worth
+// slowing down here). Generous enough for real mistyped-password retries,
+// tight enough to blunt a compromised session hammering these endpoints.
+export const accountActionLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: "Too many attempts. Please wait a bit and try again." },
+  keyGenerator: (req) => req.userId || req.ip,
+});

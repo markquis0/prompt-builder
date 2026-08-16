@@ -41,6 +41,10 @@ function postJSON(path, body) {
   return request(path, { method: "POST", body });
 }
 
+function patchJSON(path, body) {
+  return request(path, { method: "PATCH", body });
+}
+
 export function fetchQuestions({ prompt, promptType }) {
   return postJSON("/api/questions", { prompt, promptType });
 }
@@ -77,6 +81,16 @@ export function logout() {
 
 export function getMe() {
   return request("/api/auth/me");
+}
+
+// --- Account settings ---
+
+export function updateAccountEmail({ currentPassword, newEmail }) {
+  return patchJSON("/api/account/email", { currentPassword, newEmail });
+}
+
+export function updateAccountPassword({ currentPassword, newPassword }) {
+  return patchJSON("/api/account/password", { currentPassword, newPassword });
 }
 
 // --- Sessions (logged-in save/history + anonymous->account migration) ---

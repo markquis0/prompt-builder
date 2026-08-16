@@ -1,0 +1,57 @@
+/* Minimal, utilitarian — deliberately not styled like the marketing pages.
+   Input styling mirrors AuthModal.css so this reads as the same auth-flow
+   surface, not a third distinct visual language. */
+
+.settings-page {
+  max-width: 480px;
+  margin: 0 auto;
+  padding-bottom: 60px;
+}
+
+.settings-section {
+  margin-top: 24px;
+}
+
+.settings-section h2 {
+  margin: 0 0 12px;
+  font-size: 16px;
+}
+
+.settings-current-value {
+  color: var(--text);
+  margin: 0 0 8px;
+}
+
+.settings-page input[type="email"],
+.settings-page input[type="password"] {
+  width: 100%;
+  font: inherit;
+  color: var(--text);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 12px;
+}
+
+.settings-page input:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.settings-hint {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin: 4px 0 0;
+}
+
+.settings-success {
+  color: var(--accent);
+  font-size: 14px;
+  margin: 12px 0 0;
+}
+
+.settings-form-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 20px;
+}

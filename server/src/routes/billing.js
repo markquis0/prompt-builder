@@ -10,7 +10,10 @@ import { requireAuth } from "../middleware/requireAuth.js";
 // already checks the env var is present before calling this, same pattern
 // as pool.js does for DATABASE_URL.
 let stripeClient = null;
-function getStripe() {
+// Exported so routes/account.js can reuse the same lazily-constructed
+// client for syncing a changed email to Stripe, instead of a second
+// lazy-init copy of this exact pattern.
+export function getStripe() {
   if (!stripeClient) {
     // Default is 80s, well past what "latency-sensitive" checkout
     // initiation should ever wait before failing fast.

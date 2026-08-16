@@ -19,6 +19,9 @@ import { AuthProvider } from './context/AuthContext.jsx'
 // networkidle0, which already accounts for the extra chunk request.
 const LearnPage = lazy(() => import('./pages/LearnPage.jsx'))
 const PromptLibraryPage = lazy(() => import('./pages/PromptLibraryPage.jsx'))
+// Same reasoning as the two above — only reached by a logged-in user
+// deliberately visiting /settings, never on the / or /pro landing paths.
+const SettingsPage = lazy(() => import('./pages/SettingsPage.jsx'))
 
 // Guarded so local dev without PostHog configured never errors — funnel
 // events become silent no-ops (posthog-js queues/no-ops calls made before
@@ -45,6 +48,7 @@ createRoot(document.getElementById('root')).render(
               <Route path="/pro" element={<ProPage />} />
               <Route path="/resources" element={<ResourcesPage />} />
               <Route path="/prompts" element={<PromptLibraryPage />} />
+              <Route path="/settings" element={<SettingsPage />} />
               <Route path="/privacy" element={<LegalPage page="privacy" />} />
               <Route path="/terms" element={<LegalPage page="terms" />} />
               <Route path="/refund-policy" element={<LegalPage page="refund" />} />
