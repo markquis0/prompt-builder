@@ -8,5 +8,15 @@
     "newHash": "b88749b9a74947cbb87696f29ed1793c09f17b1b0b249e8604ec277996c23f42",
     "reviewed": false,
     "learnImpacting": true
+  },
+  {
+    "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
+    "vendor": "Anthropic",
+    "pageTitle": "Prompting best practices",
+    "detectedAt": "2026-08-16T08:30:07.624Z",
+    "oldHash": "725a5df80910a62b706099b61ee165a6377369dcd14c256be225fedf5b8eef06",
+    "newHash": "3081b961cc11a432b2aaadbd21b1fee97bc48b11dca749f40b1dde4e4661634a",
+    "reviewed": false,
+    "learnImpacting": false
   }
 ]

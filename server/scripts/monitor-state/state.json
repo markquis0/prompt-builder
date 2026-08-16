@@ -1,23 +1,25 @@
 {
   "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/overview": {
     "hash": "b88749b9a74947cbb87696f29ed1793c09f17b1b0b249e8604ec277996c23f42",
-    "lastCheckedAt": "2026-08-15T04:58:43.659Z",
+    "lastCheckedAt": "2026-08-16T08:30:05.843Z",
     "lastChangedAt": "2026-08-15T04:58:43.659Z",
     "consecutiveFailures": 0,
     "status": "ok",
-    "changedThisRun": true
+    "changedThisRun": false
   },
   "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices": {
-    "hash": "725a5df80910a62b706099b61ee165a6377369dcd14c256be225fedf5b8eef06",
-    "lastCheckedAt": "2026-08-14T21:28:44.775Z",
+    "hash": "3081b961cc11a432b2aaadbd21b1fee97bc48b11dca749f40b1dde4e4661634a",
+    "lastCheckedAt": "2026-08-16T08:30:07.624Z",
+    "lastChangedAt": "2026-08-16T08:30:07.624Z",
     "consecutiveFailures": 0,
-    "status": "ok"
+    "status": "ok",
+    "changedThisRun": true
   },
   "https://developers.openai.com/api/docs/guides/prompt-guidance.md": {
     "hash": "52c9d483d71fd031d340d9093522010c5dd18a9de5aadf23f09e58f63d68b218",
     "etag": "W/\"2044a7bfb4dcefefffc5eafb03dafbb2\"",
     "lastModified": "Fri, 14 Aug 2026 21:01:45 GMT",
-    "lastCheckedAt": "2026-08-14T21:28:45.237Z",
+    "lastCheckedAt": "2026-08-16T08:30:08.425Z",
     "consecutiveFailures": 0,
     "status": "ok"
   },
@@ -32,16 +34,18 @@
   "https://ai.google.dev/gemini-api/docs/prompting-strategies": {
     "hash": "d1d8072ea85acb2757b32074a28eb7a0aae73dae25cc7ba36133bbe4b1a56f97",
     "lastModified": "Wed, 10 Jun 2026 04:18:33 GMT",
-    "lastCheckedAt": "2026-08-14T21:28:45.983Z",
+    "lastCheckedAt": "2026-08-16T08:30:09.810Z",
     "consecutiveFailures": 0,
-    "status": "ok"
+    "status": "ok",
+    "changedThisRun": false
   },
   "https://ai.google.dev/gemini-api/docs/whats-new-gemini-3.5": {
     "hash": "f4d7da77c940ef5718b348873948ead4399721f546b578e767c09decb1e226aa",
     "lastModified": "Thu, 30 Jul 2026 14:48:55 GMT",
-    "lastCheckedAt": "2026-08-14T21:28:47.946Z",
+    "lastCheckedAt": "2026-08-16T08:30:11.358Z",
     "consecutiveFailures": 0,
-    "status": "ok"
+    "status": "ok",
+    "changedThisRun": false
   },
   "https://developer.meta.com/ai/docs/how-to-guides/prompting/": {
     "hash": "9f0aea99e03dd8b7d3ef6618883b75a2c5c305753cf59ea748358800fec8c88e",
