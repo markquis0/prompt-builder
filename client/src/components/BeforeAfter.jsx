@@ -1,3 +1,5 @@
+import { useEffect } from "react";
+import posthog from "posthog-js";
 import { RENDERERS } from "../renderers/index.js";
 import { SAMPLE_PROMPT, SAMPLE_ROUGH_PROMPT } from "../samplePrompt.js";
 import "./BeforeAfter.css";
@@ -19,6 +21,17 @@ function highlightTags(text) {
 
 export default function BeforeAfter() {
   const after = RENDERERS.generic.render(SAMPLE_PROMPT);
+
+  // Canary, not a funnel event — this component's left panel is static
+  // hardcoded copy (SAMPLE_ROUGH_PROMPT), so left_panel_populated should
+  // never be false in practice. If it ever regresses to blank (the
+  // original bug this tracks), this catches it in the data within a day
+  // instead of waiting for someone to notice visually.
+  useEffect(() => {
+    posthog.capture("before_after_panel_rendered", {
+      left_panel_populated: Boolean(SAMPLE_ROUGH_PROMPT && SAMPLE_ROUGH_PROMPT.trim()),
+    });
+  }, []);
 
   return (
     <div className="before-after">

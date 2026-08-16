@@ -66,6 +66,15 @@ async function prerender() {
   try {
     for (const route of ROUTES) {
       const page = await browser.newPage();
+      // Runs before any of this page's own scripts, so main.jsx's
+      // posthog.init() guard sees it on first evaluation. Without this,
+      // Puppeteer executes the exact same production bundle a real visitor
+      // gets (same embedded VITE_POSTHOG_KEY), and posthog.init() would
+      // fire for real here — sending a live pageview to production
+      // PostHog for every route, on every deploy, from the build machine.
+      await page.evaluateOnNewDocument(() => {
+        window.__PRERENDERING__ = true;
+      });
       await page.goto(`http://localhost:${PORT}${route}`, { waitUntil: "networkidle0" });
 
       // Give react-helmet-async a beat to inject <head> tags on top of Vite's

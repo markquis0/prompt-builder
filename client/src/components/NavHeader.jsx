@@ -1,5 +1,6 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
+import posthog from "posthog-js";
 import { useAuth } from "../context/AuthContext.jsx";
 import { getBillingPortalUrl } from "../api.js";
 import { useStripeRedirect } from "../useStripeRedirect.js";
@@ -52,14 +53,36 @@ export default function NavHeader() {
 
   // No loading/error UI here by design — failure stays a silent console.error,
   // same as before this hook existed.
-  const { go: handleManageSubscription } = useStripeRedirect(getBillingPortalUrl, "portalUrl", (err) =>
+  const { go: handleManageSubscriptionRedirect } = useStripeRedirect(getBillingPortalUrl, "portalUrl", (err) =>
     console.error("[prompt-builder] Failed to open billing portal:", err)
   );
+
+  // Wraps the redirect above with tracking — kept as a separate named
+  // function (not just calling posthog.capture inline at the one call
+  // site) so the intent reads clearly at the button's onClick.
+  function handleManageSubscription() {
+    posthog.capture("manage_subscription_clicked", { source: "header" });
+    return handleManageSubscriptionRedirect();
+  }
+
+  function handleLogoutClick() {
+    posthog.capture("logout_clicked");
+    logout();
+  }
 
   // Anyone who's ever started a subscription (including a canceled one) can
   // still get to the Stripe portal — it shows invoice history and lets them
   // resubscribe, not just manage an active plan.
   const hasBillingHistory = user?.subscriptionStatus && user.subscriptionStatus !== "none";
+
+  // Fires once per time the badge actually becomes visible (isPaidUser
+  // true), not once per render — so this measures how often it's actually
+  // seen, not how often this component re-renders while it's showing.
+  useEffect(() => {
+    if (isPaidUser) {
+      posthog.capture("entitlement_badge_viewed");
+    }
+  }, [isPaidUser]);
 
   function navLinkClass(isActive) {
     return isActive ? "nav-link nav-link-active" : "nav-link";
@@ -280,7 +303,7 @@ export default function NavHeader() {
                     className="nav-profile-item nav-profile-item-logout"
                     onClick={() => {
                       setProfileMenuOpen(false);
-                      logout();
+                      handleLogoutClick();
                     }}
                   >
                     Log out

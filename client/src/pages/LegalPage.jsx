@@ -1,4 +1,6 @@
+import { useEffect } from "react";
 import { Helmet } from "react-helmet-async";
+import posthog from "posthog-js";
 import NavHeader from "../components/NavHeader.jsx";
 
 const SITE_URL = "https://promptme.host";
@@ -36,6 +38,14 @@ const PAGES = {
 export default function LegalPage({ page }) {
   const content = PAGES[page];
   const path = page === "refund" ? "/refund-policy" : `/${page}`;
+
+  // Previously the only route with zero PostHog coverage at all (no custom
+  // event, and — before the capture_pageview fix in main.jsx — no reliable
+  // native $pageview either, since this is only ever reached via
+  // client-side navigation, not a fresh load).
+  useEffect(() => {
+    posthog.capture("legal_page_view", { page });
+  }, [page]);
 
   return (
     <div className="app-shell">

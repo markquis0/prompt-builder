@@ -72,7 +72,14 @@ export default function CompletenessScore({ promptObject, originalPrompt, rawAss
   // (questions are freely LLM-generated per prompt, not drawn from a fixed
   // per-dimension pool), so this can't jump to a specific question yet.
   function handlePillClick(field) {
-    posthog.capture("completeness_pill_clicked", { dimension: field });
+    // DIMENSION_KEY_MAP (above) translates Layer 1's internal field name to
+    // the canonical dimension id used everywhere else this concept appears
+    // (the Layer 2 critique API, and CHECKLIST_ITEMS on /learn/checklist) —
+    // "examples"/"successCriteria" here would otherwise never match
+    // "example"/"success_criteria" elsewhere in any PostHog analysis that
+    // joins on dimension. Analytics-facing fix only; field itself (and the
+    // underlying scoring data model) is untouched.
+    posthog.capture("completeness_pill_clicked", { dimension: DIMENSION_KEY_MAP[field] });
     onEditAnswers();
   }
 

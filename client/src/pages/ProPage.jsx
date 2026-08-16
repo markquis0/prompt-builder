@@ -64,6 +64,20 @@ export default function ProPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Split between trial and active-paid visitors landing on /pro while
+  // already subscribed — the status branch below (trialing vs anything
+  // else) is exactly the distinction this needs.
+  useEffect(() => {
+    if (isPaidUser) {
+      posthog.capture("pro_status_card_viewed", {
+        status: user.subscriptionStatus === "trialing" ? "trialing" : "active",
+      });
+    }
+    // Only on isPaidUser actually changing (e.g. trial->active mid-visit
+    // after refreshUser() below), not on every render.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isPaidUser]);
+
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const checkout = params.get("checkout");
@@ -99,6 +113,12 @@ export default function ProPage() {
   // already uses (monetisation gate) — not a second portal-session flow.
   function goToBillingPortal() {
     trackCta("manage_billing");
+    // Separate from pro_cta_clicked above (kept as-is, pre-existing) — this
+    // is the shared cross-surface event NavHeader.jsx also fires, with a
+    // source property so the two surfaces (header vs this page's status
+    // card) are distinguishable in one funnel instead of two disconnected
+    // page-specific events.
+    posthog.capture("manage_subscription_clicked", { source: "pro_page" });
     return portal.go();
   }
 
@@ -265,11 +285,23 @@ export default function ProPage() {
               <p className="pro-cta-note">No credit card charge for 7 days. Cancel anytime.</p>
               <p className="pro-cta-disclosure">
                 By starting your trial you agree to our{" "}
-                <Link to="/terms" onClick={() => trackCta("terms_link")}>
+                <Link
+                  to="/terms"
+                  onClick={() => {
+                    trackCta("terms_link");
+                    posthog.capture("legal_link_clicked", { link: "terms" });
+                  }}
+                >
                   Terms of Service
                 </Link>{" "}
                 and{" "}
-                <Link to="/privacy" onClick={() => trackCta("privacy_link")}>
+                <Link
+                  to="/privacy"
+                  onClick={() => {
+                    trackCta("privacy_link");
+                    posthog.capture("legal_link_clicked", { link: "privacy" });
+                  }}
+                >
                   Privacy Policy
                 </Link>
                 .

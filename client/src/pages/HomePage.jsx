@@ -231,9 +231,18 @@ export default function HomePage() {
         <div className="home-footer-col">
           <p className="home-footer-heading">Company</p>
           <a href="mailto:hello@promptme.host">Contact</a>
-          <Link to="/privacy">Privacy Policy</Link>
-          <Link to="/terms">Terms of Service</Link>
-          <Link to="/refund-policy">Refund Policy</Link>
+          <Link to="/privacy" onClick={() => posthog.capture("legal_link_clicked", { link: "privacy" })}>
+            Privacy Policy
+          </Link>
+          <Link to="/terms" onClick={() => posthog.capture("legal_link_clicked", { link: "terms" })}>
+            Terms of Service
+          </Link>
+          <Link
+            to="/refund-policy"
+            onClick={() => posthog.capture("legal_link_clicked", { link: "refund" })}
+          >
+            Refund Policy
+          </Link>
         </div>
       </footer>
     </div>

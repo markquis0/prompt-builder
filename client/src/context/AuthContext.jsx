@@ -1,4 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useState } from "react";
+import posthog from "posthog-js";
 import * as api from "../api.js";
 import { loadSession } from "../storage.js";
 import AuthModal from "../components/AuthModal.jsx";
@@ -33,6 +34,14 @@ export function AuthProvider({ children }) {
   const signup = useCallback(async (email, password, firstName, lastName) => {
     const { user: newUser } = await api.signup(email, password, firstName, lastName);
     setUser(newUser);
+    // Links whatever anonymous activity this browser already generated
+    // (which /learn pages, resource clicks, /prompts browsing — all
+    // captured under posthog-js's own auto-generated anonymous distinct_id
+    // up to this point) to the real user_id going forward. Without this,
+    // pre-signup and post-signup activity are two unconnected people in
+    // PostHog no matter how much event instrumentation exists elsewhere —
+    // none of the content-to-conversion funnels can actually connect.
+    posthog.identify(newUser.id, { email: newUser.email });
 
     // Automatic, silent migration — per the monetisation-gate spec, no
     // confirmation prompt, and a failure here must never surface as an
@@ -52,12 +61,20 @@ export function AuthProvider({ children }) {
   const login = useCallback(async (email, password) => {
     const { user: loggedInUser } = await api.login(email, password);
     setUser(loggedInUser);
+    // Same reasoning as signup's identify() call above — this is the other
+    // point a session transitions from anonymous to known.
+    posthog.identify(loggedInUser.id, { email: loggedInUser.email });
     return loggedInUser;
   }, []);
 
   const logout = useCallback(async () => {
     await api.logout();
     setUser(null);
+    // Without this, the *next* anonymous activity in this browser (e.g. a
+    // shared/public computer, or someone else's later session) would keep
+    // being attributed to whichever user_id was last identify()'d here —
+    // reset() starts a fresh anonymous distinct_id.
+    posthog.reset();
   }, []);
 
   // Any component can call this to gate an action behind auth — e.g. "start
