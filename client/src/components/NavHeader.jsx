@@ -87,6 +87,9 @@ export default function NavHeader() {
                 <span className="nav-account-email" title={user.email}>
                   {user.email}
                 </span>
+                <Link to="/history" className="nav-manage-btn">
+                  History
+                </Link>
                 <Link to="/settings" className="nav-manage-btn">
                   Account settings
                 </Link>
@@ -114,6 +117,13 @@ export default function NavHeader() {
                 {mobileMenuOpen && (
                   <div className="nav-account-dropdown" role="menu">
                     <span className="nav-account-dropdown-email">{user.email}</span>
+                    <Link
+                      to="/history"
+                      className="nav-account-dropdown-item"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      History
+                    </Link>
                     <Link
                       to="/settings"
                       className="nav-account-dropdown-item"

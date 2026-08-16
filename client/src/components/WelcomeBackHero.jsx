@@ -1,22 +1,10 @@
-import { forwardRef } from "react";
+import { forwardRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import posthog from "posthog-js";
 import { scrollToElement } from "../scrollToElement.js";
+import { truncate, formatRelative } from "../formatSession.js";
+import { getServerSession } from "../api.js";
 import "./WelcomeBackHero.css";
-
-function truncate(text, max = 80) {
-  if (!text || text.length <= max) return text;
-  return text.slice(0, max).replace(/\s+\S*$/, "") + "…";
-}
-
-function formatRelative(isoString) {
-  const diffMs = Date.now() - new Date(isoString).getTime();
-  const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-  if (days <= 0) return "Today";
-  if (days === 1) return "Yesterday";
-  if (days < 7) return `${days} days ago`;
-  return new Date(isoString).toLocaleDateString(undefined, { month: "short", day: "numeric" });
-}
 
 // Shown instead of the marketing hero for authenticated users who've built
 // at least one prompt before (per the sessions table populated since the
@@ -24,13 +12,24 @@ function formatRelative(isoString) {
 // no new backend work.
 const WelcomeBackHero = forwardRef(function WelcomeBackHero({ sessions }, ref) {
   const navigate = useNavigate();
+  const [resumingId, setResumingId] = useState(null);
 
-  function handleResume(session) {
-    posthog.capture("home_resume_session", { session_id: session.id });
-    // Same location.state handoff PromptBuilder.jsx already handles for
-    // the Prompt Library's "Build on this" prefill, extended with a second
-    // key carrying the whole cached result rather than just raw text.
-    navigate("/", { state: { resumeSession: session } });
+  // sessions here only ever carries the lean {id, originalPrompt,
+  // createdAt} shape GET /api/sessions returns (see HomePage.jsx) — the
+  // builder's resume logic (PromptBuilder.jsx's getInitialSession) needs
+  // qaPairs/promptObject/rawAssembled too, so the full row has to be
+  // fetched before navigating, not just the list item that was clicked.
+  async function handleResume(session) {
+    if (resumingId) return;
+    setResumingId(session.id);
+    try {
+      const { session: full } = await getServerSession(session.id);
+      posthog.capture("home_resume_session", { session_id: session.id });
+      navigate("/", { state: { resumeSession: full } });
+    } catch (err) {
+      console.error("[prompt-builder] Failed to resume session:", err);
+      setResumingId(null);
+    }
   }
 
   function handleNewPrompt() {
@@ -46,8 +45,15 @@ const WelcomeBackHero = forwardRef(function WelcomeBackHero({ sessions }, ref) {
       <ul className="welcome-back-sessions">
         {sessions.map((session) => (
           <li key={session.id}>
-            <button type="button" className="welcome-back-session-item" onClick={() => handleResume(session)}>
-              <span className="welcome-back-session-text">{truncate(session.originalPrompt)}</span>
+            <button
+              type="button"
+              className="welcome-back-session-item"
+              onClick={() => handleResume(session)}
+              disabled={resumingId === session.id}
+            >
+              <span className="welcome-back-session-text">
+                {resumingId === session.id ? "Loading…" : truncate(session.originalPrompt)}
+              </span>
               <span className="welcome-back-session-date">{formatRelative(session.createdAt)}</span>
             </button>
           </li>

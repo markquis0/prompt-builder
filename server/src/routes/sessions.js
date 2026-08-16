@@ -30,6 +30,7 @@ function sanitizeSession(row) {
     promptObject: row.prompt_object,
     rawAssembled: row.raw_assembled,
     metaPromptVersion: row.meta_prompt_version,
+    category: row.category,
     deterministicScore: row.deterministic_score,
     deterministicChecks: row.deterministic_checks,
     llmCritique: row.llm_critique,
@@ -64,6 +65,7 @@ async function insertSession(userId, body) {
     supportingContext,
     promptObject,
     rawAssembled,
+    category,
     deterministicScore,
     deterministicChecks,
   } = body || {};
@@ -75,8 +77,8 @@ async function insertSession(userId, body) {
   const { rows } = await pool.query(
     `INSERT INTO sessions
       (user_id, original_prompt, qa_pairs, supporting_context, prompt_object, raw_assembled,
-       deterministic_score, deterministic_checks)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+       category, deterministic_score, deterministic_checks)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
      RETURNING *`,
     [
       userId,
@@ -85,6 +87,7 @@ async function insertSession(userId, body) {
       typeof supportingContext === "string" ? supportingContext : "",
       promptObject ? JSON.stringify(promptObject) : null,
       typeof rawAssembled === "string" ? rawAssembled : "",
+      typeof category === "string" && category.trim() ? category.trim() : null,
       Number.isInteger(deterministicScore) ? deterministicScore : null,
       Array.isArray(deterministicChecks) ? JSON.stringify(deterministicChecks) : null,
     ]

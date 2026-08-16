@@ -106,6 +106,10 @@ function toSessionPayload(session) {
     supportingContext: session.supportingContext,
     promptObject: session.promptObject,
     rawAssembled: session.rawAssembled,
+    // Whatever the user picked (or left blank) on IntakeForm.jsx — already
+    // collected for the question-generation call, just carried one hop
+    // further into persistence instead of being dropped after that.
+    category: session.promptType || null,
     // Layer 1 (completeness.js) is computed here rather than server-side —
     // it's the same free/instant deterministic check either way, just
     // saved alongside the session for the user's own history.
@@ -124,6 +128,13 @@ export function migrateSession(session) {
 
 export function listServerSessions() {
   return request("/api/sessions");
+}
+
+// Full detail (qaPairs/promptObject/rawAssembled included) for resuming a
+// past session back into the builder — the list endpoint above
+// deliberately only returns id/originalPrompt/createdAt.
+export function getServerSession(id) {
+  return request(`/api/sessions/${id}`);
 }
 
 // --- Billing ---

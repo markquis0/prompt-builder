@@ -106,3 +106,13 @@ ALTER TABLE users ADD COLUMN IF NOT EXISTS subscription_event_created_at TIMESTA
 -- before the bump — the only way to invalidate an already-issued,
 -- unexpired JWT without a separate revocation-list table.
 ALTER TABLE users ADD COLUMN IF NOT EXISTS token_version INTEGER NOT NULL DEFAULT 0;
+
+-- Session history (minimal). Not a new table — the sessions table already
+-- gets an automatic, no-save-button write on every generation for signed-in
+-- users (PromptBuilder.jsx's requestAssembly), which is exactly the
+-- "persist on generation" requirement a session-history feature needs.
+-- category reuses the promptType value IntakeForm.jsx already collects at
+-- intake (previously used only to steer question generation, then
+-- dropped before assembly) — nullable since older rows and prompts where
+-- the user left it unset never had one.
+ALTER TABLE sessions ADD COLUMN IF NOT EXISTS category TEXT;
