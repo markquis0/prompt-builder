@@ -230,7 +230,7 @@ export default function HomePage() {
         </div>
         <div className="home-footer-col">
           <p className="home-footer-heading">Company</p>
-          <a href="mailto:markquisjohn91@gmail.com">Contact</a>
+          <a href="mailto:hello@promptme.host">Contact</a>
           <Link to="/privacy">Privacy Policy</Link>
           <Link to="/terms">Terms of Service</Link>
           <Link to="/refund-policy">Refund Policy</Link>
