@@ -14,9 +14,15 @@ import { applySchema } from "./db/applySchema.js";
 import { seedStarterResources } from "./db/seedResources.js";
 import { allowedOrigins } from "./lib/allowedOrigins.js";
 import { requireAllowedOrigin } from "./middleware/requireAllowedOrigin.js";
+import { requestLogger } from "./middleware/requestLogger.js";
 
 const app = express();
 const PORT = process.env.PORT || 3001;
+
+// First middleware in the chain so measured duration covers the full
+// request, including CORS/helmet/CSRF processing below - not just
+// whatever a route handler itself takes.
+app.use(requestLogger);
 
 // http://localhost:4888 is always allowed on top of the configured list —
 // it's the static server client/scripts/prerender.mjs boots during
