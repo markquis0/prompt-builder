@@ -117,14 +117,28 @@ ALTER TABLE users ADD COLUMN IF NOT EXISTS token_version INTEGER NOT NULL DEFAUL
 -- the user left it unset never had one.
 ALTER TABLE sessions ADD COLUMN IF NOT EXISTS category TEXT;
 
--- Header redesign Part 3 — required first/last name at signup. Plain
--- NOT NULL with no DEFAULT, per the handoff: no existing signed-up users,
--- so no backfill/fallback is needed. NOTE: this assumes the real
--- production `users` table is still empty — if that ever turns out to be
--- false, this ALTER will fail outright against existing rows the moment
--- applySchema() runs it (Postgres refuses to add a NOT NULL column with no
--- default to a non-empty table), and every request in this same
--- schema.sql batch after it silently never applies either. Confirm that
--- assumption against the real DB before this reaches production.
-ALTER TABLE users ADD COLUMN IF NOT EXISTS first_name TEXT NOT NULL;
-ALTER TABLE users ADD COLUMN IF NOT EXISTS last_name TEXT NOT NULL;
+-- Header redesign Part 3 — required first/last name at signup.
+--
+-- INCIDENT: the handoff's premise ("no existing signed-up users, so a
+-- plain NOT NULL with no backfill is fine") was wrong. Production's
+-- `users` table already had rows, so the original bare
+-- `ADD COLUMN ... NOT NULL` (no default) failed outright the moment this
+-- deployed — exactly the failure mode flagged in-line when that version
+-- shipped — which broke every login/signup/account request from that
+-- point on, since the application code already unconditionally queries
+-- these columns. Confirmed live: POST /api/auth/login 500ing consistently
+-- (not a cold-start blip — ruled out with timed retries) while
+-- GET /api/resources (untouched by this migration) stayed healthy,
+-- isolating the failure to exactly these two missing columns.
+--
+-- Fixed with the standard safe pattern for adding NOT NULL to a non-empty
+-- table: add nullable, backfill existing rows, then enforce NOT NULL.
+-- Idempotent/safe to re-run on every boot like the rest of this file —
+-- the UPDATE only touches rows still NULL, and SET NOT NULL is a no-op
+-- once already set.
+ALTER TABLE users ADD COLUMN IF NOT EXISTS first_name TEXT;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS last_name TEXT;
+UPDATE users SET first_name = 'Unknown' WHERE first_name IS NULL;
+UPDATE users SET last_name = 'Unknown' WHERE last_name IS NULL;
+ALTER TABLE users ALTER COLUMN first_name SET NOT NULL;
+ALTER TABLE users ALTER COLUMN last_name SET NOT NULL;
