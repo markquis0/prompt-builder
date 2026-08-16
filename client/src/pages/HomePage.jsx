@@ -219,7 +219,7 @@ export default function HomePage() {
         <div className="home-footer-col">
           <p className="home-footer-heading">Product</p>
           <Link to="/#builder">Build a prompt</Link>
-          <Link to="/pro">Pro features</Link>
+          <Link to="/pro">Pricing</Link>
         </div>
         <div className="home-footer-col">
           <p className="home-footer-heading">Learn</p>
