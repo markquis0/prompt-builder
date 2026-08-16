@@ -69,6 +69,20 @@ router.post("/create-checkout-session", requireAuth, async (req, res) => {
   }
 });
 
+// TEMPORARY — verifying POSTHOG_KEY was picked up on Render after being
+// added to the environment. Exercises the exact same captureServerEvent()
+// helper the Stripe webhook's trial_converted capture uses, so a delivered
+// event here confirms that path is live. Remove after confirming in
+// PostHog's Activity explorer.
+router.get("/_posthog-test", (req, res) => {
+  captureServerEvent({
+    distinctId: "posthog_server_test",
+    event: "posthog_server_test_event",
+    properties: { source: "manual_verification" },
+  });
+  res.json({ ok: true });
+});
+
 router.get("/portal", requireAuth, async (req, res) => {
   if (!process.env.STRIPE_SECRET_KEY) {
     return res.status(503).json({ error: "Billing isn't configured yet." });
