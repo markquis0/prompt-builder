@@ -114,6 +114,18 @@ export async function handleStripeWebhook(req, res) {
   }
 
   try {
+    // Dedup — before any other side effect. Stripe's delivery is at-least-
+    // once (retries, and an operator can manually resend an old event from
+    // the Dashboard), so the same event.id can arrive more than once.
+    // Replaying an already-applied event is a true no-op, not an error.
+    const { rows: alreadyProcessed } = await pool.query("SELECT 1 FROM stripe_webhook_events WHERE id = $1", [
+      event.id,
+    ]);
+    if (alreadyProcessed.length > 0) {
+      console.log(`[prompt-builder] Webhook event ${event.id} (${event.type}) already processed — skipping.`);
+      return res.json({ received: true });
+    }
+
     switch (event.type) {
       case "checkout.session.completed": {
         const session = event.data.object;
@@ -138,13 +150,40 @@ export async function handleStripeWebhook(req, res) {
         // this event is the first place in the flow that actually carries
         // it, and it fires right after checkout in addition to every later
         // status change.
-        await pool.query(
+        //
+        // Ordering guard: Stripe doesn't guarantee delivery order, so a
+        // late-arriving older event could otherwise regress
+        // subscription_status backward. The WHERE clause's timestamp
+        // comparison makes "only apply if this is newer" atomic with the
+        // write itself, rather than a separate check-then-update with a
+        // race window. event.created (this event's own timestamp), not
+        // sub.created (the subscription's creation date) — that's the
+        // ordering signal, not this.
+        const { rowCount } = await pool.query(
           `UPDATE users
            SET subscription_status = $1, current_period_ends_at = to_timestamp($2),
-               trial_ends_at = to_timestamp($3)
-           WHERE stripe_subscription_id = $4`,
-          [sub.status, sub.current_period_end, sub.trial_end, sub.id]
+               trial_ends_at = to_timestamp($3), subscription_event_created_at = to_timestamp($5)
+           WHERE stripe_subscription_id = $4
+             AND (subscription_event_created_at IS NULL OR subscription_event_created_at < to_timestamp($5))`,
+          [sub.status, sub.current_period_end, sub.trial_end, sub.id, event.created]
         );
+        if (rowCount === 0) {
+          // Two possible reasons: no user row matches this subscription yet
+          // (same silent no-op as before this change — e.g.
+          // checkout.session.completed hasn't landed for this customer),
+          // or a matching row exists but this event is stale. Only the
+          // second is new behavior worth a trace.
+          const { rows: existing } = await pool.query(
+            "SELECT 1 FROM users WHERE stripe_subscription_id = $1",
+            [sub.id]
+          );
+          if (existing.length > 0) {
+            console.log(
+              `[prompt-builder] Skipped stale customer.subscription.updated for subscription ${sub.id} ` +
+                `(event ${event.id}, event.created=${event.created}) — not newer than the already-applied update.`
+            );
+          }
+        }
         break;
       }
       case "customer.subscription.deleted": {
@@ -166,6 +205,13 @@ export async function handleStripeWebhook(req, res) {
       default:
         break;
     }
+
+    // Recorded only after successfully handling the event — if this insert
+    // itself fails, the catch below returns 500 and Stripe retries, same as
+    // any other DB error here. ON CONFLICT DO NOTHING covers the same
+    // event.id being delivered concurrently more than once.
+    await pool.query("INSERT INTO stripe_webhook_events (id) VALUES ($1) ON CONFLICT DO NOTHING", [event.id]);
+
     res.json({ received: true });
   } catch (err) {
     // Deliberately NOT swallowed into a 200 here — a DB error mid-update

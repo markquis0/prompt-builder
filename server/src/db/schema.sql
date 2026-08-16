@@ -82,3 +82,20 @@ ALTER TABLE sessions ADD COLUMN IF NOT EXISTS deterministic_checks JSONB;
 ALTER TABLE sessions ADD COLUMN IF NOT EXISTS llm_critique JSONB;
 ALTER TABLE sessions ADD COLUMN IF NOT EXISTS critique_version TEXT;
 ALTER TABLE sessions ADD COLUMN IF NOT EXISTS scored_at TIMESTAMPTZ;
+
+-- Webhook dedup (scalability review Finding 8.1). Stripe delivers events
+-- at-least-once — retries, and manual resends from the Dashboard, can
+-- redeliver an event we already applied. id is Stripe's own event.id
+-- (evt_...), already globally unique, so it's the primary key directly
+-- rather than a separate surrogate id.
+CREATE TABLE IF NOT EXISTS stripe_webhook_events (
+  id            TEXT PRIMARY KEY,
+  processed_at  TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+-- Webhook ordering guard (same finding). Stripe doesn't guarantee delivery
+-- order, so customer.subscription.updated needs a way to detect a
+-- late-arriving older event and skip it rather than regress
+-- subscription_status backward. Stores the event.created (not sub.created)
+-- of the last update actually applied for this row's subscription.
+ALTER TABLE users ADD COLUMN IF NOT EXISTS subscription_event_created_at TIMESTAMPTZ;
