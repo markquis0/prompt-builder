@@ -51,6 +51,7 @@ export default function ResultPreview({
   onRetry,
   originalPrompt,
   sessionId,
+  onStartOver,
 }) {
   const [activeModel, setActiveModel] = useState("generic");
   const [editedVariants, setEditedVariants] = useState({});
@@ -184,6 +185,11 @@ export default function ResultPreview({
             <button type="button" className="link-button" onClick={onEditAnswers}>
               Edit answers
             </button>
+            {onStartOver && (
+              <button type="button" className="link-button" onClick={onStartOver}>
+                New prompt
+              </button>
+            )}
             <label className="plain-toggle">
               <input
                 type="checkbox"
@@ -301,7 +307,7 @@ export default function ResultPreview({
 
         <div className="copy-row">
           <button type="button" className="btn btn-primary copy-btn" onClick={handleCopy}>
-            {copied ? "Copied!" : hasPromptObject ? `Copy ${RENDERERS[activeModel].label} version` : "Copy"}
+            {copied ? "Copied!" : "Copy prompt"}
           </button>
           {copyFailed && (
             <span className="copy-fallback-hint">

@@ -1,14 +1,13 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { Helmet } from "react-helmet-async";
 import { Link } from "react-router-dom";
 import posthog from "posthog-js";
 import NavHeader from "../components/NavHeader.jsx";
 import BeforeAfter from "../components/BeforeAfter.jsx";
 import PromptBuilder from "../components/PromptBuilder.jsx";
-import WelcomeBackHero from "../components/WelcomeBackHero.jsx";
-import { loadSession } from "../storage.js";
+import BuilderPage from "./BuilderPage.jsx";
 import { useAuth } from "../context/AuthContext.jsx";
-import { listServerSessions } from "../api.js";
+import { useBuilderAutoscroll } from "../useBuilderAutoscroll.js";
 import { scrollToElement } from "../scrollToElement.js";
 import "./HomePage.css";
 
@@ -54,55 +53,29 @@ function useSectionViewTracking(refs) {
   }, []);
 }
 
+// The "/" route: hands off entirely to the authenticated builder page once
+// a user is known, rather than threading auth-gated content through the
+// marketing tree. A dedicated wrapper (not just an early return inside one
+// component) so the marketing page's own hooks — section-view tracking,
+// the returning-visitor autoscroll — never mount at all for an
+// authenticated visitor, instead of mounting once here and then again in
+// BuilderPage (which would double-fire the autoscroll's analytics event).
 export default function HomePage() {
+  const { user } = useAuth();
+  if (user) {
+    return <BuilderPage />;
+  }
+  return <MarketingHomePage />;
+}
+
+function MarketingHomePage() {
   const heroRef = useRef(null);
   const beforeAfterRef = useRef(null);
   const howItWorksRef = useRef(null);
   const builderRef = useRef(null);
-  const { user } = useAuth();
-  const [recentSessions, setRecentSessions] = useState(null);
 
   useSectionViewTracking([heroRef, beforeAfterRef, howItWorksRef, builderRef]);
-
-  // Only for authenticated users — anonymous visitors' localStorage-based
-  // returning-visitor behavior (below) is unchanged and unaffected by this.
-  useEffect(() => {
-    if (!user) {
-      setRecentSessions(null);
-      return;
-    }
-    listServerSessions()
-      .then(({ sessions }) => setRecentSessions(sessions.slice(0, 5)))
-      .catch((err) => {
-        console.error("[prompt-builder] Failed to load recent sessions:", err);
-        setRecentSessions([]);
-      });
-  }, [user]);
-
-  // Returning visitors (existing localStorage session with real content) or
-  // anyone arriving via a #builder link land straight on the tool instead of
-  // the pitch. PromptBuilder writes an empty default session to localStorage
-  // on every mount, so presence alone isn't enough — check actual content,
-  // the same way the builder's own "Start Over" confirmation does.
-  useEffect(() => {
-    const session = loadSession();
-    const hasContent = Boolean(
-      session &&
-        (session.prompt ||
-          session.rawAssembled ||
-          Object.values(session.answers || {}).some(Boolean))
-    );
-    const wantsBuilder = window.location.hash === "#builder";
-    if (hasContent || wantsBuilder) {
-      document.getElementById("builder")?.scrollIntoView();
-      if (hasContent) {
-        posthog.capture("home_returning_autoscroll");
-      }
-    }
-    // Run once on mount only — this is a landing-behavior decision, not a
-    // reactive one.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  useBuilderAutoscroll();
 
   function handleHeroCtaClick(e) {
     e.preventDefault();
@@ -138,24 +111,17 @@ export default function HomePage() {
       <NavHeader />
 
       <main className="home-main">
-        {user && recentSessions && recentSessions.length > 0 ? (
-          <WelcomeBackHero ref={heroRef} sessions={recentSessions} />
-        ) : (
-          <section className="home-hero" id="hero" ref={heroRef} data-section="hero">
-            <h1>You write the idea. We write the prompt.</h1>
-            <p className="home-hero-subhead">
-              Describe what you want in plain language. PromptMe asks a few smart questions, then
-              gives you a structured prompt you can paste into Claude, ChatGPT, Gemini, or any AI
-              tool.
-            </p>
-            <a href="#builder" className="btn btn-primary home-hero-cta" onClick={handleHeroCtaClick}>
-              {/* Registered users (even ones who haven't built anything yet)
-                  already know this is free — that pitch is for anonymous
-                  visitors deciding whether to try it at all. */}
-              {user ? "Build a prompt →" : "Build a prompt — it's free →"}
-            </a>
-          </section>
-        )}
+        <section className="home-hero" id="hero" ref={heroRef} data-section="hero">
+          <h1>You write the idea. We write the prompt.</h1>
+          <p className="home-hero-subhead">
+            Describe what you want in plain language. PromptMe asks a few smart questions, then
+            gives you a structured prompt you can paste into Claude, ChatGPT, Gemini, or any AI
+            tool.
+          </p>
+          <a href="#builder" className="btn btn-primary home-hero-cta" onClick={handleHeroCtaClick}>
+            Build a prompt — it's free →
+          </a>
+        </section>
 
         <section
           className="home-before-after"

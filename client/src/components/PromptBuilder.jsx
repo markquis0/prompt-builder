@@ -235,10 +235,10 @@ export default function PromptBuilder() {
   return (
     <div className="prompt-builder">
       <BuilderStepper stage={session.stage} />
-      {session.stage !== "intake" && (
+      {session.stage === "qa" && (
         <div className="prompt-builder-toolbar">
           <button type="button" className="btn btn-ghost" onClick={startOver}>
-            Start Over
+            New prompt
           </button>
         </div>
       )}
@@ -282,6 +282,7 @@ export default function PromptBuilder() {
           onRetry={() => requestAssembly(session)}
           originalPrompt={session.prompt}
           sessionId={session.serverSessionId}
+          onStartOver={startOver}
         />
       )}
     </div>
