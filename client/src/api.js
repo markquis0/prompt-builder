@@ -67,8 +67,8 @@ export async function assemblePrompt({ originalPrompt, supportingContext, qaPair
 
 // --- Auth ---
 
-export function signup(email, password) {
-  return postJSON("/api/auth/signup", { email, password });
+export function signup(email, password, firstName, lastName) {
+  return postJSON("/api/auth/signup", { email, password, firstName, lastName });
 }
 
 export function login(email, password) {
@@ -87,6 +87,10 @@ export function getMe() {
 
 export function updateAccountEmail({ currentPassword, newEmail }) {
   return patchJSON("/api/account/email", { currentPassword, newEmail });
+}
+
+export function updateAccountProfile({ currentPassword, firstName, lastName }) {
+  return patchJSON("/api/account/profile", { currentPassword, firstName, lastName });
 }
 
 export function updateAccountPassword({ currentPassword, newPassword }) {

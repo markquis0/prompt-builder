@@ -6,11 +6,13 @@ import "./AuthModal.css";
 // any component can gate an action behind auth — e.g. "start checkout"
 // from the /pro CTA or a locked result-screen tab — via one shared modal
 // instance instead of each caller managing its own.
-export default function AuthModal({ onClose, onSuccess }) {
+export default function AuthModal({ onClose, onSuccess, initialMode = "signup" }) {
   const { signup, login } = useAuth();
-  const [mode, setMode] = useState("signup");
+  const [mode, setMode] = useState(initialMode);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
 
@@ -19,7 +21,8 @@ export default function AuthModal({ onClose, onSuccess }) {
     setError(null);
     setLoading(true);
     try {
-      const loggedInUser = mode === "signup" ? await signup(email, password) : await login(email, password);
+      const loggedInUser =
+        mode === "signup" ? await signup(email, password, firstName, lastName) : await login(email, password);
       if (onSuccess) {
         onSuccess(loggedInUser);
       } else {
@@ -53,6 +56,36 @@ export default function AuthModal({ onClose, onSuccess }) {
         </div>
 
         <form onSubmit={handleSubmit}>
+          {mode === "signup" && (
+            <div className="auth-modal-name-row">
+              <div>
+                <label className="field-label" htmlFor="auth-first-name">
+                  First name
+                </label>
+                <input
+                  id="auth-first-name"
+                  type="text"
+                  required
+                  autoFocus
+                  value={firstName}
+                  onChange={(e) => setFirstName(e.target.value)}
+                />
+              </div>
+              <div>
+                <label className="field-label" htmlFor="auth-last-name">
+                  Last name
+                </label>
+                <input
+                  id="auth-last-name"
+                  type="text"
+                  required
+                  value={lastName}
+                  onChange={(e) => setLastName(e.target.value)}
+                />
+              </div>
+            </div>
+          )}
+
           <label className="field-label" htmlFor="auth-email">
             Email
           </label>
@@ -60,7 +93,7 @@ export default function AuthModal({ onClose, onSuccess }) {
             id="auth-email"
             type="email"
             required
-            autoFocus
+            autoFocus={mode !== "signup"}
             value={email}
             onChange={(e) => setEmail(e.target.value)}
           />

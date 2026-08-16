@@ -3,7 +3,7 @@ import bcrypt from "bcrypt";
 import { pool } from "../db/pool.js";
 import { requireAuth } from "../middleware/requireAuth.js";
 import { accountActionLimiter } from "../middleware/authRateLimit.js";
-import { isValidEmail, isValidPassword } from "../lib/validators.js";
+import { isValidEmail, isValidPassword, isValidName } from "../lib/validators.js";
 import { BCRYPT_COST, sanitizeUser, issueSessionCookie } from "./auth.js";
 import { getStripe } from "./billing.js";
 
@@ -42,7 +42,8 @@ router.patch("/email", requireAuth, accountActionLimiter, async (req, res) => {
     const normalizedEmail = newEmail.trim().toLowerCase();
 
     const { rows: currentRows } = await pool.query(
-      `SELECT id, email, stripe_customer_id, created_at, subscription_status, trial_ends_at, current_period_ends_at
+      `SELECT id, email, first_name, last_name, stripe_customer_id, created_at, subscription_status,
+              trial_ends_at, current_period_ends_at
        FROM users WHERE id = $1`,
       [req.userId]
     );
@@ -66,7 +67,8 @@ router.patch("/email", requireAuth, accountActionLimiter, async (req, res) => {
     try {
       const { rows } = await pool.query(
         `UPDATE users SET email = $1 WHERE id = $2
-         RETURNING id, email, stripe_customer_id, created_at, subscription_status, trial_ends_at, current_period_ends_at`,
+         RETURNING id, email, first_name, last_name, stripe_customer_id, created_at, subscription_status,
+                   trial_ends_at, current_period_ends_at`,
         [normalizedEmail, req.userId]
       );
       updated = rows[0];
@@ -95,6 +97,48 @@ router.patch("/email", requireAuth, accountActionLimiter, async (req, res) => {
   } catch (err) {
     console.error("[prompt-builder] PATCH /api/account/email error:", err);
     res.status(500).json({ error: "Something went wrong updating your email. Please try again." });
+  }
+});
+
+// Same edit/save pattern as PATCH /email above — current-password-gated,
+// even though a name change carries none of that route's uniqueness/
+// Stripe-sync complexity, for consistency: every account mutation in this
+// app re-verifies the current password rather than trusting the session
+// alone.
+router.patch("/profile", requireAuth, accountActionLimiter, async (req, res) => {
+  const { currentPassword, firstName, lastName } = req.body || {};
+
+  if (typeof currentPassword !== "string" || currentPassword.length === 0) {
+    return res.status(400).json({ error: "Current password is required." });
+  }
+  if (!isValidName(firstName)) {
+    return res.status(400).json({ error: "First name is required." });
+  }
+  if (!isValidName(lastName)) {
+    return res.status(400).json({ error: "Last name is required." });
+  }
+
+  try {
+    const passwordHash = await getPasswordHash(req.userId);
+    if (!passwordHash) {
+      return res.status(401).json({ error: "Invalid session" });
+    }
+    const passwordMatches = await bcrypt.compare(currentPassword, passwordHash);
+    if (!passwordMatches) {
+      return res.status(401).json({ error: "Incorrect password." });
+    }
+
+    const { rows } = await pool.query(
+      `UPDATE users SET first_name = $1, last_name = $2 WHERE id = $3
+       RETURNING id, email, first_name, last_name, created_at, subscription_status, trial_ends_at,
+                 current_period_ends_at`,
+      [firstName.trim(), lastName.trim(), req.userId]
+    );
+
+    res.json({ user: sanitizeUser(rows[0]) });
+  } catch (err) {
+    console.error("[prompt-builder] PATCH /api/account/profile error:", err);
+    res.status(500).json({ error: "Something went wrong updating your name. Please try again." });
   }
 });
 
@@ -130,7 +174,8 @@ router.patch("/password", requireAuth, accountActionLimiter, async (req, res) =>
     const { rows } = await pool.query(
       `UPDATE users SET password_hash = $1, token_version = token_version + 1
        WHERE id = $2
-       RETURNING id, email, created_at, subscription_status, trial_ends_at, current_period_ends_at, token_version`,
+       RETURNING id, email, first_name, last_name, created_at, subscription_status, trial_ends_at,
+                 current_period_ends_at, token_version`,
       [newPasswordHash, req.userId]
     );
     const updated = rows[0];

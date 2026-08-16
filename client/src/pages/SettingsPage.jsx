@@ -4,10 +4,126 @@ import { Helmet } from "react-helmet-async";
 import posthog from "posthog-js";
 import NavHeader from "../components/NavHeader.jsx";
 import { useAuth } from "../context/AuthContext.jsx";
-import { updateAccountEmail, updateAccountPassword } from "../api.js";
+import { updateAccountEmail, updateAccountPassword, updateAccountProfile } from "../api.js";
 import "./SettingsPage.css";
 
 const SITE_URL = "https://promptme.host";
+
+// Same edit/save pattern as EmailSection below — current-password-gated,
+// same Edit/Save/Cancel flow — per the header-redesign handoff's explicit
+// instruction to reuse whatever pattern the email flow already uses.
+function NameSection({ currentFirstName, currentLastName, onUpdated }) {
+  const [editing, setEditing] = useState(false);
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [success, setSuccess] = useState(null);
+
+  function startEditing() {
+    setEditing(true);
+    setFirstName(currentFirstName);
+    setLastName(currentLastName);
+    setCurrentPassword("");
+    setError(null);
+    setSuccess(null);
+  }
+
+  function cancelEditing() {
+    setEditing(false);
+    setError(null);
+  }
+
+  async function handleSubmit(e) {
+    e.preventDefault();
+    setError(null);
+    setLoading(true);
+    try {
+      await updateAccountProfile({ currentPassword, firstName, lastName });
+      await onUpdated();
+      setEditing(false);
+      setSuccess("Name updated.");
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <section className="card settings-section">
+      <h2>Name</h2>
+      {!editing ? (
+        <>
+          <p className="settings-current-value">
+            {currentFirstName} {currentLastName}
+          </p>
+          <button type="button" className="link-button" onClick={startEditing}>
+            Edit
+          </button>
+          {success && <p className="settings-success">{success}</p>}
+        </>
+      ) : (
+        <form onSubmit={handleSubmit}>
+          <div className="settings-name-row">
+            <div>
+              <label className="field-label" htmlFor="settings-first-name">
+                First name
+              </label>
+              <input
+                id="settings-first-name"
+                type="text"
+                required
+                autoFocus
+                value={firstName}
+                onChange={(e) => setFirstName(e.target.value)}
+              />
+            </div>
+            <div>
+              <label className="field-label" htmlFor="settings-last-name">
+                Last name
+              </label>
+              <input
+                id="settings-last-name"
+                type="text"
+                required
+                value={lastName}
+                onChange={(e) => setLastName(e.target.value)}
+              />
+            </div>
+          </div>
+
+          <label className="field-label" htmlFor="settings-name-current-password">
+            Current password
+          </label>
+          <input
+            id="settings-name-current-password"
+            type="password"
+            required
+            value={currentPassword}
+            onChange={(e) => setCurrentPassword(e.target.value)}
+          />
+
+          {error && (
+            <div className="error-banner">
+              <span>{error}</span>
+            </div>
+          )}
+
+          <div className="settings-form-actions">
+            <button type="submit" className="btn btn-primary" disabled={loading}>
+              {loading ? "Saving…" : "Save name"}
+            </button>
+            <button type="button" className="btn btn-ghost" onClick={cancelEditing} disabled={loading}>
+              Cancel
+            </button>
+          </div>
+        </form>
+      )}
+    </section>
+  );
+}
 
 function EmailSection({ currentEmail, onUpdated }) {
   const [editing, setEditing] = useState(false);
@@ -226,6 +342,7 @@ export default function SettingsPage() {
       <NavHeader />
       <main className="settings-page">
         <h1>Account settings</h1>
+        <NameSection currentFirstName={user.firstName} currentLastName={user.lastName} onUpdated={refreshUser} />
         <EmailSection currentEmail={user.email} onUpdated={refreshUser} />
         <PasswordSection />
       </main>

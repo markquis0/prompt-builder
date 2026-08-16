@@ -116,3 +116,15 @@ ALTER TABLE users ADD COLUMN IF NOT EXISTS token_version INTEGER NOT NULL DEFAUL
 -- dropped before assembly) — nullable since older rows and prompts where
 -- the user left it unset never had one.
 ALTER TABLE sessions ADD COLUMN IF NOT EXISTS category TEXT;
+
+-- Header redesign Part 3 — required first/last name at signup. Plain
+-- NOT NULL with no DEFAULT, per the handoff: no existing signed-up users,
+-- so no backfill/fallback is needed. NOTE: this assumes the real
+-- production `users` table is still empty — if that ever turns out to be
+-- false, this ALTER will fail outright against existing rows the moment
+-- applySchema() runs it (Postgres refuses to add a NOT NULL column with no
+-- default to a non-empty table), and every request in this same
+-- schema.sql batch after it silently never applies either. Confirm that
+-- assumption against the real DB before this reaches production.
+ALTER TABLE users ADD COLUMN IF NOT EXISTS first_name TEXT NOT NULL;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS last_name TEXT NOT NULL;

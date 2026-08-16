@@ -33,7 +33,8 @@
 }
 
 .auth-modal input[type="email"],
-.auth-modal input[type="password"] {
+.auth-modal input[type="password"],
+.auth-modal input[type="text"] {
   width: 100%;
   font: inherit;
   color: var(--text);
@@ -46,6 +47,18 @@
 .auth-modal input:focus {
   outline: 2px solid var(--accent);
   outline-offset: 1px;
+}
+
+.auth-modal-name-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+/* The grid above already spaces the two fields; field-label's normal
+   top margin would double up between the row and the fields below it. */
+.auth-modal-name-row .field-label {
+  margin-top: 0;
 }
 
 .auth-modal-hint {

@@ -23,7 +23,8 @@
 }
 
 .settings-page input[type="email"],
-.settings-page input[type="password"] {
+.settings-page input[type="password"],
+.settings-page input[type="text"] {
   width: 100%;
   font: inherit;
   color: var(--text);
@@ -36,6 +37,16 @@
 .settings-page input:focus {
   outline: 2px solid var(--accent);
   outline-offset: 1px;
+}
+
+.settings-name-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.settings-name-row .field-label {
+  margin-top: 0;
 }
 
 .settings-hint {

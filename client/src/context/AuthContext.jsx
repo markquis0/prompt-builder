@@ -30,8 +30,8 @@ export function AuthProvider({ children }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const signup = useCallback(async (email, password) => {
-    const { user: newUser } = await api.signup(email, password);
+  const signup = useCallback(async (email, password, firstName, lastName) => {
+    const { user: newUser } = await api.signup(email, password, firstName, lastName);
     setUser(newUser);
 
     // Automatic, silent migration — per the monetisation-gate spec, no
@@ -63,13 +63,15 @@ export function AuthProvider({ children }) {
   // Any component can call this to gate an action behind auth — e.g. "start
   // checkout" from the /pro CTA or a locked result-screen tab. If already
   // logged in, onSuccess fires immediately with no modal shown at all.
+  // initialMode lets the header's separate "Log in"/"Sign up" triggers open
+  // straight into the right form instead of always defaulting to signup.
   const openAuthModal = useCallback(
-    (onSuccess) => {
+    (onSuccess, initialMode = "signup") => {
       if (user) {
         onSuccess?.(user);
         return;
       }
-      setModalState({ onSuccess: onSuccess || null });
+      setModalState({ onSuccess: onSuccess || null, initialMode });
     },
     [user]
   );
@@ -89,7 +91,9 @@ export function AuthProvider({ children }) {
       value={{ user, authLoading, isPaidUser, signup, login, logout, openAuthModal, refreshUser }}
     >
       {children}
-      {modalState && <AuthModal onClose={closeAuthModal} onSuccess={handleModalSuccess} />}
+      {modalState && (
+        <AuthModal onClose={closeAuthModal} onSuccess={handleModalSuccess} initialMode={modalState.initialMode} />
+      )}
     </AuthContext.Provider>
   );
 }

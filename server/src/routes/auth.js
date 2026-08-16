@@ -4,7 +4,7 @@ import jwt from "jsonwebtoken";
 import { pool } from "../db/pool.js";
 import { requireAuth } from "../middleware/requireAuth.js";
 import { signupLimiter, loginIpLimiter, loginEmailLimiter } from "../middleware/authRateLimit.js";
-import { isValidEmail, isValidPassword } from "../lib/validators.js";
+import { isValidEmail, isValidPassword, isValidName } from "../lib/validators.js";
 
 const router = Router();
 
@@ -30,6 +30,8 @@ export function sanitizeUser(row) {
   return {
     id: row.id,
     email: row.email,
+    firstName: row.first_name,
+    lastName: row.last_name,
     createdAt: row.created_at,
     subscriptionStatus: row.subscription_status,
     trialEndsAt: row.trial_ends_at,
@@ -52,13 +54,19 @@ export function issueSessionCookie(res, userId, tokenVersion) {
 }
 
 router.post("/signup", signupLimiter, async (req, res) => {
-  const { email, password } = req.body || {};
+  const { email, password, firstName, lastName } = req.body || {};
 
   if (!isValidEmail(email)) {
     return res.status(400).json({ error: "A valid email is required." });
   }
   if (!isValidPassword(password)) {
     return res.status(400).json({ error: "Password must be at least 8 characters." });
+  }
+  if (!isValidName(firstName)) {
+    return res.status(400).json({ error: "First name is required." });
+  }
+  if (!isValidName(lastName)) {
+    return res.status(400).json({ error: "Last name is required." });
   }
 
   const normalizedEmail = email.trim().toLowerCase();
@@ -71,9 +79,10 @@ router.post("/signup", signupLimiter, async (req, res) => {
 
     const passwordHash = await bcrypt.hash(password, BCRYPT_COST);
     const { rows } = await pool.query(
-      `INSERT INTO users (email, password_hash) VALUES ($1, $2)
-       RETURNING id, email, created_at, subscription_status, trial_ends_at, current_period_ends_at, token_version`,
-      [normalizedEmail, passwordHash]
+      `INSERT INTO users (email, password_hash, first_name, last_name) VALUES ($1, $2, $3, $4)
+       RETURNING id, email, first_name, last_name, created_at, subscription_status, trial_ends_at,
+                 current_period_ends_at, token_version`,
+      [normalizedEmail, passwordHash, firstName.trim(), lastName.trim()]
     );
     const user = rows[0];
 
@@ -105,8 +114,8 @@ router.post("/login", loginIpLimiter, loginEmailLimiter, async (req, res) => {
 
   try {
     const { rows } = await pool.query(
-      `SELECT id, email, password_hash, created_at, subscription_status, trial_ends_at,
-              current_period_ends_at, token_version
+      `SELECT id, email, password_hash, first_name, last_name, created_at, subscription_status,
+              trial_ends_at, current_period_ends_at, token_version
        FROM users WHERE email = $1`,
       [normalizedEmail]
     );
@@ -138,7 +147,8 @@ router.post("/logout", (_req, res) => {
 router.get("/me", requireAuth, async (req, res) => {
   try {
     const { rows } = await pool.query(
-      `SELECT id, email, created_at, subscription_status, trial_ends_at, current_period_ends_at
+      `SELECT id, email, first_name, last_name, created_at, subscription_status, trial_ends_at,
+              current_period_ends_at
        FROM users WHERE id = $1`,
       [req.userId]
     );
