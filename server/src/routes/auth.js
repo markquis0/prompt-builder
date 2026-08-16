@@ -74,6 +74,15 @@ router.post("/signup", signupLimiter, async (req, res) => {
     issueSessionCookie(res, user.id);
     res.status(201).json({ user: sanitizeUser(user) });
   } catch (err) {
+    // 23505 = unique_violation on users.email. The pre-check above closes
+    // this window in the common case, but two signups for the same email
+    // racing each other can both pass it before either INSERTs — the DB
+    // constraint is what actually prevents a duplicate account, so the
+    // loser of that race lands here rather than the friendlier check above.
+    // Same response either way, not a generic 500.
+    if (err.code === "23505") {
+      return res.status(409).json({ error: "An account with that email already exists." });
+    }
     console.error("[prompt-builder] /api/auth/signup error:", err);
     res.status(500).json({ error: "Something went wrong creating your account. Please try again." });
   }
