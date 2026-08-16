@@ -2,22 +2,33 @@
   display: flex;
   align-items: center;
   gap: 24px;
-  padding: 24px 0;
+  padding: 16px 0;
 }
 
 .nav-logo {
-  font-weight: 700;
-  font-size: 18px;
-  color: var(--text-h);
+  display: flex;
+  align-items: center;
   text-decoration: none;
 }
 
-.nav-logo:hover {
-  color: var(--accent);
+/* Full wordmark on desktop/standard widths, icon-only mark below the
+   600px breakpoint (same one the rest of the header/app already
+   standardizes on — see the media query at the bottom of this file). */
+.nav-logo-full {
+  height: 28px;
+  width: auto;
+  display: block;
+}
+
+.nav-logo-icon {
+  height: 32px;
+  width: 32px;
+  display: none;
 }
 
 .nav-links {
   display: flex;
+  align-items: center;
   gap: 18px;
   flex: 1;
 }
@@ -29,6 +40,7 @@
   text-decoration: none;
   padding: 4px 0;
   border-bottom: 2px solid transparent;
+  white-space: nowrap;
 }
 
 .nav-link:hover {
@@ -40,126 +52,221 @@
   border-bottom-color: var(--accent);
 }
 
-.nav-link-pro {
+/* --- "More" menu (Learn/Resources, logged-in only) --- */
+
+.nav-more {
+  position: relative;
+}
+
+.nav-more-trigger {
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-muted);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px 0;
+  white-space: nowrap;
+}
+
+.nav-more-trigger:hover {
+  color: var(--text-h);
+}
+
+.nav-more-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  min-width: 160px;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow: var(--shadow);
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  z-index: 20;
+}
+
+.nav-more-menu-item {
+  font-size: 14px;
+  text-decoration: none;
+  color: var(--text);
+  padding: 8px 10px;
+  border-radius: 6px;
+}
+
+.nav-more-menu-item:hover {
+  background: var(--accent-bg);
+}
+
+.nav-more-menu-item-active {
   color: var(--accent);
-  display: inline-flex;
+  font-weight: 600;
+}
+
+/* --- Mobile hamburger nav (primary nav collapses behind this below the
+   breakpoint; Pro badge + profile trigger stay visible outside it) --- */
+
+.nav-mobile-toggle {
+  display: none;
+  position: relative;
+}
+
+.nav-hamburger-btn {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  color: var(--text);
+  cursor: pointer;
+  border-radius: 8px;
+}
+
+.nav-hamburger-btn:hover {
+  background: var(--accent-bg);
+}
+
+.nav-mobile-panel {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  min-width: 200px;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow: var(--shadow);
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  z-index: 20;
+}
+
+.nav-mobile-panel-item {
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  color: var(--text);
+  padding: 10px;
+  border-radius: 6px;
+  min-height: 44px;
+  display: flex;
   align-items: center;
 }
 
-/* Fixed width reserved whether or not the badge is actually present, so
-   the "Pro" label and everything after it in the nav doesn't shift when
-   subscription status loads in or changes. */
-.nav-pro-badge-slot {
-  display: inline-flex;
-  width: 50px;
-  margin-left: 6px;
+.nav-mobile-panel-item:hover {
+  background: var(--accent-bg);
+}
+
+/* --- Logged-out auth buttons --- */
+
+.nav-auth-buttons {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.nav-login-btn {
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 8px 4px;
+}
+
+.nav-login-btn:hover {
+  color: var(--text-h);
+}
+
+.nav-signup-btn {
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  color: white;
+  background: var(--accent);
+  border: none;
+  border-radius: 8px;
+  padding: 8px 16px;
+  cursor: pointer;
+}
+
+.nav-signup-btn:hover {
+  background: var(--accent-hover);
+}
+
+/* --- Logged-in account cluster: Pro badge, profile trigger/menu --- */
+
+.nav-account {
+  display: flex;
+  align-items: center;
+  gap: 14px;
 }
 
 .nav-pro-badge {
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.02em;
   color: #16a34a;
   background: rgba(22, 163, 74, 0.15);
   border-radius: 999px;
-  padding: 2px 7px;
+  padding: 4px 10px;
   white-space: nowrap;
+  text-decoration: none;
 }
 
-.nav-link-pro:hover {
-  color: var(--accent-hover);
-}
-
-.nav-account {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  font-size: 14px;
-}
-
-.nav-account-desktop {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-/* Deliberately different visual weight from Log out — this is the action
-   most users reach for, log out isn't, and they used to sit adjacent with
-   near-identical styling (easy to misclick). */
-.nav-manage-btn {
-  font: inherit;
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--accent);
-  background: var(--accent-bg);
-  border: none;
-  border-radius: 6px;
-  padding: 6px 12px;
-  cursor: pointer;
-  margin-right: 16px;
-}
-
-.nav-manage-btn:hover {
-  color: var(--accent-hover);
-}
-
-.nav-logout-link {
-  font: inherit;
-  font-size: 13px;
-  font-weight: 400;
-  color: var(--text-muted);
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 4px 0;
-}
-
-.nav-logout-link:hover {
-  color: var(--text-h);
-  text-decoration: underline;
-}
-
-.nav-manage-btn:focus-visible,
-.nav-logout-link:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
-}
-
-.nav-account-email {
-  color: var(--text-muted);
-  max-width: 180px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  cursor: default;
-}
-
-.nav-account-mobile {
-  display: none;
+.nav-profile {
   position: relative;
 }
 
-.nav-account-avatar {
+.nav-profile-trigger {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 2px;
+  border-radius: 20px;
+}
+
+.nav-profile-trigger:hover {
+  background: var(--accent-bg);
+}
+
+.nav-avatar {
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  border: none;
   background: var(--accent);
   color: white;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 700;
-  cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
 }
 
-.nav-account-dropdown {
+.nav-profile-chevron {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.nav-profile-menu {
   position: absolute;
   top: calc(100% + 8px);
   right: 0;
-  min-width: 220px;
+  min-width: 240px;
   background: var(--card-bg);
   border: 1px solid var(--border);
   border-radius: 10px;
@@ -171,19 +278,37 @@
   z-index: 20;
 }
 
-.nav-account-dropdown-email {
+.nav-profile-name {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-h);
+  margin: 4px 8px 0;
+}
+
+.nav-profile-email {
   font-size: 13px;
   color: var(--text-muted);
-  padding: 6px 8px 10px;
-  border-bottom: 1px solid var(--border);
-  margin-bottom: 6px;
+  margin: 2px 8px 0;
   word-break: break-all;
 }
 
-.nav-account-dropdown-item {
+.nav-profile-status {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--accent);
+  margin: 6px 8px 8px;
+}
+
+.nav-profile-divider {
+  border-top: 1px solid var(--border);
+  margin: 6px 0;
+}
+
+.nav-profile-item {
   font: inherit;
   font-size: 14px;
   text-align: left;
+  text-decoration: none;
   background: none;
   border: none;
   color: var(--text);
@@ -191,20 +316,50 @@
   border-radius: 6px;
   cursor: pointer;
   min-height: 44px;
+  display: flex;
+  align-items: center;
 }
 
-.nav-account-dropdown-item:hover {
+.nav-profile-item:hover {
   background: var(--accent-bg);
 }
 
+.nav-profile-item-row {
+  width: 100%;
+  justify-content: space-between;
+}
+
+.nav-profile-stripe-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+/* Visually separated from the rest — session-ending, not a normal item. */
+.nav-profile-item-logout {
+  color: var(--text-muted);
+}
+
 /* Same breakpoint used elsewhere in the app (ResourceFilters, PromptCard,
-   etc.) — below this, the inline email/actions cluster is more likely to
-   crowd or wrap against the nav links than to stay usable. */
+   etc.) — below this, primary nav collapses behind the hamburger, the
+   full wordmark swaps for the icon-only mark, and everything else
+   (Pro badge, profile trigger) stays put as the identity anchors. */
 @media (max-width: 600px) {
-  .nav-account-desktop {
+  .nav-logo-full {
     display: none;
   }
-  .nav-account-mobile {
+  .nav-logo-icon {
     display: block;
+  }
+  .nav-links {
+    display: none;
+  }
+  .nav-mobile-toggle {
+    display: block;
+  }
+  .nav-auth-buttons {
+    gap: 8px;
   }
 }
