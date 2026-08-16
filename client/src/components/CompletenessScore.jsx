@@ -43,6 +43,23 @@ export default function CompletenessScore({ promptObject, originalPrompt, rawAss
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [rawAssembled]);
 
+  // Same condition as the .completeness-before-after render below — fires
+  // exactly when that comparison text actually becomes visible, not on
+  // every render while it's showing.
+  useEffect(() => {
+    if (beforeScore !== null && beforeScore !== score) {
+      posthog.capture("score_before_after_viewed", {
+        before: beforeScore,
+        after: score,
+        improved: score > beforeScore,
+      });
+    }
+    // Only on beforeScore transitioning to a real value (set by the effect
+    // above) — score itself is a plain derived value recomputed every
+    // render, not a dependency worth re-triggering this on.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [beforeScore]);
+
   async function handleGradeClick() {
     setCritiqueError(null);
     setCritiqueLoading(true);

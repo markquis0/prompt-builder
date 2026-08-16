@@ -89,6 +89,17 @@ export default function ProPage() {
     // loaded on initial mount.
     if (checkout === "success") {
       refreshUser();
+      // billing.js's create-checkout-session always sets
+      // subscription_data.trial_period_days: 7 — a successful checkout is
+      // always the start of a trial in this app, never an immediate
+      // charge, so "trial_started" is accurate, not "subscribed". The
+      // later trial->active transition happens entirely server-side via
+      // the Stripe webhook (customer.subscription.updated) with no client
+      // visit necessarily involved, so it isn't observable here — closing
+      // that half of the signup->trial->paid funnel would need a
+      // server-side PostHog call from the webhook handler, a separate,
+      // bigger piece of work than this fix.
+      posthog.capture("trial_started");
     }
     // Strip the query param either way so a refresh doesn't re-trigger this.
     navigate("/pro", { replace: true, state: location.state });
