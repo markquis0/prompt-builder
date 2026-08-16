@@ -116,6 +116,13 @@ router.post("/", llmCallLimiter, async (req, res) => {
         qaPairs: safeQaPairs,
       }),
       maxTokens: 2048,
+      // Longer than the shared 20s client default (see anthropic.js) —
+      // this call requests roughly double the output of questions/score
+      // and measurably showed a heavier latency tail in production (up to
+      // 8.65s on a realistic heavy payload) even under normal Anthropic
+      // conditions, so it gets its own headroom instead of loosening the
+      // default for every caller.
+      timeoutMs: 25000,
     });
 
     const rawAssembled = finalPrompt.trim();
