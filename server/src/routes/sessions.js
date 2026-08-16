@@ -40,6 +40,17 @@ function sanitizeSession(row) {
   };
 }
 
+// Only what WelcomeBackHero.jsx (the sole caller of the list endpoint)
+// actually renders. The detail route below still uses the full
+// sanitizeSession()/SELECT * - resuming/editing a session needs everything.
+function sanitizeSessionSummary(row) {
+  return {
+    id: row.id,
+    originalPrompt: row.original_prompt,
+    createdAt: row.created_at,
+  };
+}
+
 // Shared by POST / (explicit save) and POST /migrate (automatic, on
 // signup) — same operation either way, per the handoff. Returns null for
 // a session with no real content, so callers can no-op rather than write
@@ -98,10 +109,10 @@ router.get("/", requireAuth, async (req, res) => {
   const { limit, offset } = parsePagination(req.query);
   try {
     const { rows } = await pool.query(
-      "SELECT * FROM sessions WHERE user_id = $1 ORDER BY created_at DESC LIMIT $2 OFFSET $3",
+      "SELECT id, original_prompt, created_at FROM sessions WHERE user_id = $1 ORDER BY created_at DESC LIMIT $2 OFFSET $3",
       [req.userId, limit, offset]
     );
-    res.json({ sessions: rows.map(sanitizeSession), limit, offset });
+    res.json({ sessions: rows.map(sanitizeSessionSummary), limit, offset });
   } catch (err) {
     console.error("[prompt-builder] GET /api/sessions error:", err);
     res.status(500).json({ error: "Failed to load sessions. Please try again." });
