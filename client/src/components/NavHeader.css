@@ -172,6 +172,22 @@
   gap: 12px;
 }
 
+/* Same visual weight as "Log in" (below) - plain text, not a button, not
+   competing with "Sign up" for attention. */
+.nav-pricing-link {
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  text-decoration: none;
+  padding: 8px 4px;
+  white-space: nowrap;
+}
+
+.nav-pricing-link:hover {
+  color: var(--text-h);
+}
+
 .nav-login-btn {
   font: inherit;
   font-size: 14px;

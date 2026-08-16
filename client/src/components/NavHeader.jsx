@@ -122,6 +122,9 @@ export default function NavHeader() {
         </div>
 
         <div className="nav-auth-buttons">
+          <Link to="/pro" className="nav-pricing-link">
+            Pricing
+          </Link>
           <button type="button" className="nav-login-btn" onClick={() => openAuthModal(undefined, "login")}>
             Log in
           </button>
