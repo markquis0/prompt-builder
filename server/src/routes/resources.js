@@ -70,6 +70,12 @@ router.get("/", async (req, res) => {
        LIMIT $${limitParam} OFFSET $${offsetParam}`,
       params
     );
+    // Hand-curated content that changes only via a manual re-seed, not
+    // per-request — safe to let clients/CDNs reuse a response for a few
+    // minutes. Query strings (category/audience/q/limit/offset) are part
+    // of the cache key by default, so different filter combinations don't
+    // collide.
+    res.set("Cache-Control", "public, max-age=300");
     res.json({ resources: rows, limit, offset });
   } catch (err) {
     console.error("[prompt-builder] GET /api/resources error:", err);
