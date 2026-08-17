@@ -98,6 +98,24 @@ async function prerender() {
     await browser.close();
     server.close();
   }
+
+  writeSitemap();
+}
+
+const SITE_URL = "https://promptme.host";
+
+// Generated from the same ROUTES list prerendering itself uses — the two
+// can never drift out of sync this way. ROUTES already only contains
+// public marketing pages (auth-gated and noindex routes like /settings,
+// /history, /privacy were never added to it), so no filtering needed here.
+function writeSitemap() {
+  const today = new Date().toISOString().slice(0, 10);
+  const urls = ROUTES.map(
+    (route) => `  <url>\n    <loc>${SITE_URL}${route}</loc>\n    <lastmod>${today}</lastmod>\n  </url>`
+  ).join("\n");
+  const xml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls}\n</urlset>\n`;
+  writeFileSync(join(DIST, "sitemap.xml"), xml);
+  console.log("✓ Wrote sitemap.xml");
 }
 
 prerender().catch((err) => {

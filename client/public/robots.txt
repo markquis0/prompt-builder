@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+Disallow: /settings
+Disallow: /history
+Disallow: /privacy
+Disallow: /terms
+Disallow: /refund-policy
+
+Sitemap: https://promptme.host/sitemap.xml

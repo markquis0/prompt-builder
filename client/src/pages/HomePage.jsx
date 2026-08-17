@@ -11,6 +11,45 @@ import { useBuilderAutoscroll } from "../useBuilderAutoscroll.js";
 import { scrollToElement } from "../scrollToElement.js";
 import "./HomePage.css";
 
+// Answers describe current, live functionality only — no BYOK/test-drive
+// mode, direct-to-LLM sending, or workflow versioning, all of which are
+// roadmap items, not shipped features (see SEO doc's Section 8 guardrail).
+// Rendered as both the visible FAQ section below and the FAQPage JSON-LD,
+// generated from this single array so the two can never drift apart —
+// mismatched structured data is a guardrail violation on its own.
+const FAQ_ITEMS = [
+  {
+    question: "What is an AI prompt builder?",
+    answer:
+      "A tool that turns a rough idea into a structured, detailed prompt by asking you clarifying questions — so you don't have to already know prompt-engineering techniques yourself.",
+  },
+  {
+    question: "How does PromptMe improve AI prompts?",
+    answer:
+      "PromptMe asks about your goal, audience, format, context, and constraints, then assembles your answers into a structured prompt with clear sections instead of one unstructured paragraph.",
+  },
+  {
+    question: "Does PromptMe work with ChatGPT, Claude, and Gemini?",
+    answer:
+      "Yes. PromptMe builds the prompt; you copy it and paste it into whichever AI tool you're using — ChatGPT, Claude, Gemini, or any other. PromptMe isn't affiliated with or endorsed by any of them.",
+  },
+  {
+    question: "What is a structured AI prompt?",
+    answer:
+      "A prompt broken into clear sections — task, audience, context, constraints, format, examples, success criteria — instead of one paragraph, so the AI model has less to guess at.",
+  },
+  {
+    question: "Do I need prompt engineering experience to use it?",
+    answer:
+      "No. You describe what you want in plain language, and PromptMe asks the follow-up questions that fill in what's missing.",
+  },
+  {
+    question: "Can PromptMe improve a vague prompt?",
+    answer:
+      "Yes — that's the core use case. Describe your idea as roughly as you like; PromptMe's questions surface the specifics — audience, format, constraints, and more — that turn it into something usable.",
+  },
+];
+
 const STEPS = [
   {
     number: 1,
@@ -105,7 +144,49 @@ function MarketingHomePage() {
           content="You write the idea. We write the prompt. Free, no sign-up required."
         />
         <meta property="og:url" content="https://promptme.host/" />
+        {/* No purpose-built 1200x630 social card exists yet — this square
+            icon at least renders un-cropped on most platforms as a stopgap
+            until a real OG image is designed. */}
+        <meta property="og:image" content="https://promptme.host/promptme-icon-512.png" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="PromptMe — Turn a Rough Idea into a Prompt That Works" />
+        <meta
+          name="twitter:description"
+          content="You write the idea. We write the prompt. Free, no sign-up required."
+        />
+        <meta name="twitter:image" content="https://promptme.host/promptme-icon-512.png" />
         <link rel="canonical" href="https://promptme.host/" />
+        <script type="application/ld+json">
+          {JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "WebApplication",
+            name: "PromptMe",
+            url: "https://promptme.host/",
+            description:
+              "PromptMe asks clarifying questions about your goal, audience, context, and constraints, then builds a structured prompt you can use with ChatGPT, Claude, Gemini, or another AI tool.",
+            applicationCategory: "UtilitiesApplication",
+            operatingSystem: "Any (web-based)",
+            offers: {
+              "@type": "Offer",
+              price: "0",
+              priceCurrency: "USD",
+            },
+          })}
+        </script>
+        <script type="application/ld+json">
+          {JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "FAQPage",
+            mainEntity: FAQ_ITEMS.map((item) => ({
+              "@type": "Question",
+              name: item.question,
+              acceptedAnswer: {
+                "@type": "Answer",
+                text: item.answer,
+              },
+            })),
+          })}
+        </script>
       </Helmet>
 
       <NavHeader />
@@ -178,6 +259,16 @@ function MarketingHomePage() {
         >
           <h2 className="home-builder-heading">Try it now</h2>
           <PromptBuilder />
+        </section>
+
+        <section className="home-faq" id="faq" data-section="faq">
+          <h2>Frequently Asked Questions</h2>
+          {FAQ_ITEMS.map((item) => (
+            <div className="home-faq-item" key={item.question}>
+              <h3>{item.question}</h3>
+              <p>{item.answer}</p>
+            </div>
+          ))}
         </section>
       </main>
 
