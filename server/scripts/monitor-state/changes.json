@@ -18,5 +18,25 @@
     "newHash": "3081b961cc11a432b2aaadbd21b1fee97bc48b11dca749f40b1dde4e4661634a",
     "reviewed": false,
     "learnImpacting": false
+  },
+  {
+    "url": "https://ai.google.dev/gemini-api/docs/whats-new-gemini-3.5",
+    "vendor": "Google",
+    "pageTitle": "Gemini 3.5 Flash notes",
+    "detectedAt": "2026-08-17T08:43:22.556Z",
+    "oldHash": "f4d7da77c940ef5718b348873948ead4399721f546b578e767c09decb1e226aa",
+    "newHash": "541f82d356b2e9af16b9241a6c980e59ecf566a0bccebc2320ab236a4a8b7ff6",
+    "reviewed": false,
+    "learnImpacting": false
+  },
+  {
+    "url": "https://developer.meta.com/ai/docs/how-to-guides/prompting/",
+    "vendor": "Meta",
+    "pageTitle": "Prompt engineering how-to",
+    "detectedAt": "2026-08-17T08:43:23.171Z",
+    "oldHash": "9f0aea99e03dd8b7d3ef6618883b75a2c5c305753cf59ea748358800fec8c88e",
+    "newHash": "dc5bed2bb66db582c7cff40eab6a8f515854ea60f9adcc3d3d09e00de09a2bbd",
+    "reviewed": false,
+    "learnImpacting": false
   }
 ]
