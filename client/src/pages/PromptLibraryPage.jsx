@@ -12,6 +12,7 @@ const SITE_URL = "https://promptme.host";
 const SECTIONS = [
   { id: "enterprise", label: "Enterprise" },
   { id: "personal", label: "Personal" },
+  { id: "cyberAiGovernance", label: "Cyber & AI Governance" },
 ];
 
 function matchesSearch(prompt, query) {
@@ -86,15 +87,15 @@ export default function PromptLibraryPage() {
   return (
     <div className="app-shell prompt-library-shell">
       <Helmet>
-        <title>Prompt Library — 260 Ready-to-Use AI Prompts — PromptMe</title>
+        <title>Prompt Library — 297 Ready-to-Use AI Prompts — PromptMe</title>
         <meta
           name="description"
-          content="A free library of 260 generic, reusable prompts for work and life — management, marketing, finance, cooking, travel, fitness, and more. Copy and paste into Claude, ChatGPT, or Gemini."
+          content="A free library of 297 ready-to-use prompts — management, marketing, finance, cooking, travel, fitness, cyber security, AI governance, and more. Copy and paste into Claude, ChatGPT, or Gemini."
         />
         <meta property="og:title" content="Prompt Library — PromptMe" />
         <meta
           property="og:description"
-          content="260 ready-to-copy prompts across work and personal categories. Free, no sign-up."
+          content="297 ready-to-copy prompts across work, personal, and cyber/AI-governance categories. Free, no sign-up."
         />
         <meta property="og:url" content={`${SITE_URL}/prompts`} />
         <link rel="canonical" href={`${SITE_URL}/prompts`} />
@@ -105,8 +106,8 @@ export default function PromptLibraryPage() {
       <main className="prompt-library-main">
         <h1>Prompt Library</h1>
         <p className="prompt-library-subtitle">
-          260 ready-to-use prompts for work and life. Copy one as-is, or build on it in PromptMe
-          for something more specific.
+          297 ready-to-use prompts for work, life, cyber security, and AI governance. Copy one
+          as-is, or build on it in PromptMe for something more specific.
         </p>
 
         <div className="prompt-library-controls">

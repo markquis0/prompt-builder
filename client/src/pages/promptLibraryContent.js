@@ -430,4 +430,154 @@ export const PROMPT_LIBRARY = {
       },
     ],
   },
+  cyberAiGovernance: {
+    label: "Cyber & AI Governance",
+    categories: [
+      {
+        id: "network-security",
+        label: "Network Security",
+        prompts: [
+          { id: "netsec-1", label: "DDoS incident response plan", text: "Help me write an incident response plan for a DDoS attack on our e-commerce site." },
+          { id: "netsec-2", label: "Explaining firewall changes", text: "I need to explain our firewall rule change process to a non-technical manager." },
+        ],
+      },
+      {
+        id: "application-security",
+        label: "Application Security",
+        prompts: [
+          { id: "appsec-1", label: "Secure code review checklist", text: "Write a secure code review checklist for a Node.js API before it goes to production." },
+          { id: "appsec-2", label: "Explaining SQL injection", text: "Help me explain SQL injection to a junior developer who just introduced one." },
+        ],
+      },
+      {
+        id: "cloud-security",
+        label: "Cloud Security",
+        prompts: [
+          { id: "cloudsec-1", label: "S3 bucket policy review", text: "I need a prompt to review our AWS S3 bucket policies for public exposure risks." },
+          { id: "cloudsec-2", label: "Cloud security onboarding doc", text: "Help me draft a cloud security onboarding doc for new engineers joining our AWS team." },
+        ],
+      },
+      {
+        id: "identity-and-access-management",
+        label: "Identity & Access Management",
+        prompts: [
+          { id: "iam-1", label: "Passkey policy proposal", text: "Write a policy proposal for moving our company from passwords to passkeys." },
+          { id: "iam-2", label: "Offboarding access checklist", text: "Help me design an offboarding checklist that revokes all account access when someone leaves." },
+        ],
+      },
+      {
+        id: "data-security",
+        label: "Data Security",
+        prompts: [
+          { id: "datasec-1", label: "Data classification policy", text: "I need a data classification policy for a startup that handles customer PII." },
+          { id: "datasec-2", label: "Sensitive data handling guidance", text: "Help me write guidance for employees on what counts as sensitive data and how to handle it." },
+        ],
+      },
+      {
+        id: "endpoint-security",
+        label: "Endpoint Security",
+        prompts: [
+          { id: "endpoint-1", label: "Explaining an EDR rollout", text: "Write an explanation of why we're requiring EDR on all company laptops, for the all-hands." },
+          { id: "endpoint-2", label: "BYOD security policy", text: "Help me create a BYOD security policy for a 40-person remote company." },
+        ],
+      },
+      {
+        id: "offensive-security",
+        label: "Offensive Security",
+        prompts: [
+          { id: "offsec-1", label: "Pentest scope of work", text: "Help me write a scope-of-work document for hiring an external pentest firm." },
+          { id: "offsec-2", label: "Summarizing pentest findings", text: "I need to summarize pentest findings for executives who aren't technical." },
+        ],
+      },
+      {
+        id: "defensive-security-soc",
+        label: "Defensive Security / SOC",
+        prompts: [
+          { id: "blueteam-1", label: "Phishing report triage runbook", text: "Write a runbook for triaging phishing reports submitted by employees." },
+          { id: "blueteam-2", label: "Alert-tuning process", text: "Help me design an alert-tuning process so our SOC stops getting so many false positives." },
+        ],
+      },
+      {
+        id: "threat-intelligence",
+        label: "Threat Intelligence",
+        prompts: [
+          { id: "threatintel-1", label: "Weekly threat intel briefing", text: "I need a template for a weekly threat intel briefing for leadership." },
+          { id: "threatintel-2", label: "Explaining IOCs", text: "Help me explain what an IOC is and why we track them, for a non-security audience." },
+        ],
+      },
+      {
+        id: "digital-forensics-and-incident-response",
+        label: "Digital Forensics & Incident Response",
+        prompts: [
+          { id: "dfir-1", label: "Ransomware post-incident report", text: "Write a post-incident report template for a ransomware event." },
+          { id: "dfir-2", label: "First-hour breach response steps", text: "Help me draft first-hour response steps for a suspected data breach." },
+        ],
+      },
+      {
+        id: "vulnerability-management",
+        label: "Vulnerability Management",
+        prompts: [
+          { id: "vulnmgmt-1", label: "Patch SLA policy", text: "I need a policy for how quickly we patch critical vs. low-severity vulnerabilities." },
+          { id: "vulnmgmt-2", label: "Explaining outdated software risk", text: "Help me write an email to a business unit explaining why their outdated software is a risk." },
+        ],
+      },
+      {
+        id: "governance-risk-and-compliance",
+        label: "Governance, Risk & Compliance",
+        prompts: [
+          { id: "grc-1", label: "Risk register template", text: "Help me draft a risk register template for our security program." },
+          { id: "grc-2", label: "SOC 2 vs. ISO 27001", text: "I need to explain the difference between SOC 2 and ISO 27001 to my CEO." },
+        ],
+      },
+      {
+        id: "security-awareness",
+        label: "Security Awareness",
+        prompts: [
+          { id: "awareness-1", label: "Phishing training script", text: "Write a phishing awareness training script for new hires." },
+          { id: "awareness-2", label: "Making security training engaging", text: "Help me make our annual security training less boring — something people will actually read." },
+        ],
+      },
+      {
+        id: "privacy",
+        label: "Privacy",
+        prompts: [
+          { id: "privacy-1", label: "Plain-language privacy summary", text: "I need a plain-language privacy policy summary for our website footer." },
+          { id: "privacy-2", label: "Data deletion request guidance", text: "Help me write internal guidance on what to do when a customer requests data deletion." },
+        ],
+      },
+      {
+        id: "ai-governance",
+        label: "AI Governance",
+        prompts: [
+          { id: "aigov-1", label: "AI tool usage policy", text: "Help me draft an internal policy on employees using AI tools with company data." },
+          { id: "aigov-2", label: "Explaining the EU AI Act", text: "I need to explain the EU AI Act's risk tiers to my product team in plain language." },
+          { id: "aigov-3", label: "AI vendor evaluation checklist", text: "Write a checklist for evaluating whether a new AI vendor is safe to bring in-house." },
+        ],
+      },
+      {
+        id: "ai-ml-security",
+        label: "AI/ML Security",
+        prompts: [
+          { id: "aimlsec-1", label: "Explaining prompt injection risk", text: "Help me explain prompt injection risk to a team that just added a chatbot to our product." },
+          { id: "aimlsec-2", label: "LLM feature data leakage checklist", text: "I need a checklist for reviewing an LLM-powered feature for data leakage risks before launch." },
+        ],
+      },
+      {
+        id: "cryptography",
+        label: "Cryptography",
+        prompts: [
+          { id: "crypto-1", label: "Explaining a key rotation", text: "Write a plain-language explainer of why we're rotating our encryption keys." },
+          { id: "crypto-2", label: "Symmetric vs. asymmetric encryption", text: "Help me compare symmetric vs. asymmetric encryption for a non-technical stakeholder deck." },
+        ],
+      },
+      {
+        id: "supply-chain-security",
+        label: "Supply Chain Security",
+        prompts: [
+          { id: "supplychain-1", label: "Vendor security questionnaire", text: "I need a vendor security questionnaire for evaluating a new SaaS tool." },
+          { id: "supplychain-2", label: "Vetting open-source dependencies", text: "Help me write a policy on vetting open-source dependencies before we use them." },
+        ],
+      },
+    ],
+  },
 };
