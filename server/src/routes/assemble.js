@@ -20,7 +20,9 @@ const MAX_SUPPORTING_CONTEXT_LENGTH = 10000;
 // caps well above that to allow for legitimate variance while still
 // rejecting a tampered client sending an unbounded qaPairs array.
 const MAX_QA_PAIRS = 20;
-const MAX_ANSWER_LENGTH = 2000;
+// Matches MAX_SUPPORTING_CONTEXT_LENGTH above — same headroom for an answer
+// that includes pasted material, not just a short response.
+const MAX_ANSWER_LENGTH = 10000;
 
 // The frontend always sends "generic" for the single assembly call —
 // per-model formatting now happens client-side (see client/src/renderers/),
