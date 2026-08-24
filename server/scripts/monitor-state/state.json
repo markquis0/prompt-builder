@@ -1,25 +1,25 @@
 {
   "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/overview": {
     "hash": "a305ec61ad87bbc6c6126f3a92a765394ac55d1a81bc0eaa86611a840dc8a850",
-    "lastCheckedAt": "2026-08-23T08:30:40.320Z",
+    "lastCheckedAt": "2026-08-24T08:48:40.482Z",
     "lastChangedAt": "2026-08-23T08:30:40.320Z",
     "consecutiveFailures": 0,
     "status": "ok",
-    "changedThisRun": true
+    "changedThisRun": false
   },
   "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices": {
     "hash": "5864b78aca59b7086cbbbf82cff6abe63778b86f454203dd1fc10db0a0218b8f",
-    "lastCheckedAt": "2026-08-23T08:30:42.475Z",
+    "lastCheckedAt": "2026-08-24T08:48:42.553Z",
     "lastChangedAt": "2026-08-23T08:30:42.475Z",
     "consecutiveFailures": 0,
     "status": "ok",
-    "changedThisRun": true
+    "changedThisRun": false
   },
   "https://developers.openai.com/api/docs/guides/prompt-guidance.md": {
     "hash": "52c9d483d71fd031d340d9093522010c5dd18a9de5aadf23f09e58f63d68b218",
     "etag": "W/\"2044a7bfb4dcefefffc5eafb03dafbb2\"",
     "lastModified": "Fri, 14 Aug 2026 21:01:45 GMT",
-    "lastCheckedAt": "2026-08-23T08:30:43.150Z",
+    "lastCheckedAt": "2026-08-24T08:48:42.889Z",
     "consecutiveFailures": 0,
     "status": "ok"
   },
@@ -32,10 +32,10 @@
     "status": "ok"
   },
   "https://ai.google.dev/gemini-api/docs/prompting-strategies": {
-    "hash": "6e32dd609dd63a873aef40a686bb2fe18fbd1cfe9182656fac4c184bd0a1a137",
-    "lastModified": "Wed, 10 Jun 2026 04:18:33 GMT",
-    "lastCheckedAt": "2026-08-23T08:30:43.693Z",
-    "lastChangedAt": "2026-08-23T08:30:43.693Z",
+    "hash": "f7f94016bb0820aa67234a422b5a2b14502a44dd79530219f276b3569ee6fd3d",
+    "lastModified": "Wed, 10 Jun 2026 07:58:02 GMT",
+    "lastCheckedAt": "2026-08-24T08:48:43.388Z",
+    "lastChangedAt": "2026-08-24T08:48:43.388Z",
     "consecutiveFailures": 0,
     "status": "ok",
     "changedThisRun": true
@@ -43,11 +43,11 @@
   "https://ai.google.dev/gemini-api/docs/whats-new-gemini-3.5": {
     "hash": "8d774fe26b2231938bbe2ea4f2f698e852bf294faf72b23c5e06ba9c80260642",
     "lastModified": "Thu, 30 Jul 2026 15:00:38 GMT",
-    "lastCheckedAt": "2026-08-23T08:30:46.070Z",
+    "lastCheckedAt": "2026-08-24T08:48:45.532Z",
     "lastChangedAt": "2026-08-23T08:30:46.070Z",
     "consecutiveFailures": 0,
     "status": "ok",
-    "changedThisRun": true
+    "changedThisRun": false
   },
   "https://developer.meta.com/ai/docs/how-to-guides/prompting/": {
     "hash": "91eacc45b69e21c0b992b20f2b2c06260a12330beff81f435e8f06b64b16226a",
