@@ -248,5 +248,15 @@
     "newHash": "f7f94016bb0820aa67234a422b5a2b14502a44dd79530219f276b3569ee6fd3d",
     "reviewed": false,
     "learnImpacting": false
+  },
+  {
+    "url": "https://developer.meta.com/ai/docs/how-to-guides/prompting/",
+    "vendor": "Meta",
+    "pageTitle": "Prompt engineering how-to",
+    "detectedAt": "2026-08-25T08:42:10.631Z",
+    "oldHash": "91eacc45b69e21c0b992b20f2b2c06260a12330beff81f435e8f06b64b16226a",
+    "newHash": "6444b165b5af64921c558aa8aace2a05bf48d424b1dc9373f78dcc1ab39d1078",
+    "reviewed": false,
+    "learnImpacting": false
   }
 ]
