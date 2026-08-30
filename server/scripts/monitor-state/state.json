@@ -1,25 +1,25 @@
 {
   "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/overview": {
     "hash": "1e7f0f9f765d244d66f29f2135361d16af48180f4e6605d88d4d989ce1a651f4",
-    "lastCheckedAt": "2026-08-28T19:55:53.660Z",
+    "lastCheckedAt": "2026-08-30T13:36:36.703Z",
     "lastChangedAt": "2026-08-28T19:55:53.660Z",
     "consecutiveFailures": 0,
     "status": "ok",
-    "changedThisRun": true
+    "changedThisRun": false
   },
   "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices": {
     "hash": "63f43ae82ceb89429a7e10fa399a4492cf3cb8f89bf39e5f048040f88311522c",
-    "lastCheckedAt": "2026-08-28T19:55:55.473Z",
+    "lastCheckedAt": "2026-08-30T13:36:38.744Z",
     "lastChangedAt": "2026-08-28T19:55:55.473Z",
     "consecutiveFailures": 0,
     "status": "ok",
-    "changedThisRun": true
+    "changedThisRun": false
   },
   "https://developers.openai.com/api/docs/guides/prompt-guidance.md": {
     "hash": "29f3f3cfdc63de4aaffa987bc1388e834838a7c22f346676e9cfb3a8af3ccb10",
     "etag": "W/\"99a45bf9d5f3ef361c3fa2b17629e164\"",
     "lastModified": "Fri, 28 Aug 2026 19:55:55 GMT",
-    "lastCheckedAt": "2026-08-28T19:55:55.793Z",
+    "lastCheckedAt": "2026-08-30T13:36:39.028Z",
     "lastChangedAt": "2026-08-28T19:55:55.793Z",
     "consecutiveFailures": 0,
     "status": "ok",
@@ -29,32 +29,32 @@
     "hash": "9232f24dd36dea1a3fb611831bb4e40ee3b0b7329fd3fac4149dcbc35baa6617",
     "etag": "W/\"7d73ccd77f708481c675b6249468b8ca\"",
     "lastModified": "Fri, 14 Aug 2026 21:19:55 GMT",
-    "lastCheckedAt": "2026-08-27T18:54:37.105Z",
+    "lastCheckedAt": "2026-08-30T13:36:39.239Z",
     "consecutiveFailures": 0,
     "status": "ok"
   },
   "https://ai.google.dev/gemini-api/docs/prompting-strategies": {
-    "hash": "788c23e347af4d4e40c54b0be1c259d8764cd4d358b60b95a015ab694d5d7198",
-    "lastModified": "Wed, 10 Jun 2026 07:58:18 GMT",
-    "lastCheckedAt": "2026-08-28T19:55:57.167Z",
-    "lastChangedAt": "2026-08-28T19:55:57.167Z",
+    "hash": "c9e6c6edd44900e707845f9dbf14d323cc6ccb02b2085adc64ea2613e94c252d",
+    "lastModified": "Wed, 10 Jun 2026 07:49:24 GMT",
+    "lastCheckedAt": "2026-08-30T13:36:39.769Z",
+    "lastChangedAt": "2026-08-30T13:36:39.769Z",
     "consecutiveFailures": 0,
     "status": "ok",
     "changedThisRun": true
   },
   "https://ai.google.dev/gemini-api/docs/whats-new-gemini-3.5": {
-    "hash": "755f142d24dd257f503f5afe77ac9c69a85dd7c195763714cace12aa3f6346ff",
-    "lastModified": "Wed, 26 Aug 2026 23:06:21 GMT",
-    "lastCheckedAt": "2026-08-28T19:55:58.469Z",
-    "lastChangedAt": "2026-08-28T19:55:58.469Z",
+    "hash": "e9107b726c9729af3f1c15e22592020e5ecde4e759c5e595a67522da45b7f258",
+    "lastModified": "Wed, 26 Aug 2026 23:24:50 GMT",
+    "lastCheckedAt": "2026-08-30T13:36:41.991Z",
+    "lastChangedAt": "2026-08-30T13:36:41.991Z",
     "consecutiveFailures": 0,
     "status": "ok",
     "changedThisRun": true
   },
   "https://developer.meta.com/ai/docs/how-to-guides/prompting/": {
-    "hash": "b4f5162b988b3062404ba9d3d1e76ddab3c8de3d15ba12c4891b5cb0aaf449d7",
-    "lastCheckedAt": "2026-08-27T18:54:40.131Z",
-    "lastChangedAt": "2026-08-27T18:54:40.131Z",
+    "hash": "b0c69e50d730b085a8f39926322e7adbc85dd9115de1c00afd3745f0b0803aab",
+    "lastCheckedAt": "2026-08-30T13:36:44.023Z",
+    "lastChangedAt": "2026-08-30T13:36:44.023Z",
     "consecutiveFailures": 0,
     "status": "ok",
     "changedThisRun": true
@@ -62,31 +62,31 @@
   "https://docs.mistral.ai/models/best-practices/prompt-engineering": {
     "hash": "ec373825f5521e848c0d86c89e10cc4d55f996ed226a408553aaa0bfa9cf22fe",
     "etag": "W/\"244b01731be2a2db595622128340e42c\"",
-    "lastCheckedAt": "2026-08-27T18:54:40.286Z",
+    "lastCheckedAt": "2026-08-30T13:36:44.328Z",
     "lastChangedAt": "2026-08-23T08:30:47.526Z",
     "consecutiveFailures": 0,
     "status": "ok",
     "changedThisRun": true
   },
   "https://docs.x.ai/docs/guides/prompt-engineering": {
-    "consecutiveFailures": 6,
-    "lastCheckedAt": "2026-08-27T18:54:40.955Z",
+    "consecutiveFailures": 7,
+    "lastCheckedAt": "2026-08-30T13:36:44.588Z",
     "status": "possibly_broken"
   },
   "https://api-docs.deepseek.com/prompt-library/": {
     "hash": "2abdd2048804d5509528e939cb34930a3e281f0d866ce09a92f891a77c574390",
-    "etag": "\"e38cde0a11e54dcb2e47865517a6e2e1\"",
-    "lastModified": "Thu, 27 Aug 2026 10:15:25 GMT",
-    "lastCheckedAt": "2026-08-27T18:54:41.926Z",
+    "etag": "\"86f091d581b8ab75cb8c4650f4549685\"",
+    "lastModified": "Fri, 28 Aug 2026 05:44:17 GMT",
+    "lastCheckedAt": "2026-08-30T13:36:46.017Z",
     "consecutiveFailures": 0,
     "status": "ok",
     "changedThisRun": false
   },
   "https://api-docs.deepseek.com/": {
     "hash": "d73cf03162ad809f1eb23efff5332a3006dbe0210d1e99a8f519e7204f33d69a",
-    "etag": "\"ed4df09a34d682b9972fd3eb51517354\"",
-    "lastModified": "Thu, 27 Aug 2026 10:15:30 GMT",
-    "lastCheckedAt": "2026-08-27T18:54:43.119Z",
+    "etag": "\"30e0b776ff7df12130f0f64bc4dbf091\"",
+    "lastModified": "Fri, 28 Aug 2026 05:44:14 GMT",
+    "lastCheckedAt": "2026-08-30T13:36:46.924Z",
     "lastChangedAt": "2026-08-23T08:30:50.035Z",
     "consecutiveFailures": 0,
     "status": "ok",

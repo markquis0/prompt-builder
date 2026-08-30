@@ -398,5 +398,35 @@
     "newHash": "755f142d24dd257f503f5afe77ac9c69a85dd7c195763714cace12aa3f6346ff",
     "reviewed": false,
     "learnImpacting": false
+  },
+  {
+    "url": "https://ai.google.dev/gemini-api/docs/prompting-strategies",
+    "vendor": "Google",
+    "pageTitle": "Prompt design strategies",
+    "detectedAt": "2026-08-30T13:36:39.769Z",
+    "oldHash": "788c23e347af4d4e40c54b0be1c259d8764cd4d358b60b95a015ab694d5d7198",
+    "newHash": "c9e6c6edd44900e707845f9dbf14d323cc6ccb02b2085adc64ea2613e94c252d",
+    "reviewed": false,
+    "learnImpacting": false
+  },
+  {
+    "url": "https://ai.google.dev/gemini-api/docs/whats-new-gemini-3.5",
+    "vendor": "Google",
+    "pageTitle": "Gemini 3.5 Flash notes",
+    "detectedAt": "2026-08-30T13:36:41.991Z",
+    "oldHash": "755f142d24dd257f503f5afe77ac9c69a85dd7c195763714cace12aa3f6346ff",
+    "newHash": "e9107b726c9729af3f1c15e22592020e5ecde4e759c5e595a67522da45b7f258",
+    "reviewed": false,
+    "learnImpacting": false
+  },
+  {
+    "url": "https://developer.meta.com/ai/docs/how-to-guides/prompting/",
+    "vendor": "Meta",
+    "pageTitle": "Prompt engineering how-to",
+    "detectedAt": "2026-08-30T13:36:44.023Z",
+    "oldHash": "b4f5162b988b3062404ba9d3d1e76ddab3c8de3d15ba12c4891b5cb0aaf449d7",
+    "newHash": "b0c69e50d730b085a8f39926322e7adbc85dd9115de1c00afd3745f0b0803aab",
+    "reviewed": false,
+    "learnImpacting": false
   }
 ]
