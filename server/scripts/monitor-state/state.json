@@ -1,7 +1,7 @@
 {
   "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/overview": {
     "hash": "1e7f0f9f765d244d66f29f2135361d16af48180f4e6605d88d4d989ce1a651f4",
-    "lastCheckedAt": "2026-08-30T13:36:36.703Z",
+    "lastCheckedAt": "2026-08-31T15:53:41.594Z",
     "lastChangedAt": "2026-08-28T19:55:53.660Z",
     "consecutiveFailures": 0,
     "status": "ok",
@@ -9,7 +9,7 @@
   },
   "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices": {
     "hash": "63f43ae82ceb89429a7e10fa399a4492cf3cb8f89bf39e5f048040f88311522c",
-    "lastCheckedAt": "2026-08-30T13:36:38.744Z",
+    "lastCheckedAt": "2026-08-31T15:53:43.655Z",
     "lastChangedAt": "2026-08-28T19:55:55.473Z",
     "consecutiveFailures": 0,
     "status": "ok",
@@ -19,7 +19,7 @@
     "hash": "29f3f3cfdc63de4aaffa987bc1388e834838a7c22f346676e9cfb3a8af3ccb10",
     "etag": "W/\"99a45bf9d5f3ef361c3fa2b17629e164\"",
     "lastModified": "Fri, 28 Aug 2026 19:55:55 GMT",
-    "lastCheckedAt": "2026-08-30T13:36:39.028Z",
+    "lastCheckedAt": "2026-08-31T15:53:43.932Z",
     "lastChangedAt": "2026-08-28T19:55:55.793Z",
     "consecutiveFailures": 0,
     "status": "ok",
@@ -34,19 +34,19 @@
     "status": "ok"
   },
   "https://ai.google.dev/gemini-api/docs/prompting-strategies": {
-    "hash": "c9e6c6edd44900e707845f9dbf14d323cc6ccb02b2085adc64ea2613e94c252d",
-    "lastModified": "Wed, 10 Jun 2026 07:49:24 GMT",
-    "lastCheckedAt": "2026-08-30T13:36:39.769Z",
-    "lastChangedAt": "2026-08-30T13:36:39.769Z",
+    "hash": "3f3a5d8dd7ec0413e5f9e2b77f0d125c93bda81d022703340af1443c46ff2544",
+    "lastModified": "Wed, 10 Jun 2026 04:18:33 GMT",
+    "lastCheckedAt": "2026-08-31T15:53:44.417Z",
+    "lastChangedAt": "2026-08-31T15:53:44.417Z",
     "consecutiveFailures": 0,
     "status": "ok",
     "changedThisRun": true
   },
   "https://ai.google.dev/gemini-api/docs/whats-new-gemini-3.5": {
-    "hash": "e9107b726c9729af3f1c15e22592020e5ecde4e759c5e595a67522da45b7f258",
-    "lastModified": "Wed, 26 Aug 2026 23:24:50 GMT",
-    "lastCheckedAt": "2026-08-30T13:36:41.991Z",
-    "lastChangedAt": "2026-08-30T13:36:41.991Z",
+    "hash": "755f142d24dd257f503f5afe77ac9c69a85dd7c195763714cace12aa3f6346ff",
+    "lastModified": "Wed, 26 Aug 2026 23:06:21 GMT",
+    "lastCheckedAt": "2026-08-31T15:53:46.292Z",
+    "lastChangedAt": "2026-08-31T15:53:46.292Z",
     "consecutiveFailures": 0,
     "status": "ok",
     "changedThisRun": true
