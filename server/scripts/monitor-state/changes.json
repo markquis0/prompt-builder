@@ -668,5 +668,15 @@
     "newHash": "2d8a997cdd38d00d8a564e22047c52c61d3458987a968f93342a41deccd00b7f",
     "reviewed": false,
     "learnImpacting": false
+  },
+  {
+    "url": "https://ai.google.dev/gemini-api/docs/prompting-strategies",
+    "vendor": "Google",
+    "pageTitle": "Prompt design strategies",
+    "detectedAt": "2026-09-09T12:46:14.479Z",
+    "oldHash": "e988c9b97620c686389d37950b47b5ace1ecd9116f8f022657a92c005ac3ab73",
+    "newHash": "52ad222ee43e44aca29fe95896e3cbe2ed7a27341a6aeaf9bbc87a5912280b40",
+    "reviewed": false,
+    "learnImpacting": false
   }
 ]
