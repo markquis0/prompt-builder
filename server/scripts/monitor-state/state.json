@@ -29,7 +29,7 @@
     "hash": "9232f24dd36dea1a3fb611831bb4e40ee3b0b7329fd3fac4149dcbc35baa6617",
     "etag": "W/\"7d73ccd77f708481c675b6249468b8ca\"",
     "lastModified": "Fri, 14 Aug 2026 21:19:55 GMT",
-    "lastCheckedAt": "2026-09-07T14:01:40.801Z",
+    "lastCheckedAt": "2026-09-10T12:44:30.160Z",
     "consecutiveFailures": 0,
     "status": "ok"
   },
@@ -52,9 +52,9 @@
     "changedThisRun": false
   },
   "https://developer.meta.com/ai/docs/how-to-guides/prompting/": {
-    "hash": "edd83789e8570937c8e3dd18eebbedfb8189ddc9185044464d263412dfc80b51",
-    "lastCheckedAt": "2026-09-07T14:01:44.288Z",
-    "lastChangedAt": "2026-09-07T14:01:44.288Z",
+    "hash": "ae920a680a017857253dbf464275c5c0d59850fe76dd2f7fe1db3f7275c77b0d",
+    "lastCheckedAt": "2026-09-10T12:44:32.750Z",
+    "lastChangedAt": "2026-09-10T12:44:32.750Z",
     "consecutiveFailures": 0,
     "status": "ok",
     "changedThisRun": true
@@ -62,34 +62,34 @@
   "https://docs.mistral.ai/models/best-practices/prompt-engineering": {
     "hash": "2d8a997cdd38d00d8a564e22047c52c61d3458987a968f93342a41deccd00b7f",
     "etag": "W/\"13205626250a3efd98a4251097d611c7\"",
-    "lastCheckedAt": "2026-09-07T14:01:44.861Z",
+    "lastCheckedAt": "2026-09-10T12:44:33.180Z",
     "lastChangedAt": "2026-09-07T14:01:44.861Z",
     "consecutiveFailures": 0,
     "status": "ok",
     "changedThisRun": true
   },
   "https://docs.x.ai/docs/guides/prompt-engineering": {
-    "consecutiveFailures": 10,
-    "lastCheckedAt": "2026-09-07T14:01:45.097Z",
+    "consecutiveFailures": 11,
+    "lastCheckedAt": "2026-09-10T12:44:33.482Z",
     "status": "possibly_broken"
   },
   "https://api-docs.deepseek.com/prompt-library/": {
     "hash": "2abdd2048804d5509528e939cb34930a3e281f0d866ce09a92f891a77c574390",
-    "etag": "\"86f091d581b8ab75cb8c4650f4549685\"",
-    "lastModified": "Fri, 28 Aug 2026 05:44:17 GMT",
-    "lastCheckedAt": "2026-09-07T14:01:45.621Z",
+    "etag": "\"44e73ac95f4a29baf3032fdcc666abe4\"",
+    "lastModified": "Thu, 10 Sep 2026 07:25:01 GMT",
+    "lastCheckedAt": "2026-09-10T12:44:36.071Z",
     "consecutiveFailures": 0,
     "status": "ok",
     "changedThisRun": false
   },
   "https://api-docs.deepseek.com/": {
-    "hash": "d73cf03162ad809f1eb23efff5332a3006dbe0210d1e99a8f519e7204f33d69a",
-    "etag": "\"30e0b776ff7df12130f0f64bc4dbf091\"",
-    "lastModified": "Fri, 28 Aug 2026 05:44:14 GMT",
-    "lastCheckedAt": "2026-09-07T14:01:47.591Z",
-    "lastChangedAt": "2026-08-23T08:30:50.035Z",
+    "hash": "4e67c38eac241cc4ee2760ced86de419cf2be82b8dcd081e238a9cc033127fbe",
+    "etag": "\"b2a85d77eaafd14c135a670c022a821a\"",
+    "lastModified": "Thu, 10 Sep 2026 07:24:56 GMT",
+    "lastCheckedAt": "2026-09-10T12:44:36.258Z",
+    "lastChangedAt": "2026-09-10T12:44:36.258Z",
     "consecutiveFailures": 0,
     "status": "ok",
-    "changedThisRun": false
+    "changedThisRun": true
   }
 }

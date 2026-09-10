@@ -678,5 +678,25 @@
     "newHash": "52ad222ee43e44aca29fe95896e3cbe2ed7a27341a6aeaf9bbc87a5912280b40",
     "reviewed": false,
     "learnImpacting": false
+  },
+  {
+    "url": "https://developer.meta.com/ai/docs/how-to-guides/prompting/",
+    "vendor": "Meta",
+    "pageTitle": "Prompt engineering how-to",
+    "detectedAt": "2026-09-10T12:44:32.750Z",
+    "oldHash": "edd83789e8570937c8e3dd18eebbedfb8189ddc9185044464d263412dfc80b51",
+    "newHash": "ae920a680a017857253dbf464275c5c0d59850fe76dd2f7fe1db3f7275c77b0d",
+    "reviewed": false,
+    "learnImpacting": false
+  },
+  {
+    "url": "https://api-docs.deepseek.com/",
+    "vendor": "DeepSeek",
+    "pageTitle": "API documentation",
+    "detectedAt": "2026-09-10T12:44:36.258Z",
+    "oldHash": "d73cf03162ad809f1eb23efff5332a3006dbe0210d1e99a8f519e7204f33d69a",
+    "newHash": "4e67c38eac241cc4ee2760ced86de419cf2be82b8dcd081e238a9cc033127fbe",
+    "reviewed": false,
+    "learnImpacting": false
   }
 ]
