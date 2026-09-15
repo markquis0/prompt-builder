@@ -29,7 +29,7 @@
     "hash": "9232f24dd36dea1a3fb611831bb4e40ee3b0b7329fd3fac4149dcbc35baa6617",
     "etag": "W/\"7d73ccd77f708481c675b6249468b8ca\"",
     "lastModified": "Fri, 14 Aug 2026 21:19:55 GMT",
-    "lastCheckedAt": "2026-09-13T13:08:55.133Z",
+    "lastCheckedAt": "2026-09-15T13:11:30.097Z",
     "consecutiveFailures": 0,
     "status": "ok"
   },
@@ -52,32 +52,32 @@
     "changedThisRun": true
   },
   "https://developer.meta.com/ai/docs/how-to-guides/prompting/": {
-    "hash": "0f19a00ec4f199681199431f0e77156a064ee6c435715cb1e24c4868d0d74ed7",
-    "lastCheckedAt": "2026-09-13T13:08:58.127Z",
-    "lastChangedAt": "2026-09-13T13:08:58.127Z",
+    "hash": "a50f27b81d67c081007fccf7687c359740906419b92e93edf8854161ccc9ce90",
+    "lastCheckedAt": "2026-09-15T13:11:31.149Z",
+    "lastChangedAt": "2026-09-15T13:11:31.149Z",
     "consecutiveFailures": 0,
     "status": "ok",
     "changedThisRun": true
   },
   "https://docs.mistral.ai/models/best-practices/prompt-engineering": {
-    "hash": "4071909e54adc2c92bb506d07afb63e5df1177e8113f21c9e4d230c435ee6851",
-    "etag": "W/\"fbdaf28960292b07afb3b48851ae1b2c\"",
-    "lastCheckedAt": "2026-09-13T13:08:58.532Z",
-    "lastChangedAt": "2026-09-13T13:08:58.532Z",
+    "hash": "a997f95bb407cbf1d2ba44fb07b90ee8c5e67a5f1bff50d09a9caf6a8e209820",
+    "etag": "W/\"b5be1629064b671b18bd895c212eeab2\"",
+    "lastCheckedAt": "2026-09-15T13:11:31.602Z",
+    "lastChangedAt": "2026-09-15T13:11:31.602Z",
     "consecutiveFailures": 0,
     "status": "ok",
     "changedThisRun": true
   },
   "https://docs.x.ai/docs/guides/prompt-engineering": {
-    "consecutiveFailures": 12,
-    "lastCheckedAt": "2026-09-13T13:08:58.848Z",
+    "consecutiveFailures": 13,
+    "lastCheckedAt": "2026-09-15T13:11:31.934Z",
     "status": "possibly_broken"
   },
   "https://api-docs.deepseek.com/prompt-library/": {
     "hash": "2abdd2048804d5509528e939cb34930a3e281f0d866ce09a92f891a77c574390",
     "etag": "\"75ee520df95d2c5cfe673273040cece4\"",
     "lastModified": "Fri, 11 Sep 2026 11:04:54 GMT",
-    "lastCheckedAt": "2026-09-13T13:09:01.907Z",
+    "lastCheckedAt": "2026-09-15T13:11:32.743Z",
     "consecutiveFailures": 0,
     "status": "ok",
     "changedThisRun": false
@@ -86,7 +86,7 @@
     "hash": "27f67aef400d9b3fbabcab37e451b60665750862ee349399ebfa89eb4345e027",
     "etag": "\"578f93044c1bf0ac9b1214c9a3d96fea\"",
     "lastModified": "Fri, 11 Sep 2026 11:04:46 GMT",
-    "lastCheckedAt": "2026-09-13T13:09:02.109Z",
+    "lastCheckedAt": "2026-09-15T13:11:34.316Z",
     "lastChangedAt": "2026-09-13T13:09:02.109Z",
     "consecutiveFailures": 0,
     "status": "ok",
