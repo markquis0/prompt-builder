@@ -29,7 +29,7 @@
     "hash": "9232f24dd36dea1a3fb611831bb4e40ee3b0b7329fd3fac4149dcbc35baa6617",
     "etag": "W/\"7d73ccd77f708481c675b6249468b8ca\"",
     "lastModified": "Fri, 14 Aug 2026 21:19:55 GMT",
-    "lastCheckedAt": "2026-09-20T12:54:02.227Z",
+    "lastCheckedAt": "2026-09-22T13:09:25.032Z",
     "consecutiveFailures": 0,
     "status": "ok"
   },
@@ -52,9 +52,9 @@
     "changedThisRun": false
   },
   "https://developer.meta.com/ai/docs/how-to-guides/prompting/": {
-    "hash": "4c09a8e8358711cc250432b18c6298e5f4fdf77967d6659b2283a1f3e07b6310",
-    "lastCheckedAt": "2026-09-20T12:54:05.526Z",
-    "lastChangedAt": "2026-09-20T12:54:05.526Z",
+    "hash": "efed3cbb0be6ca6a80d8fac62ba84903bc1ff26f3167b088d21def3e0dc04868",
+    "lastCheckedAt": "2026-09-22T13:09:26.353Z",
+    "lastChangedAt": "2026-09-22T13:09:26.353Z",
     "consecutiveFailures": 0,
     "status": "ok",
     "changedThisRun": true
@@ -62,22 +62,22 @@
   "https://docs.mistral.ai/models/best-practices/prompt-engineering": {
     "hash": "a7d2eafd032331c1265a5beb35a957c82963cea4122ccae1aee5eb8fb535fe6c",
     "etag": "W/\"5b5c900143240f43ce957c97605c92e8\"",
-    "lastCheckedAt": "2026-09-20T12:54:05.805Z",
+    "lastCheckedAt": "2026-09-22T13:09:26.597Z",
     "lastChangedAt": "2026-09-18T12:45:50.399Z",
     "consecutiveFailures": 0,
     "status": "ok",
     "changedThisRun": true
   },
   "https://docs.x.ai/docs/guides/prompt-engineering": {
-    "consecutiveFailures": 15,
-    "lastCheckedAt": "2026-09-20T12:54:06.124Z",
+    "consecutiveFailures": 16,
+    "lastCheckedAt": "2026-09-22T13:09:26.826Z",
     "status": "possibly_broken"
   },
   "https://api-docs.deepseek.com/prompt-library/": {
     "hash": "2abdd2048804d5509528e939cb34930a3e281f0d866ce09a92f891a77c574390",
     "etag": "\"d7aed63963f3e30b250c2b8f7e0209ac\"",
     "lastModified": "Sat, 19 Sep 2026 05:26:04 GMT",
-    "lastCheckedAt": "2026-09-20T12:54:06.774Z",
+    "lastCheckedAt": "2026-09-22T13:09:27.453Z",
     "consecutiveFailures": 0,
     "status": "ok",
     "changedThisRun": false
@@ -86,7 +86,7 @@
     "hash": "dcb39283ba3b0c68494637dfd6ff29a0c0ab9c2ba8cfe90c5e511c4fd8419b4b",
     "etag": "\"622384cbeef42ada8e89bcaae0f9ea10\"",
     "lastModified": "Sat, 19 Sep 2026 05:26:02 GMT",
-    "lastCheckedAt": "2026-09-20T12:54:08.529Z",
+    "lastCheckedAt": "2026-09-22T13:09:29.079Z",
     "lastChangedAt": "2026-09-20T12:54:08.529Z",
     "consecutiveFailures": 0,
     "status": "ok",
