@@ -1118,5 +1118,45 @@
     "newHash": "a0e07e54393d934885bca31695d4003d4d17c76323601db9656980a5b5cd4f70",
     "reviewed": false,
     "learnImpacting": false
+  },
+  {
+    "url": "https://developer.meta.com/ai/docs/how-to-guides/prompting/",
+    "vendor": "Meta",
+    "pageTitle": "Prompt engineering how-to",
+    "detectedAt": "2026-09-24T13:18:07.667Z",
+    "oldHash": "efed3cbb0be6ca6a80d8fac62ba84903bc1ff26f3167b088d21def3e0dc04868",
+    "newHash": "5f68962bf4b6b899a2fdde39b9f9fce8105df540cd2bcbf4aad5114cff243e26",
+    "reviewed": false,
+    "learnImpacting": false
+  },
+  {
+    "url": "https://docs.mistral.ai/models/best-practices/prompt-engineering",
+    "vendor": "Mistral",
+    "pageTitle": "Prompt engineering best practices",
+    "detectedAt": "2026-09-24T13:18:07.976Z",
+    "oldHash": "a7d2eafd032331c1265a5beb35a957c82963cea4122ccae1aee5eb8fb535fe6c",
+    "newHash": "48b998c6a2b377198e200543c30ed859f9213e3a2a2b807e9b54eeed06943173",
+    "reviewed": false,
+    "learnImpacting": false
+  },
+  {
+    "url": "https://api-docs.deepseek.com/prompt-library/",
+    "vendor": "DeepSeek",
+    "pageTitle": "Prompt library",
+    "detectedAt": "2026-09-24T13:18:08.961Z",
+    "oldHash": "2abdd2048804d5509528e939cb34930a3e281f0d866ce09a92f891a77c574390",
+    "newHash": "fbd170452c73ead21206850db118beeb85b00a3adea0b50d6cdef1fb90d79a85",
+    "reviewed": false,
+    "learnImpacting": false
+  },
+  {
+    "url": "https://api-docs.deepseek.com/",
+    "vendor": "DeepSeek",
+    "pageTitle": "API documentation",
+    "detectedAt": "2026-09-24T13:18:10.304Z",
+    "oldHash": "dcb39283ba3b0c68494637dfd6ff29a0c0ab9c2ba8cfe90c5e511c4fd8419b4b",
+    "newHash": "76123c910940063f7dd019482d107a4c5dea2d469f0c84513f7a42c311952fdb",
+    "reviewed": false,
+    "learnImpacting": false
   }
 ]
