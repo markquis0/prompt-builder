@@ -1158,5 +1158,45 @@
     "newHash": "76123c910940063f7dd019482d107a4c5dea2d469f0c84513f7a42c311952fdb",
     "reviewed": false,
     "learnImpacting": false
+  },
+  {
+    "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/overview",
+    "vendor": "Anthropic",
+    "pageTitle": "Prompt engineering overview",
+    "detectedAt": "2026-09-25T13:18:07.442Z",
+    "oldHash": "37a83e7ebe1ffc15e67bef9628ef5c84117074e03679682570b5555c3ccd923d",
+    "newHash": "591880eb6ad8eacc84496913c6413cd4108f7cf7214d2cdad5f41fa2bce9caa0",
+    "reviewed": false,
+    "learnImpacting": true
+  },
+  {
+    "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
+    "vendor": "Anthropic",
+    "pageTitle": "Prompting best practices",
+    "detectedAt": "2026-09-25T13:18:09.503Z",
+    "oldHash": "f22c37e0ef7f293d4fead1b374d24850179e88b412aa5cad9f44053a8bc93c9b",
+    "newHash": "6da621471f270fd09a295958af7f72d8f9807b691fdaef84eb30a53756b06be3",
+    "reviewed": false,
+    "learnImpacting": false
+  },
+  {
+    "url": "https://ai.google.dev/gemini-api/docs/prompting-strategies",
+    "vendor": "Google",
+    "pageTitle": "Prompt design strategies",
+    "detectedAt": "2026-09-25T13:18:10.820Z",
+    "oldHash": "fc60b89111fc24c862e0b3203275f5fd54ce10ae63d6a98fc941f90e87e22354",
+    "newHash": "2d1089089d33a4b74ae0fdc68542d36cfc0692eda3ec17f4295420b1f1a3222b",
+    "reviewed": false,
+    "learnImpacting": false
+  },
+  {
+    "url": "https://ai.google.dev/gemini-api/docs/whats-new-gemini-3.5",
+    "vendor": "Google",
+    "pageTitle": "Gemini 3.5 Flash notes",
+    "detectedAt": "2026-09-25T13:18:16.277Z",
+    "oldHash": "a0e07e54393d934885bca31695d4003d4d17c76323601db9656980a5b5cd4f70",
+    "newHash": "6f6754f29d012d07d9b6c9f6715bf3f2cc551ed9522851df9ed905954ae186b1",
+    "reviewed": false,
+    "learnImpacting": false
   }
 ]
