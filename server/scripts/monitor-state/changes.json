@@ -1528,5 +1528,65 @@
     "newHash": "f0fa9f587aa63f26a602b929c4becac7e7ed3c09fe1023ba42ec7bf534de30e3",
     "reviewed": false,
     "learnImpacting": false
+  },
+  {
+    "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/overview",
+    "vendor": "Anthropic",
+    "pageTitle": "Prompt engineering overview",
+    "detectedAt": "2026-10-08T15:16:13.339Z",
+    "oldHash": "f6f40c0404eeabdcb33b4d6b9b4c027887eccd4f72ffccdb3bcea26d9e641d67",
+    "newHash": "59d342b8719a19ef9ae8d3ccf133e6f51ddff53beb5f6c1ad1fae55f583a0840",
+    "reviewed": false,
+    "learnImpacting": true
+  },
+  {
+    "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
+    "vendor": "Anthropic",
+    "pageTitle": "Prompting best practices",
+    "detectedAt": "2026-10-08T15:16:15.283Z",
+    "oldHash": "c9d3a4f47b9987b2e297e06aacd19b6ef0c13c95a099a94ef1b1466873769448",
+    "newHash": "80b159380cc390cb090f50f3a8113dfc4a81bdeee715d92b6b3999b102372503",
+    "reviewed": false,
+    "learnImpacting": false
+  },
+  {
+    "url": "https://ai.google.dev/gemini-api/docs/prompting-strategies",
+    "vendor": "Google",
+    "pageTitle": "Prompt design strategies",
+    "detectedAt": "2026-10-08T15:16:16.797Z",
+    "oldHash": "61e5860baf5b05e19e087fedfa637296f0560c21f09c4dd14975549628536c1c",
+    "newHash": "f34a3197077e7d69a3385c37ef934baf41cea68828218a57cf9c61182cadc41e",
+    "reviewed": false,
+    "learnImpacting": false
+  },
+  {
+    "url": "https://ai.google.dev/gemini-api/docs/whats-new-gemini-3.5",
+    "vendor": "Google",
+    "pageTitle": "Gemini 3.5 Flash notes",
+    "detectedAt": "2026-10-08T15:16:18.098Z",
+    "oldHash": "098aad4d19536d150dd52e02038904d88c91822a748c49dcf7a4085f489dfb4b",
+    "newHash": "aae4084173dc139ee9148820ff7710581b40d7ca9c006b56bab9fdded4e18dbf",
+    "reviewed": false,
+    "learnImpacting": false
+  },
+  {
+    "url": "https://developer.meta.com/ai/docs/how-to-guides/prompting/",
+    "vendor": "Meta",
+    "pageTitle": "Prompt engineering how-to",
+    "detectedAt": "2026-10-08T15:16:18.696Z",
+    "oldHash": "9f2a13576be648ca29cac761915031f620b52f7acfd283571672c4ddb5c40511",
+    "newHash": "aa18bb805d584b6cfb507494503fa3a95f98f33b5bf983674fe0c7614b84535b",
+    "reviewed": false,
+    "learnImpacting": false
+  },
+  {
+    "url": "https://docs.mistral.ai/models/best-practices/prompt-engineering",
+    "vendor": "Mistral",
+    "pageTitle": "Prompt engineering best practices",
+    "detectedAt": "2026-10-08T15:16:19.033Z",
+    "oldHash": "f0fa9f587aa63f26a602b929c4becac7e7ed3c09fe1023ba42ec7bf534de30e3",
+    "newHash": "25f9c40cfd7665c4368c9a53eabef6cbff5e9e0a1125454922b4a70233c03579",
+    "reviewed": false,
+    "learnImpacting": false
   }
 ]
