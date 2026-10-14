@@ -1,16 +1,16 @@
 {
   "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/overview": {
-    "hash": "2e16fc697bde14b33d66d384720b1ee0ae19c4fe9124376ea8d6fa2503f70628",
-    "lastCheckedAt": "2026-10-12T17:27:14.434Z",
-    "lastChangedAt": "2026-10-12T17:27:14.434Z",
+    "hash": "3319ec0f93d68b0678778f5f0f0a00d8fb2b522abdacbfcc3bfffea68becdeb3",
+    "lastCheckedAt": "2026-10-14T13:22:00.378Z",
+    "lastChangedAt": "2026-10-14T13:22:00.378Z",
     "consecutiveFailures": 0,
     "status": "ok",
     "changedThisRun": true
   },
   "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices": {
-    "hash": "5d42bed29fb5bc0bde986615ae68e1a153bcc726e8f289d0da63a3695d1fe359",
-    "lastCheckedAt": "2026-10-12T17:27:16.581Z",
-    "lastChangedAt": "2026-10-12T17:27:16.581Z",
+    "hash": "49f7502c0a594a6ad8c0ed3a30a0242de7acead9a1d553a899582677401967c7",
+    "lastCheckedAt": "2026-10-14T13:22:02.405Z",
+    "lastChangedAt": "2026-10-14T13:22:02.405Z",
     "consecutiveFailures": 0,
     "status": "ok",
     "changedThisRun": true
@@ -19,7 +19,7 @@
     "hash": "913ff184a3e9820e1489a60bc937a015d7896c6309ee4904cd9f018a560abb96",
     "etag": "W/\"432135c8a0744f49376a68db82524868\"",
     "lastModified": "Sat, 10 Oct 2026 03:33:08 GMT",
-    "lastCheckedAt": "2026-10-12T17:27:16.777Z",
+    "lastCheckedAt": "2026-10-14T13:22:02.697Z",
     "lastChangedAt": "2026-10-10T14:16:49.918Z",
     "consecutiveFailures": 0,
     "status": "ok",
@@ -36,19 +36,19 @@
     "changedThisRun": true
   },
   "https://ai.google.dev/gemini-api/docs/prompting-strategies": {
-    "hash": "d1f7b4b6b6c25277371134d94a0b53cb7598ee7c2534855140019e8ea6c581c0",
-    "lastModified": "Fri, 18 Sep 2026 12:03:51 GMT",
-    "lastCheckedAt": "2026-10-12T17:27:17.485Z",
-    "lastChangedAt": "2026-10-12T17:27:17.485Z",
+    "hash": "216d1197a0c5fbd48819d67c347b7aec5e3a5f7280ade208c67bfee448e31b53",
+    "lastModified": "Tue, 13 Oct 2026 15:57:43 GMT",
+    "lastCheckedAt": "2026-10-14T13:22:03.187Z",
+    "lastChangedAt": "2026-10-14T13:22:03.187Z",
     "consecutiveFailures": 0,
     "status": "ok",
     "changedThisRun": true
   },
   "https://ai.google.dev/gemini-api/docs/whats-new-gemini-3.5": {
-    "hash": "b2f5ed5df8a95757d58e8c10071a81525314cfb65cb27f8ca3315df4dc3ba714",
-    "lastModified": "Fri, 09 Oct 2026 22:11:39 GMT",
-    "lastCheckedAt": "2026-10-12T17:27:19.415Z",
-    "lastChangedAt": "2026-10-12T17:27:19.415Z",
+    "hash": "cfc4d1300bb105ef38ccc293dcec29c44623b1e608b934f3cd34e188818e13f7",
+    "lastModified": "Mon, 12 Oct 2026 19:13:12 GMT",
+    "lastCheckedAt": "2026-10-14T13:22:05.326Z",
+    "lastChangedAt": "2026-10-14T13:22:05.326Z",
     "consecutiveFailures": 0,
     "status": "ok",
     "changedThisRun": true
