@@ -176,8 +176,11 @@ export default function NavHeader() {
             <Link to="/prompts" className={navLinkClass(pathname === "/prompts")}>
               Prompts
             </Link>
-            <Link to="/history" className={navLinkClass(pathname === "/history")}>
+            <Link to="/history" className={navLinkClass(pathname.startsWith("/history"))}>
               History
+            </Link>
+            <Link to="/teams" className={navLinkClass(pathname.startsWith("/teams"))}>
+              Teams
             </Link>
             <div className="nav-more" ref={moreMenuRef}>
               <button
@@ -231,6 +234,9 @@ export default function NavHeader() {
                 </Link>
                 <Link to="/history" className="nav-mobile-panel-item" onClick={() => setMobileNavOpen(false)}>
                   History
+                </Link>
+                <Link to="/teams" className="nav-mobile-panel-item" onClick={() => setMobileNavOpen(false)}>
+                  Teams
                 </Link>
                 <Link to="/learn" className="nav-mobile-panel-item" onClick={() => setMobileNavOpen(false)}>
                   Learn

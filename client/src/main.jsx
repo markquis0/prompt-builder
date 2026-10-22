@@ -24,6 +24,8 @@ const PromptLibraryPage = lazy(() => import('./pages/PromptLibraryPage.jsx'))
 const SettingsPage = lazy(() => import('./pages/SettingsPage.jsx'))
 const HistoryPage = lazy(() => import('./pages/HistoryPage.jsx'))
 const PromptDetailPage = lazy(() => import('./pages/PromptDetailPage.jsx'))
+const TeamsPage = lazy(() => import('./pages/TeamsPage.jsx'))
+const TeamDetailPage = lazy(() => import('./pages/TeamDetailPage.jsx'))
 
 // Guarded so local dev without PostHog configured never errors — funnel
 // events become silent no-ops (posthog-js queues/no-ops calls made before
@@ -69,6 +71,8 @@ createRoot(document.getElementById('root')).render(
               <Route path="/settings" element={<SettingsPage />} />
               <Route path="/history" element={<HistoryPage />} />
               <Route path="/history/:promptId" element={<PromptDetailPage />} />
+              <Route path="/teams" element={<TeamsPage />} />
+              <Route path="/teams/:teamId" element={<TeamDetailPage />} />
               <Route path="/privacy" element={<LegalPage page="privacy" />} />
               <Route path="/terms" element={<LegalPage page="terms" />} />
               <Route path="/refund-policy" element={<LegalPage page="refund" />} />

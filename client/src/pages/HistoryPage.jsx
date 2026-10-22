@@ -187,7 +187,10 @@ export default function HistoryPage() {
                     {isShared
                       ? `Shared by ${prompt.sharedBy.name}`
                       : plural(prompt.versionCount, "version") +
-                        (prompt.shareCount > 0 ? ` · Shared with ${prompt.shareCount}` : "")}
+                        (prompt.shareCount > 0 ? ` · Shared with ${prompt.shareCount}` : "") +
+                        (prompt.teamNames?.length > 0 ? ` · Official for ${prompt.teamNames.join(", ")}` : "") +
+                        // Real, stored activity (copy provenance) — not an inferred metric.
+                        (prompt.buildCount > 0 ? ` · Built on ${plural(prompt.buildCount, "time")}` : "")}
                     {isShared && ` · ${plural(prompt.versionCount, "version")}`}
                   </p>
                   <div className="history-actions">

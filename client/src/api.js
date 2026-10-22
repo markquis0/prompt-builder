@@ -163,8 +163,17 @@ export function getPromptVersion(id, versionNumber) {
   return request(`/api/prompts/${id}/versions/${versionNumber}`);
 }
 
-export function savePromptVersion(id, { content, changeNote }) {
-  return postJSON(`/api/prompts/${id}/versions`, { content, changeNote });
+// `source: "improved"` + `baseVersionNumber` mark a version created from an
+// accepted Improve suggestion; the server refuses it (409) if the prompt has
+// moved past the version the suggestion was made from.
+export function savePromptVersion(id, { content, changeNote, source, baseVersionNumber }) {
+  return postJSON(`/api/prompts/${id}/versions`, { content, changeNote, source, baseVersionNumber });
+}
+
+// Grades the given version and proposes a rewrite — saves nothing. Pro, owner
+// only. Accepting goes through savePromptVersion above.
+export function improvePrompt(id, versionNumber) {
+  return postJSON(`/api/prompts/${id}/improve`, versionNumber ? { versionNumber } : {});
 }
 
 export function restorePromptVersion(id, versionNumber) {
@@ -196,6 +205,56 @@ export function sharePrompt(id, email) {
 
 export function removePromptShare(id, shareId) {
   return request(`/api/prompts/${id}/shares/${shareId}`, { method: "DELETE" });
+}
+
+// --- Teams ---
+
+export function listTeams() {
+  return request("/api/teams");
+}
+
+export function createTeam(name) {
+  return postJSON("/api/teams", { name });
+}
+
+export function getTeam(id) {
+  return request(`/api/teams/${id}`);
+}
+
+export function renameTeam(id, name) {
+  return patchJSON(`/api/teams/${id}`, { name });
+}
+
+export function deleteTeam(id) {
+  return request(`/api/teams/${id}`, { method: "DELETE" });
+}
+
+export function listTeamMembers(id) {
+  return request(`/api/teams/${id}/members`);
+}
+
+export function addTeamMember(id, email) {
+  return postJSON(`/api/teams/${id}/members`, { email });
+}
+
+export function removeTeamMember(id, memberId) {
+  return request(`/api/teams/${id}/members/${memberId}`, { method: "DELETE" });
+}
+
+export function leaveTeam(id) {
+  return postJSON(`/api/teams/${id}/leave`, {});
+}
+
+export function listTeamPrompts(id) {
+  return request(`/api/teams/${id}/prompts`);
+}
+
+export function addPromptToTeam(teamId, promptId) {
+  return postJSON(`/api/teams/${teamId}/prompts`, { promptId });
+}
+
+export function removePromptFromTeam(teamId, promptId) {
+  return request(`/api/teams/${teamId}/prompts/${promptId}`, { method: "DELETE" });
 }
 
 // --- Billing ---

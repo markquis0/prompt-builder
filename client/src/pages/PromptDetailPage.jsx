@@ -5,6 +5,9 @@ import posthog from "posthog-js";
 import NavHeader from "../components/NavHeader.jsx";
 import InlineTitle from "../components/InlineTitle.jsx";
 import ShareModal from "../components/ShareModal.jsx";
+import AddToTeamModal from "../components/AddToTeamModal.jsx";
+import ImprovePanel from "../components/ImprovePanel.jsx";
+import DiffView from "../components/DiffView.jsx";
 import { useAuth } from "../context/AuthContext.jsx";
 import {
   getPrompt,
@@ -17,7 +20,7 @@ import {
 import { openPromptInBuilder } from "../promptResume.js";
 import { copyToClipboard, COPY_CONFIRMATION_MS } from "../clipboard.js";
 import { RENDERERS } from "../renderers/index.js";
-import { diffLines } from "../diff.js";
+import { diffPrompts } from "../diff.js";
 import { formatRelative, formatDate } from "../formatSession.js";
 import "./PromptDetailPage.css";
 
@@ -29,18 +32,6 @@ const SOURCE_LABELS = {
   restored: "Restored",
   copied: "Copied",
 };
-
-// Blank-line and trailing-whitespace differences aren't real edits — the
-// Generic renderer normalizes spacing, so a hand-edited version and a
-// freshly generated one routinely differ only in blank lines. Diffing those
-// would bury the actual changes in noise.
-function normalizeForDiff(text) {
-  return text
-    .split("\n")
-    .map((line) => line.trimEnd())
-    .filter((line) => line !== "")
-    .join("\n");
-}
 
 export default function PromptDetailPage() {
   const { promptId } = useParams();
@@ -63,6 +54,11 @@ export default function PromptDetailPage() {
   const [busy, setBusy] = useState(false);
   const [copied, setCopied] = useState(false);
   const [showShare, setShowShare] = useState(false);
+  const [showAddToTeam, setShowAddToTeam] = useState(false);
+  const [improving, setImproving] = useState(false);
+  // Teams this prompt is an official prompt of (all of them for its owner;
+  // only the viewer's own teams otherwise).
+  const [teams, setTeams] = useState([]);
   const openedTracked = useRef(false);
 
   const isOwner = access?.role === "owner";
@@ -83,20 +79,21 @@ export default function PromptDetailPage() {
   );
 
   const refresh = useCallback(async () => {
-    const [{ prompt: p, access: a }, { versions: v }] = await Promise.all([
+    const [{ prompt: p, access: a, teams: t }, { versions: v }] = await Promise.all([
       getPrompt(promptId),
       listPromptVersions(promptId),
     ]);
     setPrompt(p);
     setAccess(a);
+    setTeams(t || []);
     setVersions(v);
-    return { versions: v, access: a };
+    return { versions: v, access: a, teams: t || [] };
   }, [promptId]);
 
   useEffect(() => {
     if (!user) return;
     refresh()
-      .then(({ versions: v, access: a }) => {
+      .then(({ versions: v, access: a, teams: t }) => {
         const current = v.find((x) => x.isCurrent) || v[0];
         const previous = v.find((x) => x.versionNumber === current.versionNumber - 1);
         setSelected(current.versionNumber);
@@ -104,12 +101,17 @@ export default function PromptDetailPage() {
         setCompareFrom(previous ? previous.versionNumber : current.versionNumber);
         if (a.role === "viewer" && !openedTracked.current) {
           openedTracked.current = true;
-          posthog.capture("shared_prompt_opened", {
+          const props = {
             prompt_id: promptId,
             version_number: current.versionNumber,
             version_count: v.length,
             source_page: "detail",
-          });
+          };
+          // A team prompt and a directly shared one are distinct things to
+          // measure ("which team prompts get used?"); one that's both counts
+          // as a team open.
+          if (a.via.team) posthog.capture("team_prompt_opened", { ...props, team_id: t[0]?.id });
+          else posthog.capture("shared_prompt_opened", props);
         }
       })
       .catch((err) => setError(err.message));
@@ -150,7 +152,7 @@ export default function PromptDetailPage() {
     const from = bodies[compareFrom];
     const to = bodies[compareTo];
     if (!diffReady || !from || !to) return null;
-    return diffLines(normalizeForDiff(from.content), normalizeForDiff(to.content));
+    return diffPrompts(from.content, to.content);
   }, [bodies, compareFrom, compareTo, diffReady]);
 
   const selectedBody = bodies[selected];
@@ -221,6 +223,16 @@ export default function PromptDetailPage() {
     }
   }
 
+  // An accepted improvement is a new current version — reload and show it.
+  async function handleImproved(version) {
+    setImproving(false);
+    const { versions: v } = await refresh();
+    const current = v.find((x) => x.isCurrent) || v[0];
+    handleSelectVersion(current.versionNumber);
+    setCompareTo(current.versionNumber);
+    setCompareFrom(version.versionNumber - 1 >= 1 ? version.versionNumber - 1 : current.versionNumber);
+  }
+
   async function handleOpen() {
     setBusy(true);
     try {
@@ -245,6 +257,9 @@ export default function PromptDetailPage() {
         version_number: selected,
         source_page: "detail",
       });
+      if (access?.via.team) {
+        posthog.capture("team_prompt_built_on", { team_id: teams[0]?.id, prompt_id: promptId, version_number: selected });
+      }
       await openPromptInBuilder(navigate, mine.id);
     } catch (err) {
       setError(err.message);
@@ -257,11 +272,9 @@ export default function PromptDetailPage() {
       setCopied(true);
       setTimeout(() => setCopied(false), COPY_CONFIRMATION_MS);
       if (!isOwner) {
-        posthog.capture("shared_prompt_copied", {
-          prompt_id: promptId,
-          version_number: selected,
-          source_page: "detail",
-        });
+        const props = { prompt_id: promptId, version_number: selected, source_page: "detail" };
+        if (access?.via.team) posthog.capture("team_prompt_copied", { ...props, team_id: teams[0]?.id });
+        else posthog.capture("shared_prompt_copied", props);
       }
     }
   }
@@ -304,7 +317,19 @@ export default function PromptDetailPage() {
         {prompt && versions && access && (
           <>
             <InlineTitle as="h1" className="prompt-detail-name" title={prompt.title} canEdit={isOwner} onSave={handleRename} />
-            {!isOwner && <p className="prompt-detail-shared-by">Shared by {access.owner.name} · view only</p>}
+            {!isOwner && access.via.team && (
+              <p className="prompt-detail-shared-by">
+                Official Team Prompt · {teams.map((t) => t.name).join(", ")} · view only
+              </p>
+            )}
+            {!isOwner && (access.via.direct || !access.via.team) && (
+              <p className="prompt-detail-shared-by">Shared by {access.owner.name} · view only</p>
+            )}
+            {isOwner && teams.length > 0 && (
+              <p className="prompt-detail-used-by">
+                Official prompt for: {teams.map((t) => t.name).join(", ")}
+              </p>
+            )}
             <p className="prompt-detail-meta">
               Current version: <strong>v{current?.versionNumber}</strong> · {versions.length}{" "}
               {versions.length === 1 ? "version" : "versions"} · Updated {formatRelative(prompt.updatedAt)}
@@ -321,6 +346,24 @@ export default function PromptDetailPage() {
                   <button type="button" className="btn btn-secondary" onClick={() => setShowShare(true)}>
                     Share
                   </button>
+                  <button type="button" className="btn btn-secondary" onClick={() => setShowAddToTeam(true)}>
+                    {teams.length > 0 ? "Teams" : "Add to team"}
+                  </button>
+                  {isPaidUser ? (
+                    <button
+                      type="button"
+                      className="btn btn-secondary"
+                      onClick={() => setImproving(true)}
+                      disabled={improving || selected !== current?.versionNumber || !selectedBody}
+                      title={selected !== current?.versionNumber ? "Select the current version to improve it" : undefined}
+                    >
+                      Improve this prompt
+                    </button>
+                  ) : (
+                    <Link to="/pro" className="btn btn-secondary">
+                      Improve this prompt · Pro
+                    </Link>
+                  )}
                 </>
               ) : (
                 <>
@@ -333,6 +376,16 @@ export default function PromptDetailPage() {
                 </>
               )}
             </div>
+            {isOwner && improving && selectedBody && current && (
+              <ImprovePanel
+                promptId={promptId}
+                title={prompt.title}
+                currentContent={selectedBody.content}
+                currentVersionNumber={current.versionNumber}
+                onAccepted={handleImproved}
+                onClose={() => setImproving(false)}
+              />
+            )}
             {!isOwner && (
               <p className="prompt-detail-hint">
                 “Build on this” saves your own copy of the version you’re viewing — yours to edit, and separate from{" "}
@@ -445,23 +498,23 @@ export default function PromptDetailPage() {
                   <p className="prompt-detail-hint">No differences apart from spacing.</p>
                 )}
                 {diff && diff.some((d) => d.type !== "same") && (
-                  <pre className="diff-output" aria-label={`Changes from v${compareFrom} to v${compareTo}`}>
-                    {diff.map((d, i) => (
-                      <span key={i} className={`diff-line diff-${d.type}`}>
-                        <span className="diff-marker" aria-hidden="true">
-                          {d.type === "add" ? "+" : d.type === "remove" ? "−" : " "}
-                        </span>
-                        {d.text}
-                        {"\n"}
-                      </span>
-                    ))}
-                  </pre>
+                  <DiffView diff={diff} label={`Changes from v${compareFrom} to v${compareTo}`} />
                 )}
               </section>
             )}
           </>
         )}
       </main>
+
+      {showAddToTeam && prompt && (
+        <AddToTeamModal
+          promptId={promptId}
+          promptTitle={prompt.title}
+          currentTeamIds={teams.map((t) => t.id)}
+          onClose={() => setShowAddToTeam(false)}
+          onChanged={() => refresh().catch((err) => setError(err.message))}
+        />
+      )}
 
       {showShare && prompt && (
         <ShareModal

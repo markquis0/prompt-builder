@@ -41,3 +41,19 @@ export function diffLines(before, after) {
   while (j < b.length) out.push({ type: "add", text: b[j++] });
   return out;
 }
+
+// Blank-line and trailing-whitespace differences aren't real edits — the
+// Generic renderer normalizes spacing, so a hand-edited version and a freshly
+// generated (or AI-improved) one routinely differ only in blank lines.
+// Diffing those would bury the actual changes in noise.
+export function normalizeForDiff(text) {
+  return text
+    .split("\n")
+    .map((line) => line.trimEnd())
+    .filter((line) => line !== "")
+    .join("\n");
+}
+
+export function diffPrompts(before, after) {
+  return diffLines(normalizeForDiff(before), normalizeForDiff(after));
+}

@@ -35,6 +35,8 @@
 
 .prompt-detail-actions {
   display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
   gap: 8px;
   margin-bottom: 12px;
 }
@@ -193,4 +195,11 @@
 
 .prompt-detail .model-tabs {
   margin-bottom: 8px;
+}
+
+.prompt-detail-used-by {
+  margin: 4px 0 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--accent);
 }

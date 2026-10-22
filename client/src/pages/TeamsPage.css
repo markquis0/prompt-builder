@@ -1,0 +1,96 @@
+.teams-page {
+  max-width: 640px;
+  margin: 0 auto;
+  padding-bottom: 60px;
+}
+
+.teams-intro {
+  color: var(--text-muted);
+  font-size: 15px;
+}
+
+.teams-list {
+  list-style: none;
+  margin: 24px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.team-card {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 2px 12px;
+  padding: 14px 16px;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  text-decoration: none;
+}
+
+.team-card:hover {
+  border-color: var(--accent);
+  background: var(--accent-bg);
+}
+
+.team-card-name {
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.team-card-role {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.team-card-meta {
+  grid-column: 1 / -1;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.teams-empty {
+  margin-top: 24px;
+  color: var(--text-muted);
+}
+
+.teams-create {
+  margin-top: 40px;
+}
+
+.teams-create h2 {
+  font-size: 18px;
+  margin: 0 0 12px;
+}
+
+.teams-create-form {
+  display: flex;
+  gap: 8px;
+}
+
+.teams-create-form input {
+  flex: 1;
+  min-width: 0;
+  font: inherit;
+  font-size: 15px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--card-bg);
+  color: var(--text);
+}
+
+.teams-error {
+  margin: 8px 0 0;
+  font-size: 14px;
+  color: var(--error);
+}
+
+@media (max-width: 480px) {
+  .teams-create-form {
+    flex-direction: column;
+  }
+}
