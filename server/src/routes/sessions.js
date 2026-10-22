@@ -1,25 +1,12 @@
 import { Router } from "express";
 import { pool } from "../db/pool.js";
 import { requireAuth } from "../middleware/requireAuth.js";
+import { parsePagination } from "../lib/pagination.js";
+import { addVersion, createPromptWithFirstVersion, promptNameFrom, VersionError } from "../lib/promptVersions.js";
 
 const router = Router();
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-const DEFAULT_SESSIONS_LIMIT = 20;
-const MAX_SESSIONS_LIMIT = 100;
-
-// Clamps rather than rejects — a client asking for a huge page (or an
-// invalid one) just gets capped/defaulted, same as a normal pagination API,
-// not treated as a validation error the way oversized content is elsewhere
-// in this codebase.
-function parsePagination(query) {
-  const rawLimit = Number.parseInt(query.limit, 10);
-  const rawOffset = Number.parseInt(query.offset, 10);
-  const limit =
-    Number.isInteger(rawLimit) && rawLimit > 0 ? Math.min(rawLimit, MAX_SESSIONS_LIMIT) : DEFAULT_SESSIONS_LIMIT;
-  const offset = Number.isInteger(rawOffset) && rawOffset > 0 ? rawOffset : 0;
-  return { limit, offset };
-}
 
 function sanitizeSession(row) {
   return {
@@ -58,6 +45,13 @@ function sanitizeSessionSummary(row) {
 // an empty row (every anonymous visitor has *something* in localStorage
 // from the moment the page loads — see PromptBuilder.jsx — so "exists" and
 // "has content" are different questions).
+//
+// Also records the generation as prompt version history: a new prompt with
+// a v1, or — when the client sends the promptId of the prompt being
+// reworked ("Edit answers" on an opened prompt) — the next version of that
+// one. Both writes share a transaction so a session row never exists
+// pointing at a half-created prompt. A session with no assembled text yet
+// (a half-finished intake) is saved as before but doesn't become a prompt.
 async function insertSession(userId, body) {
   const {
     originalPrompt,
@@ -68,41 +62,93 @@ async function insertSession(userId, body) {
     category,
     deterministicScore,
     deterministicChecks,
+    promptId,
   } = body || {};
 
   if (typeof originalPrompt !== "string" || originalPrompt.trim().length === 0) {
     return null;
   }
 
-  const { rows } = await pool.query(
-    `INSERT INTO sessions
-      (user_id, original_prompt, qa_pairs, supporting_context, prompt_object, raw_assembled,
-       category, deterministic_score, deterministic_checks)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-     RETURNING *`,
-    [
-      userId,
-      originalPrompt,
-      JSON.stringify(Array.isArray(qaPairs) ? qaPairs : []),
-      typeof supportingContext === "string" ? supportingContext : "",
-      promptObject ? JSON.stringify(promptObject) : null,
-      typeof rawAssembled === "string" ? rawAssembled : "",
-      typeof category === "string" && category.trim() ? category.trim() : null,
-      Number.isInteger(deterministicScore) ? deterministicScore : null,
-      Array.isArray(deterministicChecks) ? JSON.stringify(deterministicChecks) : null,
-    ]
-  );
-  return rows[0];
+  const client = await pool.connect();
+  try {
+    await client.query("BEGIN");
+    const { rows } = await client.query(
+      `INSERT INTO sessions
+        (user_id, original_prompt, qa_pairs, supporting_context, prompt_object, raw_assembled,
+         category, deterministic_score, deterministic_checks)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+       RETURNING *`,
+      [
+        userId,
+        originalPrompt,
+        JSON.stringify(Array.isArray(qaPairs) ? qaPairs : []),
+        typeof supportingContext === "string" ? supportingContext : "",
+        promptObject ? JSON.stringify(promptObject) : null,
+        typeof rawAssembled === "string" ? rawAssembled : "",
+        typeof category === "string" && category.trim() ? category.trim() : null,
+        Number.isInteger(deterministicScore) ? deterministicScore : null,
+        Array.isArray(deterministicChecks) ? JSON.stringify(deterministicChecks) : null,
+      ]
+    );
+    const row = rows[0];
+
+    let prompt = null;
+    if (row.raw_assembled.trim() !== "") {
+      const version = {
+        content: row.raw_assembled,
+        promptObject: row.prompt_object,
+        originalPrompt: row.original_prompt,
+        qaPairs: row.qa_pairs,
+        supportingContext: row.supporting_context,
+        sessionId: row.id,
+      };
+      let created;
+      if (promptId !== undefined && promptId !== null) {
+        if (typeof promptId !== "string" || !UUID_RE.test(promptId)) {
+          throw new VersionError(404, "Prompt not found.");
+        }
+        created = await addVersion(client, {
+          promptId,
+          userId,
+          buildVersion: () => ({ ...version, changeNote: "Regenerated from updated answers" }),
+        });
+        if (!created) throw new VersionError(404, "Prompt not found.");
+      } else {
+        created = await createPromptWithFirstVersion(client, {
+          userId,
+          name: promptNameFrom(row.original_prompt),
+          promptType: row.category,
+          version,
+        });
+      }
+      prompt = {
+        id: created.promptId,
+        versionId: created.version.id,
+        versionNumber: created.version.version_number,
+      };
+    }
+
+    await client.query("COMMIT");
+    return { row, prompt };
+  } catch (err) {
+    await client.query("ROLLBACK").catch(() => {});
+    throw err;
+  } finally {
+    client.release();
+  }
 }
 
 router.post("/", requireAuth, async (req, res) => {
   try {
-    const row = await insertSession(req.userId, req.body);
-    if (!row) {
+    const saved = await insertSession(req.userId, req.body);
+    if (!saved) {
       return res.status(400).json({ error: "A non-empty 'originalPrompt' is required." });
     }
-    res.status(201).json({ session: sanitizeSession(row) });
+    res.status(201).json({ session: sanitizeSession(saved.row), prompt: saved.prompt });
   } catch (err) {
+    if (err instanceof VersionError) {
+      return res.status(err.status).json({ error: err.message });
+    }
     console.error("[prompt-builder] POST /api/sessions error:", err);
     res.status(500).json({ error: "Failed to save session. Please try again." });
   }
@@ -151,11 +197,11 @@ router.get("/:id", requireAuth, async (req, res) => {
 // next time they complete a build while logged in.
 router.post("/migrate", requireAuth, async (req, res) => {
   try {
-    const row = await insertSession(req.userId, req.body);
-    if (!row) {
+    const saved = await insertSession(req.userId, req.body);
+    if (!saved) {
       return res.status(200).json({ migrated: false });
     }
-    res.status(201).json({ migrated: true, session: sanitizeSession(row) });
+    res.status(201).json({ migrated: true, session: sanitizeSession(saved.row), prompt: saved.prompt });
   } catch (err) {
     console.error("[prompt-builder] POST /api/sessions/migrate error:", err);
     res.status(200).json({ migrated: false });

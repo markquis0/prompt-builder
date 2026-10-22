@@ -142,3 +142,106 @@ UPDATE users SET first_name = 'Unknown' WHERE first_name IS NULL;
 UPDATE users SET last_name = 'Unknown' WHERE last_name IS NULL;
 ALTER TABLE users ALTER COLUMN first_name SET NOT NULL;
 ALTER TABLE users ALTER COLUMN last_name SET NOT NULL;
+
+-- Prompt version history. A "prompt" is one persistent identity a user
+-- keeps improving; each "prompt_version" is an immutable snapshot of it.
+-- `sessions` is left exactly as it was (the critique feature still writes
+-- scores onto session rows) — this is additive, and prompt_versions.session_id
+-- is only a soft link back to the generation that produced a version.
+--
+-- Not an FK on purpose: prompt_versions are immutable (trigger below), and
+-- an FK with ON DELETE SET NULL would be an UPDATE the trigger blocks
+-- during a user-deletion cascade.
+CREATE TABLE IF NOT EXISTS prompts (
+  id                 UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id            UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  name               TEXT NOT NULL,
+  prompt_type        TEXT,
+  current_version_id UUID,
+  created_at         TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at         TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS prompt_versions (
+  id                        UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  prompt_id                 UUID NOT NULL REFERENCES prompts(id) ON DELETE CASCADE,
+  version_number            INTEGER NOT NULL,
+  content                   TEXT NOT NULL,
+  prompt_object             JSONB,
+  original_prompt           TEXT,
+  qa_pairs                  JSONB,
+  supporting_context        TEXT,
+  change_note               TEXT,
+  parent_version_id         UUID REFERENCES prompt_versions(id) ON DELETE CASCADE,
+  restored_from_version_id  UUID REFERENCES prompt_versions(id) ON DELETE CASCADE,
+  created_by                UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  session_id                UUID,
+  created_at                TIMESTAMPTZ NOT NULL DEFAULT now(),
+  UNIQUE (prompt_id, version_number)
+);
+
+-- prompts <-> prompt_versions reference each other, so this FK can only be
+-- added after both tables exist. Deferred so deleting a user (cascading
+-- through prompts and versions in one statement) never trips over it.
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'prompts_current_version_fk') THEN
+    ALTER TABLE prompts
+      ADD CONSTRAINT prompts_current_version_fk
+      FOREIGN KEY (current_version_id) REFERENCES prompt_versions(id)
+      DEFERRABLE INITIALLY DEFERRED;
+  END IF;
+END $$;
+
+CREATE INDEX IF NOT EXISTS idx_prompts_user_updated ON prompts(user_id, updated_at DESC);
+CREATE INDEX IF NOT EXISTS idx_prompt_versions_prompt ON prompt_versions(prompt_id, version_number DESC);
+
+-- Immutability enforced in the database, not just by the API never issuing
+-- an UPDATE: a saved version must never change. DELETE is deliberately not
+-- blocked — account deletion cascades through here.
+CREATE OR REPLACE FUNCTION prompt_versions_block_update() RETURNS trigger AS $$
+BEGIN
+  RAISE EXCEPTION 'prompt_versions rows are immutable';
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS trg_prompt_versions_block_update ON prompt_versions;
+CREATE TRIGGER trg_prompt_versions_block_update
+  BEFORE UPDATE ON prompt_versions
+  FOR EACH ROW EXECUTE FUNCTION prompt_versions_block_update();
+
+-- Backfill: every already-saved generation becomes one prompt with a v1.
+-- Re-runnable on every boot — only sessions with no version yet are
+-- touched. Sessions with no assembled text (the anonymous->account
+-- migration can save a half-finished intake) are skipped: a prompt needs
+-- content to be a prompt.
+DO $$
+DECLARE
+  s RECORD;
+  new_prompt_id UUID;
+  new_version_id UUID;
+BEGIN
+  FOR s IN
+    SELECT * FROM sessions
+    WHERE original_prompt IS NOT NULL
+      AND btrim(original_prompt) <> ''
+      AND raw_assembled IS NOT NULL
+      AND btrim(raw_assembled) <> ''
+      AND NOT EXISTS (SELECT 1 FROM prompt_versions pv WHERE pv.session_id = sessions.id)
+    ORDER BY created_at
+  LOOP
+    INSERT INTO prompts (user_id, name, prompt_type, created_at, updated_at)
+    VALUES (s.user_id, left(s.original_prompt, 80), s.category, s.created_at, s.updated_at)
+    RETURNING id INTO new_prompt_id;
+
+    INSERT INTO prompt_versions
+      (prompt_id, version_number, content, prompt_object, original_prompt, qa_pairs,
+       supporting_context, created_by, session_id, created_at)
+    VALUES
+      (new_prompt_id, 1, s.raw_assembled, s.prompt_object, s.original_prompt, s.qa_pairs,
+       s.supporting_context, s.user_id, s.id, s.created_at)
+    RETURNING id INTO new_version_id;
+
+    UPDATE prompts SET current_version_id = new_version_id WHERE id = new_prompt_id;
+  END LOOP;
+END $$;
