@@ -244,4 +244,51 @@ BEGIN
 
     UPDATE prompts SET current_version_id = new_version_id WHERE id = new_prompt_id;
   END LOOP;
+
+  -- prompts_current_version_fk is DEFERRABLE INITIALLY DEFERRED, so the
+  -- inserts above leave pending constraint checks until the transaction
+  -- commits — and this whole file runs as ONE transaction. Postgres refuses
+  -- any later ALTER TABLE prompts in the same transaction while checks are
+  -- pending ("cannot ALTER TABLE because it has pending trigger events"),
+  -- which would roll back this entire file and leave every statement after
+  -- this block (including newer migrations) silently unapplied. Running the
+  -- check now makes this block self-contained wherever it sits in the file.
+  SET CONSTRAINTS prompts_current_version_fk IMMEDIATE;
 END $$;
+
+-- Prompt sharing, copy provenance, version source.
+--
+-- prompts.name is the prompt's title (the API exposes it as `title`). It was
+-- not renamed to `title` in the database: a rename would break the old server
+-- instance still serving during a deploy's overlap, and nothing else needs
+-- it. Renaming a prompt updates this column only — a title is metadata, not
+-- prompt content, so it never creates a version.
+
+-- How a version came to exist: generated | regenerated | edited | restored |
+-- copied. Nullable on purpose — versions that predate this column can't be
+-- backfilled (prompt_versions is immutable, and the trigger above would
+-- rightly reject the UPDATE), so NULL means "unknown" and readers derive a
+-- label from version_number / restored_from_version_id instead.
+ALTER TABLE prompt_versions ADD COLUMN IF NOT EXISTS source TEXT;
+
+-- Provenance for "Build on this" / "Save a copy". SET NULL, not CASCADE: a
+-- copy belongs to whoever made it and must survive the original being
+-- deleted (or its owner's account being deleted).
+ALTER TABLE prompts ADD COLUMN IF NOT EXISTS copied_from_prompt_id UUID REFERENCES prompts(id) ON DELETE SET NULL;
+ALTER TABLE prompts ADD COLUMN IF NOT EXISTS copied_from_version_id UUID REFERENCES prompt_versions(id) ON DELETE SET NULL;
+
+-- Private user-to-user sharing of a *logical prompt* — a recipient always
+-- sees the owner's current version, not a snapshot. The owner is not stored
+-- here: prompts.user_id already is the owner, and a second copy of that fact
+-- could drift. `permission` only has 'viewer' today; the column exists so an
+-- editor level can be added later without another migration.
+CREATE TABLE IF NOT EXISTS prompt_shares (
+  id                   UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  prompt_id            UUID NOT NULL REFERENCES prompts(id) ON DELETE CASCADE,
+  shared_with_user_id  UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  permission           TEXT NOT NULL DEFAULT 'viewer' CHECK (permission IN ('viewer')),
+  created_at           TIMESTAMPTZ NOT NULL DEFAULT now(),
+  UNIQUE (prompt_id, shared_with_user_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_prompt_shares_shared_with ON prompt_shares(shared_with_user_id);

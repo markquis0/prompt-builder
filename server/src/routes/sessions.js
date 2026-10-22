@@ -2,7 +2,7 @@ import { Router } from "express";
 import { pool } from "../db/pool.js";
 import { requireAuth } from "../middleware/requireAuth.js";
 import { parsePagination } from "../lib/pagination.js";
-import { addVersion, createPromptWithFirstVersion, promptNameFrom, VersionError } from "../lib/promptVersions.js";
+import { addVersion, createPromptWithFirstVersion, defaultTitleFrom, VersionError } from "../lib/promptVersions.js";
 
 const router = Router();
 
@@ -101,6 +101,7 @@ async function insertSession(userId, body) {
         qaPairs: row.qa_pairs,
         supportingContext: row.supporting_context,
         sessionId: row.id,
+        source: "generated",
       };
       let created;
       if (promptId !== undefined && promptId !== null) {
@@ -110,21 +111,24 @@ async function insertSession(userId, body) {
         created = await addVersion(client, {
           promptId,
           userId,
-          buildVersion: () => ({ ...version, changeNote: "Regenerated from updated answers" }),
+          buildVersion: () => ({ ...version, source: "regenerated", changeNote: "Regenerated from updated answers" }),
         });
         if (!created) throw new VersionError(404, "Prompt not found.");
       } else {
         created = await createPromptWithFirstVersion(client, {
           userId,
-          name: promptNameFrom(row.original_prompt),
+          name: defaultTitleFrom(row.original_prompt),
           promptType: row.category,
           version,
         });
       }
+      const { rows: titleRows } = await client.query("SELECT name FROM prompts WHERE id = $1", [created.promptId]);
       prompt = {
         id: created.promptId,
+        title: titleRows[0].name,
         versionId: created.version.id,
         versionNumber: created.version.version_number,
+        versionCreatedAt: created.version.created_at,
       };
     }
 

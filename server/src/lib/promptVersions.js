@@ -7,16 +7,34 @@
 // own BEGIN/COMMIT so a version write can be atomic with whatever else
 // they're doing (e.g. sessions.js inserting the session row too).
 
-const NAME_MAX = 80;
+// Longest title a user may give a prompt. Default titles are shorter (below).
+export const TITLE_MAX_LENGTH = 120;
+const DEFAULT_TITLE_MAX = 60;
 
-export function promptNameFrom(originalPrompt) {
-  return originalPrompt.trim().slice(0, NAME_MAX);
+// Deterministic starting title for a new prompt, used until the user renames
+// it: the first sentence of what they typed, trimmed to a word boundary.
+// Deliberately no extra LLM call just to name something — manual rename is
+// the real feature. Existing prompts keep whatever title they already have.
+export function defaultTitleFrom(originalPrompt) {
+  const oneLine = String(originalPrompt || "").replace(/\s+/g, " ").trim();
+  const sentenceEnd = oneLine.search(/[.!?](\s|$)/);
+  let title = sentenceEnd > 0 ? oneLine.slice(0, sentenceEnd) : oneLine;
+  if (title.length > DEFAULT_TITLE_MAX) {
+    title = title.slice(0, DEFAULT_TITLE_MAX).replace(/\s+\S*$/, "") + "…";
+  }
+  return title || "Untitled prompt";
 }
 
-export async function createPromptWithFirstVersion(client, { userId, name, promptType, version }) {
+export const VERSION_SOURCES = ["generated", "regenerated", "edited", "restored", "copied"];
+
+export async function createPromptWithFirstVersion(
+  client,
+  { userId, name, promptType, version, copiedFromPromptId, copiedFromVersionId }
+) {
   const { rows: promptRows } = await client.query(
-    "INSERT INTO prompts (user_id, name, prompt_type) VALUES ($1, $2, $3) RETURNING id",
-    [userId, name, promptType || null]
+    `INSERT INTO prompts (user_id, name, prompt_type, copied_from_prompt_id, copied_from_version_id)
+     VALUES ($1, $2, $3, $4, $5) RETURNING id`,
+    [userId, name, promptType || null, copiedFromPromptId || null, copiedFromVersionId || null]
   );
   const promptId = promptRows[0].id;
   const versionRow = await insertVersion(client, { promptId, userId, versionNumber: 1, parentVersionId: null, ...version });
@@ -92,14 +110,15 @@ async function insertVersion(
     changeNote,
     restoredFromVersionId,
     sessionId,
+    source,
   }
 ) {
   const { rows } = await client.query(
     `INSERT INTO prompt_versions
        (prompt_id, version_number, content, prompt_object, original_prompt, qa_pairs,
         supporting_context, change_note, parent_version_id, restored_from_version_id,
-        created_by, session_id)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+        created_by, session_id, source)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
      RETURNING *`,
     [
       promptId,
@@ -114,6 +133,7 @@ async function insertVersion(
       restoredFromVersionId || null,
       userId,
       sessionId || null,
+      VERSION_SOURCES.includes(source) ? source : null,
     ]
   );
   return rows[0];
