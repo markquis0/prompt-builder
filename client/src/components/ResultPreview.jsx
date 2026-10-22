@@ -94,7 +94,9 @@ export default function ResultPreview({
   // uses a single "raw" key, same mechanism either way.
   const editKey = hasPromptObject ? activeModel : "raw";
   const baseText = hasPromptObject ? variants[activeModel] ?? rawAssembled : rawAssembled;
-  const displayText = editedVariants[editKey] ?? baseText;
+  // Final "" fallback: a resumed session whose rawAssembled is missing
+  // should render empty, not crash highlightTags/stripFormatting on .split.
+  const displayText = editedVariants[editKey] ?? baseText ?? "";
 
   function handleTabClick(key) {
     const isLocked = key !== "generic" && !isPaidUser;
