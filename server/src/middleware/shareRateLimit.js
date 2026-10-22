@@ -15,3 +15,16 @@ export const shareLimiter = rateLimit({
   legacyHeaders: false,
   message: { error: "You've shared a lot of prompts recently. Please try again later." },
 });
+
+// Adding a team member is the same "is there an account for this email?"
+// lookup as sharing, so it gets the same per-user cap — but its own counter,
+// so a manager populating a team isn't throttled by (or throttling) their
+// prompt sharing.
+export const teamMemberLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  limit: 60,
+  keyGenerator: (req) => req.userId,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: "You've added a lot of people recently. Please try again later." },
+});

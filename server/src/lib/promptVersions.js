@@ -25,7 +25,7 @@ export function defaultTitleFrom(originalPrompt) {
   return title || "Untitled prompt";
 }
 
-export const VERSION_SOURCES = ["generated", "regenerated", "edited", "restored", "copied"];
+export const VERSION_SOURCES = ["generated", "regenerated", "edited", "restored", "copied", "improved"];
 
 export async function createPromptWithFirstVersion(
   client,

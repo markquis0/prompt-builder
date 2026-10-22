@@ -1,7 +1,13 @@
 import { Router } from "express";
 import { pool } from "../db/pool.js";
 import { requireAuth } from "../middleware/requireAuth.js";
+import { requirePaid } from "../middleware/requirePaid.js";
+import { critiqueLimiter } from "../middleware/scoreRateLimit.js";
 import { shareLimiter } from "../middleware/shareRateLimit.js";
+import { llm } from "../lib/llm.js";
+import { stripCodeFences } from "../lib/jsonUtils.js";
+import { isValidCritiquePayload, totalScore, MAX_SCORE } from "../lib/critique.js";
+import { getImproveSystemPrompt, buildImproveUserMessage, IMPROVE_META_PROMPT_VERSION } from "../lib/prompts.js";
 import { parsePagination } from "../lib/pagination.js";
 import { parseAssembledPrompt } from "../lib/promptObject.js";
 import { loadPrompt, UUID_RE } from "../lib/promptAccess.js";
@@ -50,8 +56,15 @@ function ownerName(row) {
   return `${row.owner_first_name || ""} ${row.owner_last_name || ""}`.trim();
 }
 
+// `via` says which route(s) gave a viewer access — direct share, a team, or
+// both. They're equivalent (both read-only); it's here so the UI can say
+// "Official Team Prompt" vs "Shared by".
 function sanitizeAccess(row) {
-  return { role: row.role, owner: { name: ownerName(row) } };
+  return {
+    role: row.role,
+    via: { direct: Boolean(row.via_direct), team: Boolean(row.via_team) },
+    owner: { name: ownerName(row) },
+  };
 }
 
 // Everything except the bodies — what the version-history list renders.
@@ -133,7 +146,14 @@ router.get("/", requireAuth, async (req, res) => {
     const { rows } = await pool.query(
       `SELECT p.*, cv.version_number AS current_version_number,
               (SELECT COUNT(*)::int FROM prompt_versions WHERE prompt_id = p.id) AS version_count,
-              (SELECT COUNT(*)::int FROM prompt_shares WHERE prompt_id = p.id) AS share_count
+              (SELECT COUNT(*)::int FROM prompt_shares WHERE prompt_id = p.id) AS share_count,
+              -- Real, stored activity: how many people built their own prompt
+              -- from this one ("Build on this"), via copy provenance.
+              (SELECT COUNT(*)::int FROM prompts c WHERE c.copied_from_prompt_id = p.id) AS build_count,
+              ARRAY(
+                SELECT t.name FROM team_prompts tp JOIN teams t ON t.id = tp.team_id
+                WHERE tp.prompt_id = p.id ORDER BY t.name
+              ) AS team_names
        FROM prompts p
        LEFT JOIN prompt_versions cv ON cv.id = p.current_version_id
        WHERE p.user_id = $1
@@ -147,6 +167,8 @@ router.get("/", requireAuth, async (req, res) => {
         currentVersionNumber: row.current_version_number,
         versionCount: row.version_count,
         shareCount: row.share_count,
+        buildCount: row.build_count,
+        teamNames: row.team_names,
       })),
       limit,
       offset,
@@ -196,9 +218,22 @@ router.get("/shared", requireAuth, async (req, res) => {
 router.get("/:id", requireAuth, anyAccess, async (req, res) => {
   try {
     const { rows } = await pool.query(`${VERSION_SELECT} WHERE v.id = $1`, [req.prompt.current_version_id]);
+    // The teams this prompt is an official prompt of — all of them for its
+    // owner, and only the ones the viewer belongs to for everyone else
+    // (membership in other teams isn't theirs to see).
+    const { rows: teamRows } = await pool.query(
+      `SELECT t.id, t.name
+       FROM team_prompts tp
+       JOIN teams t ON t.id = tp.team_id
+       WHERE tp.prompt_id = $1
+         AND ($2 OR EXISTS (SELECT 1 FROM team_members tm WHERE tm.team_id = t.id AND tm.user_id = $3))
+       ORDER BY t.name`,
+      [req.prompt.id, req.prompt.role === "owner", req.userId]
+    );
     res.json({
       prompt: sanitizePrompt(req.prompt),
       access: sanitizeAccess(req.prompt),
+      teams: teamRows,
       currentVersion: rows[0] ? sanitizeVersion(rows[0], req.prompt.role) : null,
     });
   } catch (err) {
@@ -282,7 +317,7 @@ router.get("/:id/versions/:number", requireAuth, anyAccess, async (req, res) => 
 // are renderings of a version's parsed sections (prompt_object, re-derived
 // here from the text), not separately versioned things.
 router.post("/:id/versions", requireAuth, ownerOnly, async (req, res) => {
-  const { content, changeNote } = req.body || {};
+  const { content, changeNote, source, baseVersionNumber } = req.body || {};
   if (typeof content !== "string" || content.trim().length === 0) {
     return res.status(400).json({ error: "A non-empty 'content' is required." });
   }
@@ -291,6 +326,13 @@ router.post("/:id/versions", requireAuth, ownerOnly, async (req, res) => {
       error: `Prompt exceeds ${MAX_CONTENT_LENGTH.toLocaleString()} character limit.`,
     });
   }
+  // Only two sources can arrive here: a hand edit, or an accepted Improve
+  // suggestion. Anything else is a plain edit rather than an error.
+  const versionSource = source === "improved" ? "improved" : "edited";
+  const hasBase = baseVersionNumber !== undefined && baseVersionNumber !== null;
+  if (hasBase && !Number.isInteger(baseVersionNumber)) {
+    return res.status(400).json({ error: "Invalid baseVersionNumber." });
+  }
 
   const result = await withTransaction(res, "POST /api/prompts/:id/versions", (client) =>
     addVersion(client, {
@@ -298,6 +340,15 @@ router.post("/:id/versions", requireAuth, ownerOnly, async (req, res) => {
       userId: req.userId,
       buildVersion: (current) => {
         const note = validateChangeNote(changeNote);
+        // A suggestion was generated from a specific version; if the prompt
+        // has moved on since (another tab, a restore), saving it as the next
+        // version would silently discard those newer changes.
+        if (hasBase && current && current.version_number !== baseVersionNumber) {
+          throw new VersionError(
+            409,
+            "This prompt changed since the suggestion was made. Run Improve again on the latest version."
+          );
+        }
         if (current && current.content === content) {
           throw new VersionError(409, "This matches the current version — nothing to save.");
         }
@@ -307,8 +358,8 @@ router.post("/:id/versions", requireAuth, ownerOnly, async (req, res) => {
           originalPrompt: current?.original_prompt,
           qaPairs: current?.qa_pairs,
           supportingContext: current?.supporting_context,
-          changeNote: note,
-          source: "edited",
+          changeNote: note || (versionSource === "improved" ? "Improved with PromptMe suggestions" : null),
+          source: versionSource,
         };
       },
     })
@@ -365,6 +416,87 @@ router.post("/:id/versions/:number/restore", requireAuth, ownerOnly, async (req,
   }
   const { rows } = await pool.query(`${VERSION_SELECT} WHERE v.id = $1`, [result.version.id]);
   res.status(201).json({ version: sanitizeVersion(rows[0], "owner") });
+});
+
+// --- Improve this prompt -------------------------------------------------
+
+// One model call that grades the prompt with the same rubric as the Pro
+// critique AND proposes a rewrite — see getImproveSystemPrompt. Nothing is
+// saved here: the suggestion comes back for the owner to review as a diff,
+// optionally edit, and explicitly accept (POST /:id/versions with
+// source "improved"). It improves the canonical Generic text; the
+// Claude/ChatGPT/Gemini views are re-derived from whatever gets saved.
+//
+// Pro-only like the existing critique (it spends the same paid model call),
+// owner-only (a viewer must "Build on this" first and improve their own
+// copy), and sharing the critique's per-user hourly budget.
+router.post("/:id/improve", requirePaid, ownerOnly, critiqueLimiter, async (req, res) => {
+  const { versionNumber } = req.body || {};
+  let wanted = null;
+  if (versionNumber !== undefined && versionNumber !== null) {
+    wanted = parseVersionNumber(String(versionNumber));
+    if (wanted === null) {
+      return res.status(400).json({ error: "Invalid version number." });
+    }
+  }
+
+  try {
+    const { rows } =
+      wanted === null
+        ? await pool.query("SELECT * FROM prompt_versions WHERE id = $1", [req.prompt.current_version_id])
+        : await pool.query("SELECT * FROM prompt_versions WHERE prompt_id = $1 AND version_number = $2", [
+            req.prompt.id,
+            wanted,
+          ]);
+    const base = rows[0];
+    if (!base) {
+      return res.status(404).json({ error: "Version not found." });
+    }
+
+    const raw = await llm.call({
+      system: getImproveSystemPrompt(),
+      userMessage: buildImproveUserMessage({ prompt: base.content }),
+      maxTokens: 3072,
+      timeoutMs: 30000,
+    });
+
+    let parsed;
+    try {
+      parsed = JSON.parse(stripCodeFences(raw));
+    } catch {
+      console.error("[prompt-builder] Failed to parse improve JSON:", raw);
+      return res.status(502).json({ error: "The model returned a response we couldn't parse. Please try again." });
+    }
+    const improved = parsed?.improvedPrompt;
+    if (
+      !isValidCritiquePayload(parsed) ||
+      typeof improved !== "string" ||
+      improved.trim().length === 0 ||
+      improved.length > MAX_CONTENT_LENGTH ||
+      // A usable rewrite still has a <task> — otherwise it isn't a prompt
+      // in this app's format and shouldn't be offered.
+      !parseAssembledPrompt(improved).task
+    ) {
+      console.error("[prompt-builder] Improve payload failed validation:", parsed);
+      return res.status(502).json({ error: "The model returned an unexpected response. Please try again." });
+    }
+
+    res.json({
+      baseVersionNumber: base.version_number,
+      baseIsCurrent: base.id === req.prompt.current_version_id,
+      critique: {
+        dimensions: parsed.dimensions,
+        score: totalScore(parsed.dimensions),
+        maxScore: MAX_SCORE,
+      },
+      improvedContent: improved.trim(),
+      unchanged: improved.trim() === base.content.trim(),
+      improveVersion: IMPROVE_META_PROMPT_VERSION,
+    });
+  } catch (err) {
+    console.error("[prompt-builder] POST /api/prompts/:id/improve error:", err);
+    res.status(500).json({ error: "Failed to improve this prompt. Please try again." });
+  }
 });
 
 // --- Copy ("Build on this" / "Save a copy") -----------------------------

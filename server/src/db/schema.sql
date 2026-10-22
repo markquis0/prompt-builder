@@ -292,3 +292,50 @@ CREATE TABLE IF NOT EXISTS prompt_shares (
 );
 
 CREATE INDEX IF NOT EXISTS idx_prompt_shares_shared_with ON prompt_shares(shared_with_user_id);
+
+-- Teams: a lightweight workspace so an owner can publish official prompts to
+-- a group once instead of sharing each prompt person by person.
+--
+-- Two roles, 'owner' and 'member'. teams.created_by IS the owner — there is
+-- no ownership transfer yet — and it cascades: deleting the owner's account
+-- deletes the team (and, through it, memberships and publications), because
+-- a team must never be left without an owner. The owner also gets a
+-- team_members row (role 'owner') so "who is in this team" is one uniform
+-- query; the partial unique index below guarantees exactly one such row.
+-- When transfer is added later, created_by and that row move together.
+CREATE TABLE IF NOT EXISTS teams (
+  id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name        TEXT NOT NULL,
+  created_by  UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at  TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS team_members (
+  id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  team_id     UUID NOT NULL REFERENCES teams(id) ON DELETE CASCADE,
+  user_id     UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  role        TEXT NOT NULL CHECK (role IN ('owner', 'member')),
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
+  UNIQUE (team_id, user_id)
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_team_members_one_owner ON team_members(team_id) WHERE role = 'owner';
+CREATE INDEX IF NOT EXISTS idx_team_members_user ON team_members(user_id);
+
+-- A team's official prompts are an ASSOCIATION to the logical prompt, never
+-- a copy: the prompt's current version is whatever its owner last saved, so
+-- members see v8 the moment it exists. Deleting a team (or removing a
+-- prompt from it) deletes only this row — the prompt, its versions and its
+-- owner's library are untouched. Deleting the prompt removes its
+-- publications.
+CREATE TABLE IF NOT EXISTS team_prompts (
+  id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  team_id       UUID NOT NULL REFERENCES teams(id) ON DELETE CASCADE,
+  prompt_id     UUID NOT NULL REFERENCES prompts(id) ON DELETE CASCADE,
+  published_by  UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  created_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
+  UNIQUE (team_id, prompt_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_team_prompts_prompt ON team_prompts(prompt_id);

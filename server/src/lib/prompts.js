@@ -178,8 +178,11 @@ export const CRITIQUE_META_PROMPT_VERSION = "v1-checklist-7dim";
 // completeness.js on the client for why: Layer 1 already checks these same
 // 7 fields for presence/absence. Layer 2 grades HOW WELL each one was
 // specified, not just whether it's present.
-export function getCritiqueSystemPrompt() {
-  return `You are grading how well-specified a prompt is — NOT how good the
+// The grading rubric itself — the single definition of "how we grade a
+// prompt". Shared by the standalone critique and by Improve (which grades
+// with it and then rewrites), so the two can never drift into two different
+// critique systems.
+const CRITIQUE_RUBRIC = `You are grading how well-specified a prompt is — NOT how good the
 output would be. This distinction matters: research on prompt engineering
 shows technique effects are contingent and inconsistent, so there is no
 universal way to predict output quality from a prompt. What CAN be graded
@@ -219,11 +222,9 @@ If a dimension is already fully specified (score 2), diagnosis and fix
 should say so briefly rather than inventing something to criticize —
 never manufacture a fix for a dimension that doesn't need one.
 
-Respond with ONLY valid JSON, no preamble, no markdown code fences,
-matching exactly this schema:
+`;
 
-{
-  "dimensions": {
+const CRITIQUE_DIMENSIONS_SCHEMA = `{
     "task": { "present": boolean, "score": 0|1|2, "diagnosis": "string", "fix": "string" },
     "audience": { "present": boolean, "score": 0|1|2, "diagnosis": "string", "fix": "string" },
     "format": { "present": boolean, "score": 0|1|2, "diagnosis": "string", "fix": "string" },
@@ -231,8 +232,55 @@ matching exactly this schema:
     "constraints": { "present": boolean, "score": 0|1|2, "diagnosis": "string", "fix": "string" },
     "example": { "present": boolean, "score": 0|1|2, "diagnosis": "string", "fix": "string" },
     "success_criteria": { "present": boolean, "score": 0|1|2, "diagnosis": "string", "fix": "string" }
-  }
+  }`;
+
+export function getCritiqueSystemPrompt() {
+  return `${CRITIQUE_RUBRIC}Respond with ONLY valid JSON, no preamble, no markdown code fences,
+matching exactly this schema:
+
+{
+  "dimensions": ${CRITIQUE_DIMENSIONS_SCHEMA}
 }`;
+}
+
+// Improve = the critique above, plus a rewrite, in ONE call. Grading first
+// and rewriting second inside a single response is what keeps the rewrite
+// anchored to the specific diagnoses instead of a vague "make it better".
+export const IMPROVE_META_PROMPT_VERSION = "v1-critique-plus-rewrite";
+
+export function getImproveSystemPrompt() {
+  return `${CRITIQUE_RUBRIC}After grading, ALSO rewrite the prompt so every dimension that scored below 2
+is fixed, following the "fix" you wrote for it. Rules for the rewrite:
+- Keep the author's intent, voice, and everything already specific and good.
+  Change only what the grading says is missing or vague; do not rewrite
+  sentences that are already fine.
+- Do not invent facts the author never gave (names, numbers, products,
+  audiences). Where a fix needs information only the author has, write a
+  short bracketed placeholder such as [target audience] or [word limit]
+  instead of guessing. Where something is strongly implied by the prompt,
+  you may state it plainly.
+- Keep exactly the same format as the input: the same XML-style tags
+  (<task>, <context>, <audience>, <tone>, <format>, <constraints>,
+  <examples>, <success_criteria>, <background>), each on its own line with
+  its content beneath. Add a tag only if you are adding content for it; keep
+  the tags that are already there. Output the full rewritten prompt, not a
+  diff or a summary.
+- If every dimension already scores 2, return the prompt unchanged.
+
+Respond with ONLY valid JSON, no preamble, no markdown code fences,
+matching exactly this schema:
+
+{
+  "dimensions": ${CRITIQUE_DIMENSIONS_SCHEMA},
+  "improvedPrompt": "the full rewritten prompt, as a single JSON string"
+}`;
+}
+
+export function buildImproveUserMessage({ prompt }) {
+  return `Prompt to grade and improve:
+"""
+${prompt}
+"""`;
 }
 
 export function buildCritiqueUserMessage({ originalPrompt, assembledPrompt }) {

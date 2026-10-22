@@ -158,3 +158,75 @@ describe("migration: versioning v1 -> sharing schema", () => {
     assert.equal(rows[0].n, 3);
   });
 });
+
+// Production's state after the sharing release: prompts, versions, direct
+// shares and a copy already exist. Adding teams must leave all of it exactly
+// as it was and add only new, empty tables.
+describe("migration: sharing v1 -> teams", () => {
+  const SHARING_V1 = join(FIXTURES, "schema_sharing_v1.sql");
+  const OWNER = "11111111-1111-1111-1111-111111111111";
+  const FRIEND = "44444444-4444-4444-4444-444444444444";
+  const P1 = "22222222-2222-2222-2222-222222222221";
+  const P2 = "22222222-2222-2222-2222-222222222222";
+  const V1 = "33333333-3333-3333-3333-333333333331";
+  const V2 = "33333333-3333-3333-3333-333333333332";
+  let db;
+
+  before(async () => {
+    db = await createScratchDb([SHARING_V1]);
+    await db.query(
+      `INSERT INTO users (id, email, password_hash, first_name, last_name) VALUES
+         ($1, 'owner@example.com', 'x', 'O', 'W'), ($2, 'friend@example.com', 'x', 'F', 'R')`,
+      [OWNER, FRIEND]
+    );
+    await db.query(`INSERT INTO prompts (id, user_id, name) VALUES ($1, $3, 'Original'), ($2, $4, 'A copy')`, [P1, P2, OWNER, FRIEND]);
+    await db.query(
+      `INSERT INTO prompt_versions (id, prompt_id, version_number, content, created_by, source) VALUES
+         ($1, $3, 1, 'one', $4, 'generated'), ($2, $3, 2, 'two', $4, 'edited')`,
+      [V1, V2, P1, OWNER]
+    );
+    await db.query("UPDATE prompts SET current_version_id = $1 WHERE id = $2", [V2, P1]);
+    await db.query("UPDATE prompts SET copied_from_prompt_id = $1, copied_from_version_id = $2 WHERE id = $3", [P1, V1, P2]);
+    await db.query("INSERT INTO prompt_shares (prompt_id, shared_with_user_id) VALUES ($1, $2)", [P1, FRIEND]);
+    await db.applySchemaFile(CURRENT_SCHEMA);
+  });
+  after(() => db.drop());
+
+  test("existing prompts, versions, direct shares and copy provenance are untouched", async () => {
+    const { rows: versions } = await db.query("SELECT version_number, content, source FROM prompt_versions ORDER BY content");
+    assert.deepEqual(versions, [
+      { version_number: 1, content: "one", source: "generated" },
+      { version_number: 2, content: "two", source: "edited" },
+    ]);
+    assert.equal((await db.query("SELECT count(*)::int AS n FROM prompt_shares")).rows[0].n, 1);
+    const copy = (await db.query("SELECT copied_from_prompt_id, copied_from_version_id FROM prompts WHERE id = $1", [P2])).rows[0];
+    assert.deepEqual(copy, { copied_from_prompt_id: P1, copied_from_version_id: V1 });
+  });
+
+  test("team tables exist and start empty", async () => {
+    for (const t of ["teams", "team_members", "team_prompts"]) {
+      assert.equal((await db.query(`SELECT count(*)::int AS n FROM ${t}`)).rows[0].n, 0, t);
+    }
+  });
+
+  test("constraints: roles, one owner per team, one membership per user, one publication per prompt", async () => {
+    const TEAM = "55555555-5555-5555-5555-555555555555";
+    await db.query("INSERT INTO teams (id, name, created_by) VALUES ($1, 'T', $2)", [TEAM, OWNER]);
+    await db.query("INSERT INTO team_members (team_id, user_id, role) VALUES ($1, $2, 'owner')", [TEAM, OWNER]);
+    await assert.rejects(db.query("INSERT INTO team_members (team_id, user_id, role) VALUES ($1, $2, 'admin')", [TEAM, FRIEND]), /check/i);
+    await assert.rejects(db.query("INSERT INTO team_members (team_id, user_id, role) VALUES ($1, $2, 'owner')", [TEAM, FRIEND]), /unique/i);
+    await db.query("INSERT INTO team_members (team_id, user_id, role) VALUES ($1, $2, 'member')", [TEAM, FRIEND]);
+    await assert.rejects(db.query("INSERT INTO team_members (team_id, user_id, role) VALUES ($1, $2, 'member')", [TEAM, FRIEND]), /unique/i);
+    await db.query("INSERT INTO team_prompts (team_id, prompt_id, published_by) VALUES ($1, $2, $3)", [TEAM, P1, OWNER]);
+    await assert.rejects(db.query("INSERT INTO team_prompts (team_id, prompt_id, published_by) VALUES ($1, $2, $3)", [TEAM, P1, OWNER]), /unique/i);
+  });
+
+  test("deleting the team removes publications and memberships, not the prompt; re-running the migration is harmless", async () => {
+    await db.query("DELETE FROM teams WHERE name = 'T'");
+    assert.equal((await db.query("SELECT count(*)::int AS n FROM team_prompts")).rows[0].n, 0);
+    assert.equal((await db.query("SELECT count(*)::int AS n FROM team_members")).rows[0].n, 0);
+    assert.equal((await db.query("SELECT count(*)::int AS n FROM prompts WHERE id = $1", [P1])).rows[0].n, 1);
+    await db.applySchemaFile(CURRENT_SCHEMA);
+    assert.equal((await db.query("SELECT count(*)::int AS n FROM prompt_versions")).rows[0].n, 2);
+  });
+});

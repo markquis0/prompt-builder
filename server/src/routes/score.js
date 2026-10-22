@@ -5,10 +5,10 @@ import { stripCodeFences } from "../lib/jsonUtils.js";
 import { requirePaid } from "../middleware/requirePaid.js";
 import { critiqueLimiter } from "../middleware/scoreRateLimit.js";
 import { pool } from "../db/pool.js";
+import { isValidCritiquePayload } from "../lib/critique.js";
 
 const router = Router();
 
-const DIMENSIONS = ["task", "audience", "format", "context", "constraints", "example", "success_criteria"];
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 // Mirrors MAX_PROMPT_LENGTH in questions.js. assembledPrompt gets more
@@ -16,20 +16,6 @@ const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
 // sections) rather than the user's raw typed prompt.
 const MAX_ORIGINAL_PROMPT_LENGTH = 5000;
 const MAX_ASSEMBLED_PROMPT_LENGTH = 20000;
-
-function isValidCritiquePayload(payload) {
-  if (!payload || typeof payload.dimensions !== "object" || payload.dimensions === null) return false;
-  return DIMENSIONS.every((dim) => {
-    const d = payload.dimensions[dim];
-    return (
-      d &&
-      typeof d.present === "boolean" &&
-      [0, 1, 2].includes(d.score) &&
-      typeof d.diagnosis === "string" &&
-      typeof d.fix === "string"
-    );
-  });
-}
 
 // On-demand only — never called automatically after assembly (that would
 // spend a paid user's API cost on every single build, including ones they
