@@ -173,3 +173,24 @@
 .diff-same {
   color: var(--text-muted);
 }
+
+.prompt-detail-shared-by {
+  margin: 4px 0 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--accent);
+}
+
+.prompt-detail-top-actions {
+  margin-top: 16px;
+}
+
+.version-item-source {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.prompt-detail .model-tabs {
+  margin-bottom: 8px;
+}

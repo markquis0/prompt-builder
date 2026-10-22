@@ -139,7 +139,7 @@ export default function CompletenessScore({ promptObject, originalPrompt, rawAss
             <span key={check.field} className="completeness-pill completeness-pill-complete">
               <span aria-hidden="true">✓</span> {check.label}
             </span>
-          ) : (
+          ) : onEditAnswers ? (
             <button
               key={check.field}
               type="button"
@@ -148,6 +148,12 @@ export default function CompletenessScore({ promptObject, originalPrompt, rawAss
             >
               + Add {check.label}
             </button>
+          ) : (
+            // No Q&A to go back to (a prompt that began as a copy) — show the
+            // gap without a button that would do nothing.
+            <span key={check.field} className="completeness-pill completeness-pill-incomplete">
+              Missing: {check.label}
+            </span>
           )
         )}
       </div>
@@ -163,9 +169,11 @@ export default function CompletenessScore({ promptObject, originalPrompt, rawAss
                 <p className="critique-diagnosis">{critiqueDim.diagnosis}</p>
                 <p className="critique-fix">
                   <strong>Fix:</strong> {critiqueDim.fix}{" "}
-                  <button type="button" className="link-button" onClick={onEditAnswers}>
-                    Edit answers →
-                  </button>
+                  {onEditAnswers && (
+                    <button type="button" className="link-button" onClick={onEditAnswers}>
+                      Edit answers →
+                    </button>
+                  )}
                 </p>
               </li>
             );

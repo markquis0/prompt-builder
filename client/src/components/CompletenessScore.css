@@ -184,3 +184,9 @@
   color: var(--text-muted);
   line-height: 1.5;
 }
+
+/* The non-interactive "Missing: X" pill (no Q&A to go back to). */
+span.completeness-pill-incomplete,
+span.completeness-pill-incomplete:hover {
+  cursor: default;
+}

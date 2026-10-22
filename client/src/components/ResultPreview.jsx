@@ -7,6 +7,8 @@ import { copyToClipboard, COPY_CONFIRMATION_MS } from "../clipboard.js";
 import { RENDERERS } from "../renderers/index.js";
 import { useAuth } from "../context/AuthContext.jsx";
 import { createCheckoutSession } from "../api.js";
+import { formatDate } from "../formatSession.js";
+import InlineTitle from "./InlineTitle.jsx";
 import { useStripeRedirect } from "../useStripeRedirect.js";
 import "./ResultPreview.css";
 
@@ -53,8 +55,11 @@ export default function ResultPreview({
   sessionId,
   onStartOver,
   promptId,
+  promptTitle,
   versionNumber,
+  versionCreatedAt,
   onSaveVersion,
+  onRenamePrompt,
 }) {
   const [activeModel, setActiveModel] = useState("generic");
   const [editedVariants, setEditedVariants] = useState({});
@@ -127,6 +132,11 @@ export default function ResultPreview({
       // parsed object — a saved edit shouldn't visibly change on save. Once
       // saved, rawAssembled equals it, so canSaveVersion goes false again.
       await onSaveVersion(genericEdit, changeNote.trim());
+      // Edits on the Claude/ChatGPT/Gemini tabs were typed over renderings of
+      // the *previous* canonical text. Left in place they'd keep showing
+      // that stale text on the new version's tabs, so a saved version must
+      // never leave a derived view behind that disagrees with it.
+      setEditedVariants((prev) => ({ [genericKey]: prev[genericKey] }));
       setChangeNote("");
       setVersionSaved(true);
       setTimeout(() => setVersionSaved(false), COPY_CONFIRMATION_MS);
@@ -221,22 +231,31 @@ export default function ResultPreview({
     <>
       <div className="card result-preview">
         <div className="result-header">
-          <h2>
-            Your structured prompt
-            {promptId && versionNumber && (
-              <span className="result-version-label">
-                {" "}
-                · Version {versionNumber} ·{" "}
+          {promptId && versionNumber ? (
+            <div className="saved-prompt-heading">
+              <InlineTitle
+                as="h2"
+                title={promptTitle || "Untitled prompt"}
+                canEdit={Boolean(onRenamePrompt)}
+                onSave={onRenamePrompt}
+              />
+              <p className="saved-prompt-meta">
+                Version {versionNumber}
+                {versionCreatedAt && <> · Last updated {formatDate(versionCreatedAt)}</>} ·{" "}
                 <Link to={`/history/${promptId}`} className="result-version-link">
                   Version history
                 </Link>
-              </span>
-            )}
-          </h2>
+              </p>
+            </div>
+          ) : (
+            <h2>Your structured prompt</h2>
+          )}
           <div className="result-header-actions">
-            <button type="button" className="link-button" onClick={onEditAnswers}>
-              Edit answers
-            </button>
+            {onEditAnswers && (
+              <button type="button" className="link-button" onClick={onEditAnswers}>
+                Edit answers
+              </button>
+            )}
             {onStartOver && (
               <button type="button" className="link-button" onClick={onStartOver}>
                 New prompt
@@ -282,6 +301,18 @@ export default function ResultPreview({
               );
             })}
           </div>
+        )}
+
+        {/* Model tabs are renderings of ONE canonical version (the Generic
+            text) — not versions of their own. Say which, so a view can't be
+            mistaken for something else. Edits made on a model tab are for
+            copying only and are never saved as a version. */}
+        {promptId && versionNumber && hasPromptObject && activeModel !== "generic" && (
+          <p className="model-render-note">
+            Rendered from Version {versionNumber}.
+            {editedVariants[activeModel] !== undefined &&
+              " Edits to this view are for copying only — only the Generic text is saved as a version."}
+          </p>
         )}
 
         {lockedCardModel && (
@@ -371,6 +402,7 @@ export default function ResultPreview({
           </button>
         </div>
 
+        {canSaveVersion && <p className="unsaved-changes">Unsaved changes</p>}
         {canSaveVersion && (
           <div className="save-version-bar">
             <input

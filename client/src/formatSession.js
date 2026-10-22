@@ -13,3 +13,10 @@ export function formatRelative(isoString) {
   if (days < 7) return `${days} days ago`;
   return new Date(isoString).toLocaleDateString(undefined, { month: "short", day: "numeric" });
 }
+
+// "Oct 22, 2026" — absolute date, for places that say when a version was
+// saved (formatRelative above is for compact list rows).
+export function formatDate(isoString) {
+  if (!isoString) return "";
+  return new Date(isoString).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
+}

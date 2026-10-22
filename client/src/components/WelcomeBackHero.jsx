@@ -49,7 +49,7 @@ const WelcomeBackHero = forwardRef(function WelcomeBackHero({ prompts }, ref) {
               disabled={resumingId === prompt.id}
             >
               <span className="welcome-back-session-text">
-                {resumingId === prompt.id ? "Loading…" : truncate(prompt.name)}
+                {resumingId === prompt.id ? "Loading…" : truncate(prompt.title)}
               </span>
               <span className="welcome-back-session-date">{formatRelative(prompt.updatedAt)}</span>
             </button>

@@ -171,6 +171,33 @@ export function restorePromptVersion(id, versionNumber) {
   return postJSON(`/api/prompts/${id}/versions/${versionNumber}/restore`, {});
 }
 
+export function renamePrompt(id, title) {
+  return patchJSON(`/api/prompts/${id}`, { title });
+}
+
+// "Build on this" / "Save a copy": a new prompt owned by the caller, whose
+// v1 is this prompt's current (or the given) version. Works on your own
+// prompts and on ones shared with you.
+export function copyPrompt(id, versionNumber) {
+  return postJSON(`/api/prompts/${id}/copy`, versionNumber ? { versionNumber } : {});
+}
+
+export function listSharedPrompts() {
+  return request("/api/prompts/shared");
+}
+
+export function listPromptShares(id) {
+  return request(`/api/prompts/${id}/shares`);
+}
+
+export function sharePrompt(id, email) {
+  return postJSON(`/api/prompts/${id}/shares`, { email });
+}
+
+export function removePromptShare(id, shareId) {
+  return request(`/api/prompts/${id}/shares/${shareId}`, { method: "DELETE" });
+}
+
 // --- Billing ---
 
 export function createCheckoutSession() {

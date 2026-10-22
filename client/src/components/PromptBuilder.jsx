@@ -5,7 +5,7 @@ import IntakeForm from "./IntakeForm.jsx";
 import BuilderStepper from "./BuilderStepper.jsx";
 import QAFlow from "./QAFlow.jsx";
 import ResultPreview from "./ResultPreview.jsx";
-import { fetchQuestions, assemblePrompt, saveServerSession, savePromptVersion } from "../api.js";
+import { fetchQuestions, assemblePrompt, saveServerSession, savePromptVersion, renamePrompt } from "../api.js";
 import { loadSession, saveSession, clearSession } from "../storage.js";
 import { useAuth } from "../context/AuthContext.jsx";
 import { scoreCompleteness, COMPLETENESS_BEFORE_EDIT_KEY } from "../completeness.js";
@@ -27,7 +27,9 @@ const EMPTY_SESSION = {
   // result screen offer "Save new version" and lets "Edit answers" +
   // regenerate add to the same prompt instead of starting a new one.
   promptId: null,
+  promptTitle: null,
   versionNumber: null,
+  versionCreatedAt: null,
 };
 
 // Three ways this component can start: prefilled from the Prompt Library
@@ -61,7 +63,9 @@ function getInitialSession(location) {
       currentIndex: Math.max(0, questions.length - 1),
       serverSessionId: resumeSession.id ?? null,
       promptId: resumeSession.promptId ?? null,
+      promptTitle: resumeSession.promptTitle ?? null,
       versionNumber: resumeSession.versionNumber ?? null,
+      versionCreatedAt: resumeSession.versionCreatedAt ?? null,
     };
   }
   return loadSession() || EMPTY_SESSION;
@@ -168,12 +172,23 @@ export default function PromptBuilder() {
         const recordSaved = ({ session: saved, prompt }, reworked) => {
           patchSession({
             serverSessionId: saved.id,
-            ...(prompt ? { promptId: prompt.id, versionNumber: prompt.versionNumber } : {}),
+            ...(prompt
+              ? {
+                  promptId: prompt.id,
+                  promptTitle: prompt.title,
+                  versionNumber: prompt.versionNumber,
+                  versionCreatedAt: prompt.versionCreatedAt,
+                }
+              : {}),
           });
           if (prompt) {
+            // IDs and counts only, never prompt text. prompt_id + version_number
+            // is what makes "% of prompts that reach v2+" computable.
             posthog.capture("prompt_version_created", {
               source: reworked ? "regenerated" : "generated",
+              prompt_id: prompt.id,
               version_number: prompt.versionNumber,
+              version_count: prompt.versionNumber,
             });
           }
         };
@@ -256,17 +271,33 @@ export default function PromptBuilder() {
   // (and keeps the user's edits) rather than silently dropping the save.
   async function saveVersion(content, changeNote) {
     const { version } = await savePromptVersion(session.promptId, { content, changeNote });
-    posthog.capture("prompt_version_created", { source: "saved", version_number: version.versionNumber });
+    posthog.capture("prompt_version_created", {
+      source: "saved",
+      prompt_id: session.promptId,
+      version_number: version.versionNumber,
+      version_count: version.versionNumber,
+    });
     if (changeNote) {
-      posthog.capture("prompt_version_change_note_added", { version_number: version.versionNumber });
+      posthog.capture("prompt_version_change_note_added", {
+        prompt_id: session.promptId,
+        version_number: version.versionNumber,
+      });
     }
     patchSession({
       rawAssembled: version.content,
       promptObject: version.promptObject,
       versionNumber: version.versionNumber,
+      versionCreatedAt: version.createdAt,
       // The generation this result came from scored a different text.
       serverSessionId: null,
     });
+  }
+
+  // Renaming is metadata only: no new version, the text is untouched.
+  async function renameSavedPrompt(title) {
+    const { prompt } = await renamePrompt(session.promptId, title);
+    posthog.capture("prompt_renamed", { prompt_id: session.promptId, source_page: "builder" });
+    patchSession({ promptTitle: prompt.title });
   }
 
   function startOver() {
@@ -325,7 +356,9 @@ export default function PromptBuilder() {
         <ResultPreview
           promptObject={session.promptObject}
           rawAssembled={session.rawAssembled}
-          onEditAnswers={editAnswers}
+          // A prompt that began as someone's shared copy has no Q&A of its own
+          // to go back to; its text is edited directly instead.
+          onEditAnswers={session.questions.length > 0 ? editAnswers : undefined}
           loading={assembleLoading}
           error={assembleError}
           onRetry={() => requestAssembly(session)}
@@ -333,8 +366,11 @@ export default function PromptBuilder() {
           sessionId={session.serverSessionId}
           onStartOver={startOver}
           promptId={user ? session.promptId : null}
+          promptTitle={session.promptTitle}
           versionNumber={session.versionNumber}
+          versionCreatedAt={session.versionCreatedAt}
           onSaveVersion={saveVersion}
+          onRenamePrompt={renameSavedPrompt}
         />
       )}
     </div>

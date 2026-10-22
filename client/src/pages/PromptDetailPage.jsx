@@ -1,17 +1,34 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import posthog from "posthog-js";
 import NavHeader from "../components/NavHeader.jsx";
+import InlineTitle from "../components/InlineTitle.jsx";
+import ShareModal from "../components/ShareModal.jsx";
 import { useAuth } from "../context/AuthContext.jsx";
-import { getPrompt, listPromptVersions, getPromptVersion, restorePromptVersion } from "../api.js";
+import {
+  getPrompt,
+  listPromptVersions,
+  getPromptVersion,
+  restorePromptVersion,
+  renamePrompt,
+  copyPrompt,
+} from "../api.js";
 import { openPromptInBuilder } from "../promptResume.js";
 import { copyToClipboard, COPY_CONFIRMATION_MS } from "../clipboard.js";
+import { RENDERERS } from "../renderers/index.js";
 import { diffLines } from "../diff.js";
-import { formatRelative } from "../formatSession.js";
+import { formatRelative, formatDate } from "../formatSession.js";
 import "./PromptDetailPage.css";
 
 const SITE_URL = "https://promptme.host";
+const SOURCE_LABELS = {
+  generated: "Generated",
+  regenerated: "Regenerated",
+  edited: "Edited",
+  restored: "Restored",
+  copied: "Copied",
+};
 
 // Blank-line and trailing-whitespace differences aren't real edits — the
 // Generic renderer normalizes spacing, so a hand-edited version and a
@@ -25,27 +42,30 @@ function normalizeForDiff(text) {
     .join("\n");
 }
 
-function formatDate(isoString) {
-  return new Date(isoString).toLocaleDateString(undefined, { year: "numeric", month: "long", day: "numeric" });
-}
-
 export default function PromptDetailPage() {
   const { promptId } = useParams();
-  const { user, authLoading } = useAuth();
+  const { user, authLoading, isPaidUser } = useAuth();
   const navigate = useNavigate();
 
   const [prompt, setPrompt] = useState(null);
+  const [access, setAccess] = useState(null);
   const [versions, setVersions] = useState(null);
   const [error, setError] = useState(null);
   // Full version bodies, fetched on demand and cached by version number —
   // the list endpoint deliberately returns metadata only.
   const [bodies, setBodies] = useState({});
   const [selected, setSelected] = useState(null);
+  const [activeModel, setActiveModel] = useState("generic");
+  const [lockedNotice, setLockedNotice] = useState(false);
   const [compareFrom, setCompareFrom] = useState(null);
   const [compareTo, setCompareTo] = useState(null);
   const [restoringNumber, setRestoringNumber] = useState(null);
-  const [opening, setOpening] = useState(false);
+  const [busy, setBusy] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [showShare, setShowShare] = useState(false);
+  const openedTracked = useRef(false);
+
+  const isOwner = access?.role === "owner";
 
   // Same redirect-to-"/" pattern as HistoryPage/SettingsPage.
   useEffect(() => {
@@ -63,21 +83,34 @@ export default function PromptDetailPage() {
   );
 
   const refresh = useCallback(async () => {
-    const [{ prompt: p }, { versions: v }] = await Promise.all([getPrompt(promptId), listPromptVersions(promptId)]);
+    const [{ prompt: p, access: a }, { versions: v }] = await Promise.all([
+      getPrompt(promptId),
+      listPromptVersions(promptId),
+    ]);
     setPrompt(p);
+    setAccess(a);
     setVersions(v);
-    return v;
+    return { versions: v, access: a };
   }, [promptId]);
 
   useEffect(() => {
     if (!user) return;
     refresh()
-      .then((v) => {
+      .then(({ versions: v, access: a }) => {
         const current = v.find((x) => x.isCurrent) || v[0];
         const previous = v.find((x) => x.versionNumber === current.versionNumber - 1);
         setSelected(current.versionNumber);
         setCompareTo(current.versionNumber);
         setCompareFrom(previous ? previous.versionNumber : current.versionNumber);
+        if (a.role === "viewer" && !openedTracked.current) {
+          openedTracked.current = true;
+          posthog.capture("shared_prompt_opened", {
+            prompt_id: promptId,
+            version_number: current.versionNumber,
+            version_count: v.length,
+            source_page: "detail",
+          });
+        }
       })
       .catch((err) => setError(err.message));
     // Only when the user/prompt changes, not when refresh's identity does.
@@ -90,7 +123,9 @@ export default function PromptDetailPage() {
     loadBody(selected).catch((err) => setError(err.message));
     const meta = versions.find((v) => v.versionNumber === selected);
     posthog.capture("prompt_version_viewed", {
+      prompt_id: promptId,
       version_number: selected,
+      version_count: versions.length,
       is_current: Boolean(meta?.isCurrent),
     });
     // loadBody changes identity as the cache fills; only selection matters.
@@ -101,7 +136,12 @@ export default function PromptDetailPage() {
   useEffect(() => {
     if (!diffReady) return;
     Promise.all([loadBody(compareFrom), loadBody(compareTo)]).catch((err) => setError(err.message));
-    posthog.capture("prompt_versions_compared", { from_version: compareFrom, to_version: compareTo });
+    posthog.capture("prompt_versions_compared", {
+      prompt_id: promptId,
+      from_version: compareFrom,
+      to_version: compareTo,
+      version_count: versions?.length,
+    });
     // Fires once per chosen pair, not as bodies load.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [compareFrom, compareTo]);
@@ -112,6 +152,40 @@ export default function PromptDetailPage() {
     if (!diffReady || !from || !to) return null;
     return diffLines(normalizeForDiff(from.content), normalizeForDiff(to.content));
   }, [bodies, compareFrom, compareTo, diffReady]);
+
+  const selectedBody = bodies[selected];
+  const hasRenderings = Boolean(selectedBody?.promptObject) && Object.values(selectedBody.promptObject).some(Boolean);
+  const tabModel = hasRenderings ? activeModel : "generic";
+  // Claude/ChatGPT/Gemini are renderings of THIS version's own sections —
+  // computed from the selected version's promptObject, never from the
+  // current/newest one — so an old version can't show a derived view of a
+  // newer prompt. Generic is the version's canonical text, verbatim.
+  const displayText = !selectedBody
+    ? ""
+    : tabModel === "generic"
+      ? selectedBody.content
+      : RENDERERS[tabModel].render(selectedBody.promptObject);
+
+  function handleTabClick(key) {
+    if (key !== "generic" && !isPaidUser) {
+      setLockedNotice(true);
+      return;
+    }
+    setLockedNotice(false);
+    setActiveModel(key);
+  }
+
+  function handleSelectVersion(number) {
+    setSelected(number);
+    setActiveModel("generic");
+    setLockedNotice(false);
+  }
+
+  async function handleRename(title) {
+    const { prompt: updated } = await renamePrompt(promptId, title);
+    setPrompt(updated);
+    posthog.capture("prompt_renamed", { prompt_id: promptId, source_page: "detail" });
+  }
 
   async function handleRestore(versionNumber) {
     if (restoringNumber) return;
@@ -124,13 +198,20 @@ export default function PromptDetailPage() {
     try {
       const { version } = await restorePromptVersion(promptId, versionNumber);
       posthog.capture("prompt_version_restored", {
+        prompt_id: promptId,
         restored_from_version: versionNumber,
         new_version: version.versionNumber,
+        version_count: version.versionNumber,
       });
-      posthog.capture("prompt_version_created", { source: "restored", version_number: version.versionNumber });
-      const v = await refresh();
+      posthog.capture("prompt_version_created", {
+        source: "restored",
+        prompt_id: promptId,
+        version_number: version.versionNumber,
+        version_count: version.versionNumber,
+      });
+      const { versions: v } = await refresh();
       const current = v.find((x) => x.isCurrent) || v[0];
-      setSelected(current.versionNumber);
+      handleSelectVersion(current.versionNumber);
       setCompareTo(current.versionNumber);
       setCompareFrom(versionNumber);
     } catch (err) {
@@ -141,20 +222,47 @@ export default function PromptDetailPage() {
   }
 
   async function handleOpen() {
-    setOpening(true);
+    setBusy(true);
     try {
       await openPromptInBuilder(navigate, promptId, selected);
     } catch (err) {
       setError(err.message);
-      setOpening(false);
+      setBusy(false);
+    }
+  }
+
+  // "Build on this": the viewer gets their own independent prompt, starting
+  // from the version they're looking at, and lands in the builder with it.
+  async function handleBuildOnThis() {
+    setBusy(true);
+    setError(null);
+    try {
+      const { prompt: mine } = await copyPrompt(promptId, selected);
+      posthog.capture("prompt_copy_saved", {
+        source: "shared",
+        prompt_id: promptId,
+        new_prompt_id: mine.id,
+        version_number: selected,
+        source_page: "detail",
+      });
+      await openPromptInBuilder(navigate, mine.id);
+    } catch (err) {
+      setError(err.message);
+      setBusy(false);
     }
   }
 
   async function handleCopy() {
-    const body = bodies[selected];
-    if (body && (await copyToClipboard(body.content))) {
+    if (selectedBody && (await copyToClipboard(displayText))) {
       setCopied(true);
       setTimeout(() => setCopied(false), COPY_CONFIRMATION_MS);
+      if (!isOwner) {
+        posthog.capture("shared_prompt_copied", {
+          prompt_id: promptId,
+          version_number: selected,
+          source_page: "detail",
+        });
+      }
     }
   }
 
@@ -171,19 +279,18 @@ export default function PromptDetailPage() {
 
   const current = versions?.find((v) => v.isCurrent);
   const selectedMeta = versions?.find((v) => v.versionNumber === selected);
-  const selectedBody = bodies[selected];
 
   return (
     <div className="app-shell">
       <Helmet>
-        <title>{prompt ? `${prompt.name} — PromptMe` : "Prompt — PromptMe"}</title>
+        <title>{prompt ? `${prompt.title} — PromptMe` : "Prompt — PromptMe"}</title>
         <meta name="robots" content="noindex" />
         <link rel="canonical" href={`${SITE_URL}/history/${promptId}`} />
       </Helmet>
       <NavHeader />
       <main className="prompt-detail">
         <p className="prompt-detail-back">
-          <Link to="/history">← History</Link>
+          <Link to={isOwner === false ? "/history?tab=shared" : "/history"}>← History</Link>
         </p>
 
         {error && (
@@ -194,31 +301,65 @@ export default function PromptDetailPage() {
 
         {!prompt && !error && <p className="loading-text">Loading…</p>}
 
-        {prompt && versions && (
+        {prompt && versions && access && (
           <>
-            <h1 className="prompt-detail-name">{prompt.name}</h1>
+            <InlineTitle as="h1" className="prompt-detail-name" title={prompt.title} canEdit={isOwner} onSave={handleRename} />
+            {!isOwner && <p className="prompt-detail-shared-by">Shared by {access.owner.name} · view only</p>}
             <p className="prompt-detail-meta">
               Current version: <strong>v{current?.versionNumber}</strong> · {versions.length}{" "}
               {versions.length === 1 ? "version" : "versions"} · Updated {formatRelative(prompt.updatedAt)}
             </p>
+            <div className="prompt-detail-actions prompt-detail-top-actions">
+              {isOwner ? (
+                <>
+                  <button type="button" className="btn btn-primary" onClick={handleOpen} disabled={busy || !selectedBody}>
+                    {busy ? "Opening…" : "Open in builder"}
+                  </button>
+                  <button type="button" className="btn btn-secondary" onClick={handleCopy} disabled={!selectedBody}>
+                    {copied ? "Copied!" : "Copy"}
+                  </button>
+                  <button type="button" className="btn btn-secondary" onClick={() => setShowShare(true)}>
+                    Share
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button type="button" className="btn btn-primary" onClick={handleCopy} disabled={!selectedBody}>
+                    {copied ? "Copied!" : "Copy"}
+                  </button>
+                  <button type="button" className="btn btn-secondary" onClick={handleBuildOnThis} disabled={busy || !selectedBody}>
+                    {busy ? "Saving your copy…" : "Build on this"}
+                  </button>
+                </>
+              )}
+            </div>
+            {!isOwner && (
+              <p className="prompt-detail-hint">
+                “Build on this” saves your own copy of the version you’re viewing — yours to edit, and separate from{" "}
+                {access.owner.name}’s original.
+              </p>
+            )}
 
             <section className="prompt-detail-section">
               <h2>Version history</h2>
               <ul className="version-list">
                 {versions.map((v) => (
                   <li key={v.id} className={`version-item ${v.versionNumber === selected ? "selected" : ""}`}>
-                    <button type="button" className="version-item-main" onClick={() => setSelected(v.versionNumber)}>
+                    <button type="button" className="version-item-main" onClick={() => handleSelectVersion(v.versionNumber)}>
                       <span className="version-item-title">
                         v{v.versionNumber}
                         {v.isCurrent && <span className="version-badge">Current</span>}
                       </span>
                       <span className="version-item-date">{formatDate(v.createdAt)}</span>
+                      {v.source && SOURCE_LABELS[v.source] && (
+                        <span className="version-item-source">{SOURCE_LABELS[v.source]}</span>
+                      )}
                       {v.changeNote && <span className="version-item-note">{v.changeNote}</span>}
                       {v.restoredFromVersionNumber && !v.changeNote?.startsWith("Restored from") && (
                         <span className="version-item-note">Restored from v{v.restoredFromVersionNumber}</span>
                       )}
                     </button>
-                    {!v.isCurrent && (
+                    {isOwner && !v.isCurrent && (
                       <button
                         type="button"
                         className="link-button"
@@ -238,15 +379,37 @@ export default function PromptDetailPage() {
                 Version {selected}
                 {selectedMeta?.isCurrent ? " (current)" : ""}
               </h2>
-              <div className="prompt-detail-actions">
-                <button type="button" className="btn btn-primary" onClick={handleOpen} disabled={opening || !selectedBody}>
-                  {opening ? "Opening…" : "Open in builder"}
-                </button>
-                <button type="button" className="btn btn-secondary" onClick={handleCopy} disabled={!selectedBody}>
-                  {copied ? "Copied!" : "Copy"}
-                </button>
-              </div>
-              <pre className="version-content">{selectedBody ? selectedBody.content : "Loading…"}</pre>
+
+              {hasRenderings && (
+                <div className="model-tabs" role="tablist">
+                  {Object.entries(RENDERERS).map(([key, { label, icon }]) => {
+                    const locked = key !== "generic" && !isPaidUser;
+                    return (
+                      <button
+                        key={key}
+                        type="button"
+                        role="tab"
+                        aria-selected={tabModel === key}
+                        className={`model-tab ${tabModel === key ? "active" : ""} ${locked ? "locked" : ""}`}
+                        onClick={() => handleTabClick(key)}
+                      >
+                        <span aria-hidden="true">{icon}</span> {label}
+                        {locked && <span className="model-tab-pro-chip">Pro</span>}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+              {lockedNotice && (
+                <p className="prompt-detail-hint">
+                  Model-specific formats are a Pro feature. <Link to="/pro">See what Pro adds →</Link>
+                </p>
+              )}
+              {hasRenderings && tabModel !== "generic" && (
+                <p className="prompt-detail-hint">Rendered from Version {selected}.</p>
+              )}
+
+              <pre className="version-content">{selectedBody ? displayText : "Loading…"}</pre>
             </section>
 
             {versions.length > 1 && (
@@ -299,6 +462,15 @@ export default function PromptDetailPage() {
           </>
         )}
       </main>
+
+      {showShare && prompt && (
+        <ShareModal
+          promptId={promptId}
+          promptTitle={prompt.title}
+          sourcePage="detail"
+          onClose={() => setShowShare(false)}
+        />
+      )}
     </div>
   );
 }

@@ -8,6 +8,8 @@ const STAGES = ["intake", "qa", "result"];
 // rawAssembled crashed ResultPreview's tag highlighting on load (blank
 // page until storage was manually cleared). Anything that doesn't pass
 // is discarded, same as having no saved session.
+const isOptional = (value, type) => value == null || typeof value === type;
+
 function isValidSession(s) {
   if (!s || typeof s !== "object" || Array.isArray(s)) return false;
   if (!STAGES.includes(s.stage)) return false;
@@ -16,6 +18,12 @@ function isValidSession(s) {
   if (!s.answers || typeof s.answers !== "object" || Array.isArray(s.answers)) return false;
   if (!Number.isInteger(s.currentIndex) || s.currentIndex < 0) return false;
   if (typeof s.supportingContext !== "string" || typeof s.rawAssembled !== "string") return false;
+  // Fields added with prompt versioning. All optional (older saved sessions
+  // don't have them), but if present they must be the right type — a title
+  // that's an object would crash the result screen the moment it renders.
+  if (!isOptional(s.promptId, "string") || !isOptional(s.promptTitle, "string")) return false;
+  if (!isOptional(s.versionCreatedAt, "string")) return false;
+  if (!(s.versionNumber == null || Number.isInteger(s.versionNumber))) return false;
   if (s.stage === "qa" && (s.questions.length === 0 || s.currentIndex >= s.questions.length)) return false;
   if (s.stage === "result" && s.rawAssembled.trim() === "") return false;
   return true;
