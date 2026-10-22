@@ -119,6 +119,10 @@ function toSessionPayload(session) {
     // saved alongside the session for the user's own history.
     deterministicScore: score,
     deterministicChecks: checks,
+    // Set only when this generation is a rework of an already-saved prompt
+    // (opened from history, then "Edit answers") — tells the server to add
+    // the next version to that prompt instead of starting a new one.
+    promptId: session.promptId || null,
   };
 }
 
@@ -139,6 +143,32 @@ export function listServerSessions() {
 // deliberately only returns id/originalPrompt/createdAt.
 export function getServerSession(id) {
   return request(`/api/sessions/${id}`);
+}
+
+// --- Prompts + version history (signed-in only) ---
+
+export function listPrompts() {
+  return request("/api/prompts");
+}
+
+export function getPrompt(id) {
+  return request(`/api/prompts/${id}`);
+}
+
+export function listPromptVersions(id) {
+  return request(`/api/prompts/${id}/versions`);
+}
+
+export function getPromptVersion(id, versionNumber) {
+  return request(`/api/prompts/${id}/versions/${versionNumber}`);
+}
+
+export function savePromptVersion(id, { content, changeNote }) {
+  return postJSON(`/api/prompts/${id}/versions`, { content, changeNote });
+}
+
+export function restorePromptVersion(id, versionNumber) {
+  return postJSON(`/api/prompts/${id}/versions/${versionNumber}/restore`, {});
 }
 
 // --- Billing ---

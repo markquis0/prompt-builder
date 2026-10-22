@@ -5,7 +5,7 @@ import IntakeForm from "./IntakeForm.jsx";
 import BuilderStepper from "./BuilderStepper.jsx";
 import QAFlow from "./QAFlow.jsx";
 import ResultPreview from "./ResultPreview.jsx";
-import { fetchQuestions, assemblePrompt, saveServerSession } from "../api.js";
+import { fetchQuestions, assemblePrompt, saveServerSession, savePromptVersion } from "../api.js";
 import { loadSession, saveSession, clearSession } from "../storage.js";
 import { useAuth } from "../context/AuthContext.jsx";
 import { scoreCompleteness, COMPLETENESS_BEFORE_EDIT_KEY } from "../completeness.js";
@@ -23,6 +23,11 @@ const EMPTY_SESSION = {
   promptObject: null,
   rawAssembled: "",
   serverSessionId: null,
+  // Set once this result is saved as (a version of) a prompt — what lets the
+  // result screen offer "Save new version" and lets "Edit answers" +
+  // regenerate add to the same prompt instead of starting a new one.
+  promptId: null,
+  versionNumber: null,
 };
 
 // Three ways this component can start: prefilled from the Prompt Library
@@ -54,7 +59,9 @@ function getInitialSession(location) {
       questions,
       answers,
       currentIndex: Math.max(0, questions.length - 1),
-      serverSessionId: resumeSession.id,
+      serverSessionId: resumeSession.id ?? null,
+      promptId: resumeSession.promptId ?? null,
+      versionNumber: resumeSession.versionNumber ?? null,
     };
   }
   return loadSession() || EMPTY_SESSION;
@@ -148,16 +155,40 @@ export default function PromptBuilder() {
       // assembly — insertSession always creates a new row, so the old id
       // no longer points at this result. Layer 2 critique (see
       // ResultPreview.jsx) works fine with no id yet; it just can't
-      // persist until the save below resolves.
-      patchSession({ stage: "result", promptObject, rawAssembled, serverSessionId: null });
+      // persist until the save below resolves. versionNumber is cleared for
+      // the same reason; promptId is deliberately kept — if this is a
+      // rework of a saved prompt, the save below adds the next version to it.
+      patchSession({ stage: "result", promptObject, rawAssembled, serverSessionId: null, versionNumber: null });
 
       // Additive only — anonymous users are completely unaffected. Fire-
       // and-forget: a failed save shouldn't interrupt someone looking at
       // the result they just got, so it's logged, not surfaced in the UI.
       if (user) {
-        saveServerSession({ ...current, promptObject, rawAssembled })
-          .then(({ session: saved }) => {
-            patchSession({ serverSessionId: saved.id });
+        const generation = { ...current, promptObject, rawAssembled };
+        const recordSaved = ({ session: saved, prompt }, reworked) => {
+          patchSession({
+            serverSessionId: saved.id,
+            ...(prompt ? { promptId: prompt.id, versionNumber: prompt.versionNumber } : {}),
+          });
+          if (prompt) {
+            posthog.capture("prompt_version_created", {
+              source: reworked ? "regenerated" : "generated",
+              version_number: prompt.versionNumber,
+            });
+          }
+        };
+        saveServerSession(generation)
+          .then((saved) => recordSaved(saved, Boolean(current.promptId)))
+          .catch((err) => {
+            // A promptId this account can't see (a different login on the
+            // same browser's stored session) is a 404 — save this
+            // generation as a new prompt rather than losing it.
+            if (current.promptId && /not found/i.test(err.message)) {
+              return saveServerSession({ ...generation, promptId: null }).then((saved) =>
+                recordSaved(saved, false)
+              );
+            }
+            throw err;
           })
           .catch((err) => {
             console.error("[prompt-builder] Failed to save session:", err);
@@ -216,6 +247,24 @@ export default function PromptBuilder() {
     patchSession({
       stage: "qa",
       currentIndex: Math.max(0, session.questions.length - 1),
+      serverSessionId: null,
+    });
+  }
+
+  // Saves the user's edited text as the next version of this prompt. Errors
+  // propagate to ResultPreview, which shows them next to the save button
+  // (and keeps the user's edits) rather than silently dropping the save.
+  async function saveVersion(content, changeNote) {
+    const { version } = await savePromptVersion(session.promptId, { content, changeNote });
+    posthog.capture("prompt_version_created", { source: "saved", version_number: version.versionNumber });
+    if (changeNote) {
+      posthog.capture("prompt_version_change_note_added", { version_number: version.versionNumber });
+    }
+    patchSession({
+      rawAssembled: version.content,
+      promptObject: version.promptObject,
+      versionNumber: version.versionNumber,
+      // The generation this result came from scored a different text.
       serverSessionId: null,
     });
   }
@@ -283,6 +332,9 @@ export default function PromptBuilder() {
           originalPrompt={session.prompt}
           sessionId={session.serverSessionId}
           onStartOver={startOver}
+          promptId={user ? session.promptId : null}
+          versionNumber={session.versionNumber}
+          onSaveVersion={saveVersion}
         />
       )}
     </div>

@@ -1,0 +1,175 @@
+.prompt-detail {
+  max-width: 720px;
+  margin: 0 auto;
+  padding-bottom: 60px;
+}
+
+.prompt-detail-back {
+  margin: 0 0 8px;
+  font-size: 14px;
+}
+
+.prompt-detail-back a {
+  color: var(--text-muted);
+}
+
+.prompt-detail-name {
+  margin: 0 0 4px;
+  overflow-wrap: anywhere;
+}
+
+.prompt-detail-meta {
+  margin: 0 0 24px;
+  font-size: 14px;
+  color: var(--text-muted);
+}
+
+.prompt-detail-section {
+  margin-top: 32px;
+}
+
+.prompt-detail-section h2 {
+  font-size: 18px;
+  margin: 0 0 12px;
+}
+
+.prompt-detail-actions {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.prompt-detail-hint {
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
+.version-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.version-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 4px 12px 4px 4px;
+}
+
+.version-item.selected {
+  border-color: var(--accent);
+  background: var(--accent-bg);
+}
+
+.version-item-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 12px;
+  text-align: left;
+  font: inherit;
+  font-size: 14px;
+  color: var(--text);
+  background: none;
+  border: 0;
+  padding: 8px 12px;
+  cursor: pointer;
+}
+
+.version-item-title {
+  font-weight: 700;
+}
+
+.version-badge {
+  margin-left: 8px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--accent);
+  background: var(--accent-bg);
+  border: 1px solid var(--accent);
+  border-radius: 999px;
+  padding: 1px 8px;
+}
+
+.version-item-date {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.version-item-note {
+  flex-basis: 100%;
+  font-size: 13px;
+  color: var(--text-muted);
+  overflow-wrap: anywhere;
+}
+
+.version-content,
+.diff-output {
+  margin: 0;
+  padding: 14px 16px;
+  font: 13px/1.55 ui-monospace, SFMono-Regular, Menlo, monospace;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  color: var(--text);
+}
+
+.compare-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.compare-controls label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+}
+
+.compare-controls select {
+  font: inherit;
+  padding: 6px 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--card-bg);
+  color: var(--text);
+}
+
+/* Added/removed lines are marked by the +/− glyph as well as color, so the
+   diff doesn't rely on color alone. */
+.diff-line {
+  display: block;
+}
+
+.diff-marker {
+  display: inline-block;
+  width: 1.5em;
+  user-select: none;
+}
+
+.diff-add {
+  background: rgba(34, 160, 90, 0.14);
+}
+
+.diff-remove {
+  background: rgba(214, 69, 69, 0.14);
+  text-decoration: line-through;
+  text-decoration-color: rgba(214, 69, 69, 0.55);
+}
+
+.diff-same {
+  color: var(--text-muted);
+}

@@ -3,7 +3,7 @@ import { Helmet } from "react-helmet-async";
 import NavHeader from "../components/NavHeader.jsx";
 import WelcomeBackHero from "../components/WelcomeBackHero.jsx";
 import PromptBuilder from "../components/PromptBuilder.jsx";
-import { listServerSessions } from "../api.js";
+import { listPrompts } from "../api.js";
 import { useBuilderAutoscroll } from "../useBuilderAutoscroll.js";
 import "./HomePage.css";
 
@@ -14,14 +14,14 @@ import "./HomePage.css";
 // unauthenticated), so no SEO/crawler considerations apply here — hence
 // the noindex below.
 export default function BuilderPage() {
-  const [recentSessions, setRecentSessions] = useState(null);
+  const [recentPrompts, setRecentPrompts] = useState(null);
 
   useEffect(() => {
-    listServerSessions()
-      .then(({ sessions }) => setRecentSessions(sessions.slice(0, 5)))
+    listPrompts()
+      .then(({ prompts }) => setRecentPrompts(prompts.slice(0, 5)))
       .catch((err) => {
-        console.error("[prompt-builder] Failed to load recent sessions:", err);
-        setRecentSessions([]);
+        console.error("[prompt-builder] Failed to load recent prompts:", err);
+        setRecentPrompts([]);
       });
   }, []);
 
@@ -37,7 +37,7 @@ export default function BuilderPage() {
       <NavHeader />
 
       <main className="home-main">
-        {recentSessions && recentSessions.length > 0 && <WelcomeBackHero sessions={recentSessions} />}
+        {recentPrompts && recentPrompts.length > 0 && <WelcomeBackHero prompts={recentPrompts} />}
 
         <section className="home-builder-section" id="builder">
           <h2 className="home-builder-heading">Try it now</h2>

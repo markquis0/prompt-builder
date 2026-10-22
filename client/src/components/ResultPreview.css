@@ -179,3 +179,44 @@
   pointer-events: none;
   z-index: 3;
 }
+
+.result-version-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
+.result-version-link {
+  color: var(--accent);
+}
+
+.save-version-bar {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.save-version-note {
+  flex: 1;
+  min-width: 0;
+  font: inherit;
+  font-size: 14px;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--card-bg);
+  color: var(--text);
+}
+
+.save-version-confirmation {
+  margin: 8px 0 0;
+  font-size: 14px;
+  color: var(--accent);
+  font-weight: 600;
+}
+
+@media (max-width: 600px) {
+  .save-version-bar {
+    flex-direction: column;
+  }
+}

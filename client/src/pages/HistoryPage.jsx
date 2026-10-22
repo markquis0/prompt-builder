@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import posthog from "posthog-js";
 import NavHeader from "../components/NavHeader.jsx";
 import { useAuth } from "../context/AuthContext.jsx";
-import { listServerSessions, getServerSession } from "../api.js";
+import { listPrompts } from "../api.js";
+import { openPromptInBuilder } from "../promptResume.js";
 import { truncate, formatRelative } from "../formatSession.js";
 import "./HistoryPage.css";
 
@@ -13,7 +14,7 @@ const SITE_URL = "https://promptme.host";
 export default function HistoryPage() {
   const { user, authLoading } = useAuth();
   const navigate = useNavigate();
-  const [sessions, setSessions] = useState(null);
+  const [prompts, setPrompts] = useState(null);
   const [error, setError] = useState(null);
   const [resumingId, setResumingId] = useState(null);
 
@@ -28,21 +29,19 @@ export default function HistoryPage() {
   useEffect(() => {
     if (!user) return;
     posthog.capture("history_viewed");
-    listServerSessions()
-      .then(({ sessions }) => setSessions(sessions))
+    listPrompts()
+      .then(({ prompts }) => setPrompts(prompts))
       .catch((err) => setError(err.message));
   }, [user]);
 
-  // Same fetch-full-detail-then-navigate flow as WelcomeBackHero.jsx's
-  // handleResume — the list here only has id/originalPrompt/createdAt, and
-  // the builder's resume logic needs qaPairs/promptObject/rawAssembled too.
-  async function handleOpen(session) {
+  // Opens the prompt's current version in the builder — same resume path
+  // as the welcome-back list and the prompt detail page.
+  async function handleOpen(prompt) {
     if (resumingId) return;
-    setResumingId(session.id);
+    setResumingId(prompt.id);
     try {
-      const { session: full } = await getServerSession(session.id);
-      posthog.capture("history_item_opened", { session_id: session.id });
-      navigate("/", { state: { resumeSession: full } });
+      await openPromptInBuilder(navigate, prompt.id);
+      posthog.capture("history_item_opened", { prompt_id: prompt.id });
     } catch (err) {
       setError(err.message);
       setResumingId(null);
@@ -77,27 +76,32 @@ export default function HistoryPage() {
           </div>
         )}
 
-        {sessions === null && !error && <p className="loading-text">Loading…</p>}
+        {prompts === null && !error && <p className="loading-text">Loading…</p>}
 
-        {sessions && sessions.length === 0 && (
+        {prompts && prompts.length === 0 && (
           <p className="history-empty">You haven't built any prompts yet.</p>
         )}
 
-        {sessions && sessions.length > 0 && (
+        {prompts && prompts.length > 0 && (
           <ul className="history-list">
-            {sessions.map((session) => (
-              <li key={session.id}>
+            {prompts.map((prompt) => (
+              <li key={prompt.id} className="history-row">
                 <button
                   type="button"
                   className="history-item"
-                  onClick={() => handleOpen(session)}
-                  disabled={resumingId === session.id}
+                  onClick={() => handleOpen(prompt)}
+                  disabled={resumingId === prompt.id}
                 >
                   <span className="history-item-text">
-                    {resumingId === session.id ? "Loading…" : truncate(session.originalPrompt, 100)}
+                    {resumingId === prompt.id ? "Loading…" : truncate(prompt.name, 100)}
                   </span>
-                  <span className="history-item-date">{formatRelative(session.createdAt)}</span>
+                  <span className="history-item-date">
+                    v{prompt.currentVersionNumber} · {formatRelative(prompt.updatedAt)}
+                  </span>
                 </button>
+                <Link to={`/history/${prompt.id}`} className="history-versions-link">
+                  Versions{prompt.versionCount > 1 ? ` (${prompt.versionCount})` : ""}
+                </Link>
               </li>
             ))}
           </ul>

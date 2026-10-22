@@ -52,6 +52,9 @@ export default function ResultPreview({
   originalPrompt,
   sessionId,
   onStartOver,
+  promptId,
+  versionNumber,
+  onSaveVersion,
 }) {
   const [activeModel, setActiveModel] = useState("generic");
   const [editedVariants, setEditedVariants] = useState({});
@@ -68,6 +71,10 @@ export default function ResultPreview({
   // state, only a CSS-visibility class.
   const [outputFocused, setOutputFocused] = useState(false);
   const [lockedCardModel, setLockedCardModel] = useState(null);
+  const [changeNote, setChangeNote] = useState("");
+  const [savingVersion, setSavingVersion] = useState(false);
+  const [saveVersionError, setSaveVersionError] = useState(null);
+  const [versionSaved, setVersionSaved] = useState(false);
   const { go: goToCheckout, loading: checkoutLoading, error: checkoutError } = useStripeRedirect(
     createCheckoutSession,
     "checkoutUrl"
@@ -97,6 +104,38 @@ export default function ResultPreview({
   // Final "" fallback: a resumed session whose rawAssembled is missing
   // should render empty, not crash highlightTags/stripFormatting on .split.
   const displayText = editedVariants[editKey] ?? baseText ?? "";
+
+  // Version saving applies to the Generic text only — it's the canonical
+  // content a version stores; the Claude/ChatGPT/Gemini tabs are renders of
+  // it, so edits made there stay display-only (copyable, never saved).
+  const genericKey = hasPromptObject ? "generic" : "raw";
+  const genericEdit = editedVariants[genericKey];
+  const canSaveVersion =
+    Boolean(promptId && onSaveVersion) &&
+    (activeModel === "generic" || !hasPromptObject) &&
+    typeof genericEdit === "string" &&
+    genericEdit.trim() !== "" &&
+    genericEdit !== rawAssembled;
+
+  async function handleSaveVersion() {
+    setSaveVersionError(null);
+    setSavingVersion(true);
+    try {
+      // The edit stays in editedVariants on purpose: it's what the user
+      // wrote, shown verbatim. The Generic renderer would re-normalize tag
+      // order/spacing if we cleared it and let the tab re-render from the
+      // parsed object — a saved edit shouldn't visibly change on save. Once
+      // saved, rawAssembled equals it, so canSaveVersion goes false again.
+      await onSaveVersion(genericEdit, changeNote.trim());
+      setChangeNote("");
+      setVersionSaved(true);
+      setTimeout(() => setVersionSaved(false), COPY_CONFIRMATION_MS);
+    } catch (err) {
+      setSaveVersionError(err.message || "Couldn't save this version. Your edits are still here — try again.");
+    } finally {
+      setSavingVersion(false);
+    }
+  }
 
   function handleTabClick(key) {
     const isLocked = key !== "generic" && !isPaidUser;
@@ -182,7 +221,18 @@ export default function ResultPreview({
     <>
       <div className="card result-preview">
         <div className="result-header">
-          <h2>Your structured prompt</h2>
+          <h2>
+            Your structured prompt
+            {promptId && versionNumber && (
+              <span className="result-version-label">
+                {" "}
+                · Version {versionNumber} ·{" "}
+                <Link to={`/history/${promptId}`} className="result-version-link">
+                  Version history
+                </Link>
+              </span>
+            )}
+          </h2>
           <div className="result-header-actions">
             <button type="button" className="link-button" onClick={onEditAnswers}>
               Edit answers
@@ -320,6 +370,25 @@ export default function ResultPreview({
             <span aria-hidden="true">⇄</span> {showDiff ? "Hide comparison" : "See what changed"}
           </button>
         </div>
+
+        {canSaveVersion && (
+          <div className="save-version-bar">
+            <input
+              type="text"
+              className="save-version-note"
+              placeholder="What changed? (optional)"
+              maxLength={500}
+              value={changeNote}
+              onChange={(e) => setChangeNote(e.target.value)}
+              aria-label="Change note"
+            />
+            <button type="button" className="btn btn-secondary" onClick={handleSaveVersion} disabled={savingVersion}>
+              {savingVersion ? "Saving…" : "Save new version"}
+            </button>
+          </div>
+        )}
+        {saveVersionError && <p className="critique-error">{saveVersionError}</p>}
+        {versionSaved && <p className="save-version-confirmation">✓ Saved as version {versionNumber}</p>}
 
         {showDiff && (
           <div className="diff-view">

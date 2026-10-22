@@ -3,31 +3,28 @@ import { useNavigate } from "react-router-dom";
 import posthog from "posthog-js";
 import { scrollToElement } from "../scrollToElement.js";
 import { truncate, formatRelative } from "../formatSession.js";
-import { getServerSession } from "../api.js";
+import { openPromptInBuilder } from "../promptResume.js";
 import "./WelcomeBackHero.css";
 
 // Shown instead of the marketing hero for authenticated users who've built
 // at least one prompt before (per the sessions table populated since the
 // monetisation gate) — GET /api/sessions already returns everything needed,
 // no new backend work.
-const WelcomeBackHero = forwardRef(function WelcomeBackHero({ sessions }, ref) {
+const WelcomeBackHero = forwardRef(function WelcomeBackHero({ prompts }, ref) {
   const navigate = useNavigate();
   const [resumingId, setResumingId] = useState(null);
 
-  // sessions here only ever carries the lean {id, originalPrompt,
-  // createdAt} shape GET /api/sessions returns (see HomePage.jsx) — the
-  // builder's resume logic (PromptBuilder.jsx's getInitialSession) needs
-  // qaPairs/promptObject/rawAssembled too, so the full row has to be
-  // fetched before navigating, not just the list item that was clicked.
-  async function handleResume(session) {
+  // `prompts` is the lean list shape from GET /api/prompts (id, name,
+  // updatedAt) — resuming needs the full current version, which
+  // openPromptInBuilder fetches before navigating.
+  async function handleResume(prompt) {
     if (resumingId) return;
-    setResumingId(session.id);
+    setResumingId(prompt.id);
     try {
-      const { session: full } = await getServerSession(session.id);
-      posthog.capture("home_resume_session", { session_id: session.id });
-      navigate("/", { state: { resumeSession: full } });
+      await openPromptInBuilder(navigate, prompt.id);
+      posthog.capture("home_resume_session", { prompt_id: prompt.id });
     } catch (err) {
-      console.error("[prompt-builder] Failed to resume session:", err);
+      console.error("[prompt-builder] Failed to resume prompt:", err);
       setResumingId(null);
     }
   }
@@ -43,18 +40,18 @@ const WelcomeBackHero = forwardRef(function WelcomeBackHero({ sessions }, ref) {
       <p className="home-hero-subhead">Pick up a recent prompt, or start something new.</p>
 
       <ul className="welcome-back-sessions">
-        {sessions.map((session) => (
-          <li key={session.id}>
+        {prompts.map((prompt) => (
+          <li key={prompt.id}>
             <button
               type="button"
               className="welcome-back-session-item"
-              onClick={() => handleResume(session)}
-              disabled={resumingId === session.id}
+              onClick={() => handleResume(prompt)}
+              disabled={resumingId === prompt.id}
             >
               <span className="welcome-back-session-text">
-                {resumingId === session.id ? "Loading…" : truncate(session.originalPrompt)}
+                {resumingId === prompt.id ? "Loading…" : truncate(prompt.name)}
               </span>
-              <span className="welcome-back-session-date">{formatRelative(session.createdAt)}</span>
+              <span className="welcome-back-session-date">{formatRelative(prompt.updatedAt)}</span>
             </button>
           </li>
         ))}
