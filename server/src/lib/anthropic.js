@@ -25,16 +25,41 @@ export const anthropic = new Anthropic({
 
 export const MODEL = process.env.CLAUDE_MODEL || "claude-haiku-4-5-20251001";
 
-export async function callClaude({ system, userMessage, maxTokens = 1024, timeoutMs }) {
-  const response = await anthropic.messages.create(
-    {
-      model: MODEL,
-      max_tokens: maxTokens,
-      system,
-      messages: [{ role: "user", content: userMessage }],
-    },
-    timeoutMs ? { timeout: timeoutMs } : undefined
+// Every model-backed route turns a failure here into a generic "please try
+// again" for the user — right for a transient blip, but it hid a dead API key
+// behind the same message (Retry can never fix a revoked key or an empty
+// credit balance). So the cause is logged here, once, in one greppable line
+// with Anthropic's own status and reason, whatever route made the call.
+function logUpstreamError(err) {
+  if (!(err instanceof Anthropic.APIError)) return;
+  const type = err.error?.error?.type || "unknown";
+  const reason = err.error?.error?.message || err.message;
+  const needsOperator =
+    err.status === 401 || err.status === 403 || /credit balance|billing/i.test(String(reason));
+  console.error(
+    `[prompt-builder] Anthropic API error: status=${err.status} type=${type} reason="${reason}"` +
+      (needsOperator
+        ? " — this will not fix itself: check ANTHROPIC_API_KEY (valid, not revoked) and the account's credit balance."
+        : "")
   );
+}
+
+export async function callClaude({ system, userMessage, maxTokens = 1024, timeoutMs }) {
+  let response;
+  try {
+    response = await anthropic.messages.create(
+      {
+        model: MODEL,
+        max_tokens: maxTokens,
+        system,
+        messages: [{ role: "user", content: userMessage }],
+      },
+      timeoutMs ? { timeout: timeoutMs } : undefined
+    );
+  } catch (err) {
+    logUpstreamError(err);
+    throw err;
+  }
 
   const textBlock = response.content.find((block) => block.type === "text");
   if (!textBlock) {
