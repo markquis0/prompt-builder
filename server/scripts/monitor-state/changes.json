@@ -2228,5 +2228,25 @@
     "newHash": "6e4f010861ce5788d07e816d6064b1fa6a0871162b6128bb695ad9b919db193d",
     "reviewed": false,
     "learnImpacting": false
+  },
+  {
+    "url": "https://developer.meta.com/ai/docs/how-to-guides/prompting/",
+    "vendor": "Meta",
+    "pageTitle": "Prompt engineering how-to",
+    "detectedAt": "2026-10-27T14:02:56.717Z",
+    "oldHash": "bd6e432bc85e9fa087ddd67cee05174742712c635aea2375803ca2902eeccb03",
+    "newHash": "652ee9431fbb89b524b2719a297b7f6e9b0712a50a15c14c6609755967bff2a4",
+    "reviewed": false,
+    "learnImpacting": false
+  },
+  {
+    "url": "https://docs.mistral.ai/models/best-practices/prompt-engineering",
+    "vendor": "Mistral",
+    "pageTitle": "Prompt engineering best practices",
+    "detectedAt": "2026-10-27T14:02:56.984Z",
+    "oldHash": "f0bf54e87b0599a65e362a6abd824c642ffe61fa5fffdda39dc3a23a3157bb8b",
+    "newHash": "ce5ed7f69faff48b64838a006e81f1c2006419252b74b81eded4154c6f311e50",
+    "reviewed": false,
+    "learnImpacting": false
   }
 ]
