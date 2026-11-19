@@ -3008,5 +3008,55 @@
     "newHash": "7e115848a05bd0841eaa30c5949e9eaac06688bdf8b832eef29bff35e3a10a64",
     "reviewed": false,
     "learnImpacting": false
+  },
+  {
+    "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/overview",
+    "vendor": "Anthropic",
+    "pageTitle": "Prompt engineering overview",
+    "detectedAt": "2026-11-19T17:06:23.949Z",
+    "oldHash": "3954ee1ea8653e054d5f087c35986c71cd912038abaa2a1f873362256e289d2b",
+    "newHash": "fd1dc7e92f20e6146f8a8bf7910b45af08526363babe15834807c4717e6fc120",
+    "reviewed": false,
+    "learnImpacting": true
+  },
+  {
+    "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
+    "vendor": "Anthropic",
+    "pageTitle": "Prompting best practices",
+    "detectedAt": "2026-11-19T17:06:25.922Z",
+    "oldHash": "b52867ff5c6c26886d21b45469238ba66c3dc0009f95191a1d605416a6c44b9e",
+    "newHash": "2104dca4ad3719427b4e1bc03ed47acc3c147ac967008af31fcb81a5f861cd6e",
+    "reviewed": false,
+    "learnImpacting": false
+  },
+  {
+    "url": "https://developers.openai.com/api/docs/guides/prompt-guidance.md",
+    "vendor": "OpenAI",
+    "pageTitle": "Prompt guidance hub",
+    "detectedAt": "2026-11-19T17:06:26.411Z",
+    "oldHash": "6c987530676f991fd75db812b66cb5a98a1d9aa299401a2a627133a5a0513b4e",
+    "newHash": "2e2f20c8dcd8d5572c8f366d746b92f4f0ca92301423d60be99e36dd3dd370b8",
+    "reviewed": false,
+    "learnImpacting": false
+  },
+  {
+    "url": "https://ai.google.dev/gemini-api/docs/prompting-strategies",
+    "vendor": "Google",
+    "pageTitle": "Prompt design strategies",
+    "detectedAt": "2026-11-19T17:06:26.894Z",
+    "oldHash": "9d37c54089ba1889ddf861bb570bae715e2a9371a5247d65d007e1244b8c7246",
+    "newHash": "3147c6eccb281daf0164280a09d93d12660be47d6e56f4b14573dd506dd6931a",
+    "reviewed": false,
+    "learnImpacting": false
+  },
+  {
+    "url": "https://ai.google.dev/gemini-api/docs/whats-new-gemini-3.5",
+    "vendor": "Google",
+    "pageTitle": "Gemini 3.5 Flash notes",
+    "detectedAt": "2026-11-19T17:06:28.916Z",
+    "oldHash": "7e115848a05bd0841eaa30c5949e9eaac06688bdf8b832eef29bff35e3a10a64",
+    "newHash": "907475f6849ea71dd25213cbe8ec4e64f1dd53b43270d69b83b6664cbf9ea7a0",
+    "reviewed": false,
+    "learnImpacting": false
   }
 ]
