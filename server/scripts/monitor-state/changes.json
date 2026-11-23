@@ -3158,5 +3158,45 @@
     "newHash": "8ae0d34a5a749cdd205c7d213a8cb036e15dbe559c052bd6fdbbaeffb58bc225",
     "reviewed": false,
     "learnImpacting": false
+  },
+  {
+    "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/overview",
+    "vendor": "Anthropic",
+    "pageTitle": "Prompt engineering overview",
+    "detectedAt": "2026-11-23T19:54:12.939Z",
+    "oldHash": "41ad15e0a8f9d8230838703509b46e5d7b1381e2837c162e5f5b19fc5d230b3c",
+    "newHash": "79624f3e0164cb3d16f62165d83b85fe96870a32cb549e44eb6f9b305fbfbd07",
+    "reviewed": false,
+    "learnImpacting": true
+  },
+  {
+    "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
+    "vendor": "Anthropic",
+    "pageTitle": "Prompting best practices",
+    "detectedAt": "2026-11-23T19:54:14.947Z",
+    "oldHash": "06682b3749b2926bf052909c229b74606f87e0c130d6f3b040fe823db4f82be9",
+    "newHash": "fefd8a71814b03d5a55f8333f190a955760e9b08845d44c9eb0db78dd4780947",
+    "reviewed": false,
+    "learnImpacting": false
+  },
+  {
+    "url": "https://developer.meta.com/ai/docs/how-to-guides/prompting/",
+    "vendor": "Meta",
+    "pageTitle": "Prompt engineering how-to",
+    "detectedAt": "2026-11-23T19:54:18.876Z",
+    "oldHash": "02b491267c5445d8598c2d2f531fc1b8f9b9b3a9bc015d007f8eeb5a686cf3a8",
+    "newHash": "e50950f397554fe84087f8f4e96901a0788e047a0eb7f7c0b7c6d8c38b3ce2fb",
+    "reviewed": false,
+    "learnImpacting": false
+  },
+  {
+    "url": "https://api-docs.deepseek.com/",
+    "vendor": "DeepSeek",
+    "pageTitle": "API documentation",
+    "detectedAt": "2026-11-23T19:54:21.540Z",
+    "oldHash": "0a1850def0d8ff929a1141346cc33f4e3e37b1facbe1783e47471a5fccddefce",
+    "newHash": "bc68392aab8bd004bc9d725715abc7193cdfcdc9d328ebd31ebf0dbb0b36d6d9",
+    "reviewed": false,
+    "learnImpacting": false
   }
 ]
