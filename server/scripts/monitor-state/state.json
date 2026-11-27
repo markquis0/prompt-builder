@@ -1,16 +1,16 @@
 {
   "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/overview": {
     "hash": "853e7fafa333505a1f68c4f0c6d10e6dbae4e640caab7eaffe8076549bc6e8b3",
-    "lastCheckedAt": "2026-11-25T18:28:01.731Z",
+    "lastCheckedAt": "2026-11-27T17:52:48.510Z",
     "lastChangedAt": "2026-11-25T18:28:01.731Z",
     "consecutiveFailures": 0,
     "status": "ok",
-    "changedThisRun": true
+    "changedThisRun": false
   },
   "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices": {
-    "hash": "4e9e0d912efa3bf9fa549e6d1fdbc20caa55cc44fac14566445aa0d6c0a7fd2c",
-    "lastCheckedAt": "2026-11-25T18:28:03.784Z",
-    "lastChangedAt": "2026-11-25T18:28:03.784Z",
+    "hash": "23e2f9401d3b839d3763377b9bdeae3c098976946ce65cb55ede9e1b21cd516d",
+    "lastCheckedAt": "2026-11-27T17:52:50.573Z",
+    "lastChangedAt": "2026-11-27T17:52:50.573Z",
     "consecutiveFailures": 0,
     "status": "ok",
     "changedThisRun": true
@@ -19,7 +19,7 @@
     "hash": "2e2f20c8dcd8d5572c8f366d746b92f4f0ca92301423d60be99e36dd3dd370b8",
     "etag": "W/\"777582dfd94747f396b5804ef85641ef\"",
     "lastModified": "Thu, 19 Nov 2026 16:00:15 GMT",
-    "lastCheckedAt": "2026-11-25T18:28:03.990Z",
+    "lastCheckedAt": "2026-11-27T17:52:50.886Z",
     "lastChangedAt": "2026-11-19T17:06:26.411Z",
     "consecutiveFailures": 0,
     "status": "ok",
@@ -36,17 +36,17 @@
     "changedThisRun": true
   },
   "https://ai.google.dev/gemini-api/docs/prompting-strategies": {
-    "hash": "feedc3799f3bbd65670caf0e7807d07d9cec67427be25b87dec124537466463b",
-    "lastCheckedAt": "2026-11-25T18:28:04.466Z",
-    "lastChangedAt": "2026-11-25T18:28:04.466Z",
+    "hash": "959434cc82982e3ed6d906f15232f6b687f2865f23277d1acfb770c98ca3596c",
+    "lastCheckedAt": "2026-11-27T17:52:51.391Z",
+    "lastChangedAt": "2026-11-27T17:52:51.391Z",
     "consecutiveFailures": 0,
     "status": "ok",
     "changedThisRun": true
   },
   "https://ai.google.dev/gemini-api/docs/whats-new-gemini-3.5": {
-    "hash": "43c49bfe7700d40c565d806faaf1a8a4a8c15a734f7526e1d83042b77b4c9aef",
-    "lastCheckedAt": "2026-11-25T18:28:06.335Z",
-    "lastChangedAt": "2026-11-25T18:28:06.335Z",
+    "hash": "a3976fa8fde5f178542d5ea0a9b351c07e3acbde4d87947ddd11ad4802aaa126",
+    "lastCheckedAt": "2026-11-27T17:52:53.396Z",
+    "lastChangedAt": "2026-11-27T17:52:53.396Z",
     "consecutiveFailures": 0,
     "status": "ok",
     "changedThisRun": true
